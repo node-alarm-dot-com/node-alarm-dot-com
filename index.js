@@ -77,8 +77,9 @@ function login(username, password) {
     )
     .then(res => {
       const identities = res.body
-      const systems = (identities.data || [])
-        .map(d => getValue(d, 'relationships.selectedSystem.data.id'))
+      const systems = (identities.data || []).map(d =>
+        getValue(d, 'relationships.selectedSystem.data.id')
+      )
 
       return {
         cookie: loginCookies,
@@ -89,15 +90,17 @@ function login(username, password) {
     })
 }
 
-function getCurrentState(systemID, opts) {
-  return authenticatedGet(SYSTEM_URL + systemID, opts).then(res => {
+function getCurrentState(systemID, authOpts) {
+  return authenticatedGet(SYSTEM_URL + systemID, authOpts).then(res => {
     const rels = res.data.relationships
-    const partTasks = rels.partitions.data.map(p => getPartition(p.id, opts))
+    const partTasks = rels.partitions.data.map(p =>
+      getPartition(p.id, authOpts)
+    )
     const sensorIDs = rels.sensors.data.map(s => s.id)
 
     return Promise.all([
       Promise.all(partTasks),
-      getSensors(sensorIDs, opts)
+      getSensors(sensorIDs, authOpts)
     ]).then(partitionsAndSensors => {
       const [partitions, sensors] = partitionsAndSensors
       return {
@@ -111,26 +114,38 @@ function getCurrentState(systemID, opts) {
   })
 }
 
-function getPartition(partitionID, opts) {
-  return authenticatedGet(PARTITION_URL + partitionID, opts)
+function getPartition(partitionID, authOpts) {
+  return authenticatedGet(PARTITION_URL + partitionID, authOpts)
 }
 
-function getSensors(sensorIDs, opts) {
+function getSensors(sensorIDs, authOpts) {
   const query = sensorIDs.map(id => `ids%5B%5D=${id}`).join('&')
   const url = `${SENSORS_URL}?${query}`
-  return authenticatedGet(url, opts)
+  return authenticatedGet(url, authOpts)
 }
 
-function armStay() {
-  throw new Error('Not implemented')
+function armStay(partitionID, authOpts, opts) {
+  return arm(partitionID, 'armStay', authOpts, opts)
 }
 
-function armAway() {
-  throw new Error('Not implemented')
+function armAway(partitionID, authOpts, opts) {
+  return arm(partitionID, 'armAway', authOpts, opts)
 }
 
-function disarm() {
-  throw new Error('Not implemented')
+function disarm(partitionID, authOpts) {
+  return arm(partitionID, 'disarm', authOpts)
+}
+
+function arm(partitionID, verb, authOpts, opts) {
+  const url = `${PARTITION_URL}${partitionID}/${verb}`
+  const postOpts = Object.assign({}, authOpts, {
+    body: {
+      noEntryDelay: verb === 'disarm' ? undefined : Boolean(opts.noEntryDelay),
+      silentArming: verb === 'disarm' ? undefined : Boolean(opts.silentArming),
+      statePollOnly: false
+    }
+  })
+  return authenticatedPost(url, postOpts)
 }
 
 // Helper methods //////////////////////////////////////////////////////////////
@@ -152,6 +167,19 @@ function authenticatedGet(url, opts) {
   opts.headers['User-Agent'] = UA
 
   return get(url, opts).then(res => res.body)
+}
+
+function authenticatedPost(url, opts) {
+  opts = opts || {}
+  opts.headers = opts.headers || {}
+  opts.headers.Accept = 'application/vnd.api+json'
+  opts.headers.AjaxRequestUniqueKey = opts.ajaxKey
+  opts.headers.Cookie = opts.cookie
+  opts.headers.Referer = HOME_URL
+  opts.headers['User-Agent'] = UA
+  opts.headers['Content-Type'] = 'application/json; charset=UTF-8'
+
+  return post(url, opts).then(res => res.body)
 }
 
 function get(url, opts) {
