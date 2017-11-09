@@ -16,9 +16,21 @@ const CT_JSON = 'application/json;charset=UTF-8'
 const UA = `node-frontpoint/${require('./package').version}`
 
 const SYSTEM_STATES = {
+  UNKNOWN: 0,
   DISARMED: 1,
-  ARMED_STAY: 2, // FIXME: Check if these are correct
-  ARMED_AWAY: 3
+  ARMED_STAY: 2,
+  ARMED_AWAY: 3,
+  ARMED_NIGHT: 4
+}
+
+const SENSOR_STATES = {
+  UNKNOWN: 0,
+  CLOSED: 1,
+  OPEN: 2,
+  IDLE: 3,
+  ACTIVE: 4,
+  DRY: 5,
+  WET: 6
 }
 
 exports.login = login
@@ -29,6 +41,7 @@ exports.armStay = armStay
 exports.armAway = armAway
 exports.disarm = disarm
 exports.SYSTEM_STATES = SYSTEM_STATES
+exports.SENSOR_STATES = SENSOR_STATES
 
 // Exported methods ////////////////////////////////////////////////////////////
 
