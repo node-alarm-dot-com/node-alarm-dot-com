@@ -41,7 +41,7 @@ function main() {
     .option('n', {
       alias: 'noEntryDelay',
       default: false,
-      describe: 'Disable the 60-second exit delay or 30-second entry delay',
+      describe: 'Disable the 30-second entry delay',
       type: 'boolean'
     })
     .option('s', {
@@ -62,6 +62,8 @@ function main() {
     return process.exit(1)
   }
 
+  console.log('Authenticating...')
+
   frontpoint
     .login(username, password)
     .then(res => {
@@ -74,7 +76,13 @@ function main() {
 
       const partition = res.partitions[0]
       if (res.partitions.length > 1)
-        console.warn(`Multiple partitions found, using ${partition.id}`)
+        console.warn(`Warning: multiple partitions found`)
+
+      const msg =
+        command === 'armStay'
+          ? 'Arming (stay)'
+          : command === 'armAway' ? 'Arming (away)' : 'Disarming'
+      console.log(`${msg} ${partition.attributes.description}...`)
 
       const opts = {
         noEntryDelay: yargs.argv.noEntryDelay,
