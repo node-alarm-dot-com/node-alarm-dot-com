@@ -39,7 +39,7 @@ function main() {
         const name = `${res.attributes.description}${i ? ' ' + i : ''}`
         const msgs = [getStateString(p)]
         if (p.criticalBattery) msgs.push('Battery Critical')
-        else if (p.lowbattery) msgs.push('Battery Low')
+        else if (p.lowBattery) msgs.push('Battery Low')
         if (p.needsClearIssuesPrompt) msgs.push('System Fault')
 
         console.log(
@@ -53,7 +53,7 @@ function main() {
         const name = s.attributes.description
         const msgs = [s.attributes.stateText]
         if (s.criticalBattery) msgs.push('Battery Critical')
-        else if (s.lowbattery) msgs.push('Battery Low')
+        else if (s.lowBattery) msgs.push('Battery Low')
 
         console.log(
           '\x1b[36m%s\x1b[0m%s',
