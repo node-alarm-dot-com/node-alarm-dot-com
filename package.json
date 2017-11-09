@@ -1,0 +1,35 @@
+{
+  "name": "homebridge-frontpoint",
+  "version": "1.0.0",
+  "description": "Homebridge plugin for FrontPoint alarm systems",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jhurliman/homebridge-frontpoint.git"
+  },
+  "author": "John Hurliman <jhurliman@jhurliman.org>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jhurliman/homebridge-frontpoint/issues"
+  },
+  "homepage": "https://github.com/jhurliman/homebridge-frontpoint#readme",
+  "keywords": [
+    "homebridge-plugin",
+    "frontpoint",
+    "security",
+    "alarm",
+    "alarm.com",
+    "homebridge",
+    "homekit"
+  ],
+  "engines": {
+    "node": ">=6.0.0",
+    "homebridge": ">=0.4.21"
+  },
+  "dependencies": {
+    "frontpoint": "^1.2.0"
+  }
+}
