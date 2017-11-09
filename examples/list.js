@@ -3,10 +3,31 @@ const frontpoint = require('..')
 main()
 
 function main() {
-  const username = process.argv[2] || process.env.FRONTPOINT_USERNAME
-  const password = process.argv[3] || process.env.FRONTPOINT_PASSWORD
+  const yargs = require('yargs')
+    .usage('Usage: $0 [options]')
+    .option('u', {
+      alias: 'username',
+      default: process.env.FRONTPOINT_USERNAME,
+      defaultDescription: 'FRONTPOINT_USERNAME environment variable',
+      describe: 'FrontPoint username',
+      type: 'string'
+    })
+    .option('p', {
+      alias: 'password',
+      default: process.env.FRONTPOINT_PASSWORD,
+      defaultDescription: 'FRONTPOINT_PASSWORD environment variable',
+      describe: 'FrontPoint password',
+      type: 'string'
+    })
+    .help('h')
+    .alias('h', 'help')
+    .version(false)
+
+  const username = yargs.argv.username
+  const password = yargs.argv.password
   if (!username || !password) {
-    console.error(`Usage: list.js <frontpoint-username> <frontpoint-password>`)
+    console.error(`Error: FrontPoint username and password are required`)
+    yargs.showHelp()
     return process.exit(1)
   }
 

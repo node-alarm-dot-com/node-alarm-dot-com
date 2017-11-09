@@ -1,3 +1,7 @@
+/**
+ * @module frontpoint
+ */
+
 const fetch = require('node-fetch')
 
 const LOGIN_URL = 'https://my.frontpointsecurity.com/login'
@@ -28,6 +32,15 @@ exports.SYSTEM_STATES = SYSTEM_STATES
 
 // Exported methods ////////////////////////////////////////////////////////////
 
+/**
+ * Authenticate with alarm.com using the my.frontpointsecurity.com single
+ * sign-on portal. Returns an authentication object that can be passed to other
+ * methods.
+ * 
+ * @param {string} username FrontPoint username.
+ * @param {string} password FrontPoint password.
+ * @returns {Promise}
+ */
 function login(username, password) {
   let loginCookies, ajaxKey
 
@@ -77,8 +90,9 @@ function login(username, password) {
     )
     .then(res => {
       const identities = res.body
-      const systems = (identities.data || [])
-        .map(d => getValue(d, 'relationships.selectedSystem.data.id'))
+      const systems = (identities.data || []).map(d =>
+        getValue(d, 'relationships.selectedSystem.data.id')
+      )
 
       return {
         cookie: loginCookies,
@@ -89,15 +103,28 @@ function login(username, password) {
     })
 }
 
-function getCurrentState(systemID, opts) {
-  return authenticatedGet(SYSTEM_URL + systemID, opts).then(res => {
+/**
+ * Retrieve information about the current state of a security system including
+ * attributes, partitions, sensors, and relationships.
+ * 
+ * @param {string} systemID ID of the FrontPoint system to query. The
+ *   Authentication object returned from the `login` method contains a `systems`
+ *   property which is an array of system IDs.
+ * @param {Object} authOpts Authentication object returned from the `login`
+ *   method.
+ * @returns {Promise}
+ */
+function getCurrentState(systemID, authOpts) {
+  return authenticatedGet(SYSTEM_URL + systemID, authOpts).then(res => {
     const rels = res.data.relationships
-    const partTasks = rels.partitions.data.map(p => getPartition(p.id, opts))
+    const partTasks = rels.partitions.data.map(p =>
+      getPartition(p.id, authOpts)
+    )
     const sensorIDs = rels.sensors.data.map(s => s.id)
 
     return Promise.all([
       Promise.all(partTasks),
-      getSensors(sensorIDs, opts)
+      getSensors(sensorIDs, authOpts)
     ]).then(partitionsAndSensors => {
       const [partitions, sensors] = partitionsAndSensors
       return {
@@ -111,29 +138,93 @@ function getCurrentState(systemID, opts) {
   })
 }
 
-function getPartition(partitionID, opts) {
-  return authenticatedGet(PARTITION_URL + partitionID, opts)
+/**
+ * Get information for a single security system partition.
+ * 
+ * @param {string} partitionID Partition ID to retrieve
+ * @param {Object} authOpts Authentication object returned from the `login`
+ *   method.
+ * @returns {Promise}
+ */
+function getPartition(partitionID, authOpts) {
+  return authenticatedGet(PARTITION_URL + partitionID, authOpts)
 }
 
-function getSensors(sensorIDs, opts) {
+/**
+ * Get information for one or more sensors.
+ * 
+ * @param {string|string[]} sensorIDs Array of sensor ID strings.
+ * @param {Object} authOpts Authentication object returned from the `login`
+ *   method.
+ * @returns {Promise}
+ */
+function getSensors(sensorIDs, authOpts) {
+  if (!Array.isArray(sensorIDs)) sensorIDs = [sensorIDs]
   const query = sensorIDs.map(id => `ids%5B%5D=${id}`).join('&')
   const url = `${SENSORS_URL}?${query}`
-  return authenticatedGet(url, opts)
+  return authenticatedGet(url, authOpts)
 }
 
-function armStay() {
-  throw new Error('Not implemented')
+/**
+ * Arm a security system panel in "stay" mode. NOTE: This call generally takes
+ * 20-30 seconds to complete.
+ * 
+ * @param {string} partitionID Partition ID to arm.
+ * @param {Object} authOpts Authentication object returned from the `login`
+ *   method.
+ * @param {Object} opts Optional arguments for arming the system.
+ * @param {boolean} opts.noEntryDelay Disable the 30-second entry delay.
+ * @param {boolean} opts.silentArming Disable audible beeps and double the exit
+ *   delay.
+ * @returns {Promise}
+ */
+function armStay(partitionID, authOpts, opts) {
+  return arm(partitionID, 'armStay', authOpts, opts)
 }
 
-function armAway() {
-  throw new Error('Not implemented')
+/**
+ * Arm a security system panel in "away" mode. NOTE: This call generally takes
+ * 20-30 seconds to complete.
+ * 
+ * @param {string} partitionID Partition ID to arm.
+ * @param {Object} authOpts Authentication object returned from the `login`
+ *   method.
+ * @param {Object} opts Optional arguments for arming the system.
+ * @param {boolean} opts.noEntryDelay Disable the 30-second entry delay.
+ * @param {boolean} opts.silentArming Disable audible beeps and double the exit
+ *   delay.
+ * @returns {Promise}
+ */
+function armAway(partitionID, authOpts, opts) {
+  return arm(partitionID, 'armAway', authOpts, opts)
 }
 
-function disarm() {
-  throw new Error('Not implemented')
+/**
+ * Disarm a security system panel. NOTE: This call generally takes 20-30 seconds
+ * to complete.
+ * 
+ * @param {string} partitionID Partition ID to disarm.
+ * @param {Object} authOpts Authentication object returned from the `login`
+ *   method.
+ * @returns {Promise}
+ */
+function disarm(partitionID, authOpts) {
+  return arm(partitionID, 'disarm', authOpts)
 }
 
 // Helper methods //////////////////////////////////////////////////////////////
+
+function arm(partitionID, verb, authOpts, opts) {
+  const url = `${PARTITION_URL}${partitionID}/${verb}`
+  const postOpts = Object.assign({}, authOpts, {
+    body: {
+      noEntryDelay: verb === 'disarm' ? undefined : Boolean(opts.noEntryDelay),
+      silentArming: verb === 'disarm' ? undefined : Boolean(opts.silentArming),
+      statePollOnly: false
+    }
+  })
+  return authenticatedPost(url, postOpts)
+}
 
 function getValue(data, path) {
   if (typeof path === 'string') path = path.split('.')
@@ -152,6 +243,19 @@ function authenticatedGet(url, opts) {
   opts.headers['User-Agent'] = UA
 
   return get(url, opts).then(res => res.body)
+}
+
+function authenticatedPost(url, opts) {
+  opts = opts || {}
+  opts.headers = opts.headers || {}
+  opts.headers.Accept = 'application/vnd.api+json'
+  opts.headers.AjaxRequestUniqueKey = opts.ajaxKey
+  opts.headers.Cookie = opts.cookie
+  opts.headers.Referer = HOME_URL
+  opts.headers['User-Agent'] = UA
+  opts.headers['Content-Type'] = 'application/json; charset=UTF-8'
+
+  return post(url, opts).then(res => res.body)
 }
 
 function get(url, opts) {

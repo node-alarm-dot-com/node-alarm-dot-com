@@ -9,6 +9,9 @@
   "author": "John Hurliman <jhurliman@jhurliman.org>",
   "license": "MIT",
   "dependencies": {
-    "node-fetch": "^1.7.2"
+    "node-fetch": "^1.7.3"
+  },
+  "devDependencies": {
+    "yargs": "^10.0.3"
   }
 }
