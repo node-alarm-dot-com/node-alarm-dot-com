@@ -400,9 +400,9 @@ function getSensorState(sensor) {
     case frontpoint.SENSOR_STATES.CLOSED:
       return Characteristic.ContactSensorState.CONTACT_DETECTED
     case frontpoint.SENSOR_STATES.ACTIVE:
-      return true
+      return Characteristic.OccupancyDetected.OCCUPANCY_DETECTED
     case frontpoint.SENSOR_STATES.IDLE:
-      return false
+      return Characteristic.OccupancyDetected.OCCUPANCY_NOT_DETECTED
     case frontpoint.SENSOR_STATES.WET:
       return Characteristic.LeakDetected.LEAK_DETECTED
     case frontpoint.SENSOR_STATES.DRY:
