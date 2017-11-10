@@ -78,6 +78,14 @@ class FrontPointPlatform {
     const existing = this.accessories[accessory.context.accID]
     if (existing) this.removeAccessory(existing)
 
+    if (accessory.context.partitionType) {
+      this.setupPartition(accessory)
+    } else if (accessory.context.sensorType) {
+      this.setupSensor(accessory)
+    } else {
+      this.log(`Unrecognized accessory ${accessory.context.accID}`)
+    }
+
     this.accessories[accessory.context.accID] = accessory
   }
 
@@ -151,12 +159,20 @@ class FrontPointPlatform {
       name: name,
       state: null,
       desiredState: null,
-      statusFault: null
+      statusFault: null,
+      partitionType: 'default'
     }
 
     this.log(`Adding partition ${name} (id=${id}, uuid=${uuid})`)
     this.addAccessory(accessory, Service.SecuritySystem, 'Security Panel')
 
+    this.setupPartition(accessory)
+
+    // Set the initial partition state
+    this.setPartitionState(accessory, partition)
+  }
+
+  setupPartition(accessory) {
     const service = accessory.getService(Service.SecuritySystem)
 
     service
@@ -173,15 +189,18 @@ class FrontPointPlatform {
     service
       .getCharacteristic(Characteristic.StatusFault)
       .on('get', callback => callback(null, accessory.context.statusFault))
-
-    // Set the initial partition state
-    this.setPartitionState(accessory, partition)
   }
 
   addSensor(sensor) {
     const id = sensor.id
     let accessory = this.accessories[id]
     if (accessory) this.removeAccessory(accessory)
+
+    const [type, characteristic, model] = getSensorType(sensor)
+    if (type === undefined) {
+      this.log(`Warning: Sensor with unknown state ${sensor.attributes.state}`)
+      return
+    }
 
     const name = sensor.attributes.description
     const uuid = UUIDGen.generate(id)
@@ -191,17 +210,24 @@ class FrontPointPlatform {
       accID: id,
       name: name,
       state: null,
-      batteryLow: false
-    }
-
-    const [type, characteristic, model] = getSensorType(sensor)
-    if (type === undefined) {
-      this.log(`Warning: Sensor with unknown state ${sensor.attributes.state}`)
-      return
+      batteryLow: false,
+      sensorType: model
     }
 
     this.log(`Adding ${model} "${name}" (id=${id}, uuid=${uuid})`)
     this.addAccessory(accessory, type, model)
+
+    this.setupSensor(accessory)
+
+    // Set the initial sensor state
+    this.setSensorState(accessory, sensor)
+  }
+
+  setupSensor(accessory) {
+    const model = accessory.context.sensorType
+    const [type, characteristic] = sensorModelToType(model)
+    if (!characteristic)
+      throw new Error(`Unrecognized sensor ${accessory.context.accID}`)
 
     const service = accessory.getService(type)
 
@@ -212,9 +238,6 @@ class FrontPointPlatform {
     service
       .getCharacteristic(Characteristic.StatusLowBattery)
       .on('get', callback => callback(null, accessory.context.batteryLow))
-
-    // Set the initial sensor state
-    this.setSensorState(accessory, sensor)
   }
 
   addAccessory(accessory, type, model) {
@@ -263,7 +286,7 @@ class FrontPointPlatform {
       accessory
         .getService(Service.SecuritySystem)
         .getCharacteristic(Characteristic.SecuritySystemCurrentState)
-        .getValue()
+        .setValue(state)
     }
 
     if (desiredState !== accessory.context.desiredState) {
@@ -275,8 +298,8 @@ class FrontPointPlatform {
       accessory.context.desiredState = desiredState
       accessory
         .getService(Service.SecuritySystem)
-        .getCharacteristic(Characteristic.SecuritySystemDesiredState)
-        .getValue()
+        .getCharacteristic(Characteristic.SecuritySystemTargetState)
+        .setValue(desiredState)
     }
 
     if (statusFault !== accessory.context.statusFault) {
@@ -289,7 +312,7 @@ class FrontPointPlatform {
       accessory
         .getService(Service.SecuritySystem)
         .getCharacteristic(Characteristic.StatusFault)
-        .getValue()
+        .setValue(statusFault)
     }
   }
 
@@ -310,7 +333,7 @@ class FrontPointPlatform {
       accessory
         .getService(type)
         .getCharacteristic(characteristic)
-        .getValue()
+        .setValue(state)
     }
 
     if (batteryLow !== accessory.context.batteryLow) {
@@ -323,7 +346,7 @@ class FrontPointPlatform {
       accessory
         .getService(type)
         .getCharacteristic(Characteristic.StatusLowBattery)
-        .getValue()
+        .setValue(batteryLow)
     }
   }
 
@@ -359,6 +382,10 @@ class FrontPointPlatform {
 
     this.log(`changePartitionState(${accessory.context.accID}, ${value})`)
     accessory.context.desiredState = value
+    accessory
+      .getService(Service.SecuritySystem)
+      .getCharacteristic(Characteristic.SecuritySystemTargetState)
+      .setValue(value)
 
     this.login()
       .then(res => method(id, res))
@@ -435,5 +462,18 @@ function getSensorType(sensor) {
       return [Service.LeakSensor, Characteristic.LeakDetected, 'Leak Sensor']
     default:
       return [undefined, undefined, undefined]
+  }
+}
+
+function sensorModelToType(model) {
+  switch (model) {
+    case 'Contact Sensor':
+      return [Service.ContactSensor, Characteristic.ContactSensorState]
+    case 'Occupancy Sensor':
+      return [Service.OccupancySensor, Characteristic.OccupancyDetected]
+    case 'Leak Sensor':
+      return [Service.LeakSensor, Characteristic.LeakDetected]
+    default:
+      return [undefined, undefined]
   }
 }
