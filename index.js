@@ -210,10 +210,6 @@ class FrontPointPlatform {
       .on('get', callback => callback(null, accessory.context.state))
 
     service
-      .getCharacteristic(Characteristic.StatusActive)
-      .on('get', callback => callback(null, true))
-
-    service
       .getCharacteristic(Characteristic.StatusLowBattery)
       .on('get', callback => callback(null, accessory.context.batteryLow))
 
