@@ -59,7 +59,7 @@ class FrontPointPlatform {
         })
       })
       .catch(err => {
-        this.log(`UNHANDLED ERROR: ${err}`)
+        this.log(`UNHANDLED ERROR: ${err.stack}`)
       })
 
     // Start a timer to periodically refresh status
@@ -107,6 +107,7 @@ class FrontPointPlatform {
           (out, system) => {
             out.partitions = out.partitions.concat(system.partitions)
             out.sensors = out.sensors.concat(system.sensors)
+            return out
           },
           { partitions: [], sensors: [] }
         )
@@ -120,7 +121,7 @@ class FrontPointPlatform {
         systemStates.forEach(system => {
           system.partitions.forEach(partition => {
             const accessory = this.accessories[partition.id]
-            if (accessory) return this.addPartition(partition)
+            if (!accessory) return this.addPartition(partition)
 
             this.setPartitionState(accessory, partition)
           })
@@ -156,15 +157,20 @@ class FrontPointPlatform {
     this.log(`Adding partition ${name} (id=${id}, uuid=${uuid})`)
     this.addAccessory(accessory, Service.SecuritySystem, 'Security Panel')
 
-    accessory
-      .getService(Service.SecuritySystem)
+    const service = accessory.getService(Service.SecuritySystem)
+
+    service
       .getCharacteristic(Characteristic.SecuritySystemCurrentState)
       .on('get', callback => callback(null, accessory.context.state))
+
+    service
       .getCharacteristic(Characteristic.SecuritySystemTargetState)
       .on('get', callback => callback(null, accessory.context.desiredState))
       .on('set', (value, callback) =>
         this.changePartitionState(accessory, value, callback)
       )
+
+    service
       .getCharacteristic(Characteristic.StatusFault)
       .on('get', callback => callback(null, accessory.context.statusFault))
 
@@ -197,12 +203,17 @@ class FrontPointPlatform {
     this.log(`Adding ${model} "${name}" (id=${id}, uuid=${uuid})`)
     this.addAccessory(accessory, type, model)
 
-    accessory
-      .getService(type)
+    const service = accessory.getService(type)
+
+    service
       .getCharacteristic(characteristic)
       .on('get', callback => callback(null, accessory.context.state))
+
+    service
       .getCharacteristic(Characteristic.StatusActive)
       .on('get', callback => callback(null, true))
+
+    service
       .getCharacteristic(Characteristic.StatusLowBattery)
       .on('get', callback => callback(null, accessory.context.batteryLow))
 
@@ -392,9 +403,9 @@ function getSensorState(sensor) {
       return Characteristic.ContactSensorState.CONTACT_NOT_DETECTED
     case frontpoint.SENSOR_STATES.CLOSED:
       return Characteristic.ContactSensorState.CONTACT_DETECTED
-    case frontpoint.SENSOR_STATES.ACTIVATED:
+    case frontpoint.SENSOR_STATES.ACTIVE:
       return true
-    case frontpoint.SENSOR_STATES.DEACTIVATED:
+    case frontpoint.SENSOR_STATES.IDLE:
       return false
     case frontpoint.SENSOR_STATES.WET:
       return Characteristic.LeakDetected.LEAK_DETECTED
