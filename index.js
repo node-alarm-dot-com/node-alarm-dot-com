@@ -2,6 +2,7 @@ const frontpoint = require('frontpoint')
 
 const PLUGIN_ID = 'homebridge-frontpoint'
 const PLUGIN_NAME = 'FrontPoint'
+const MANUFACTURER = 'FrontPoint Security'
 const AUTH_TIMEOUT_MS = 1000 * 60 * 10
 const DEFAULT_REFRESH_S = 60
 
@@ -19,7 +20,7 @@ module.exports = function(homebridge) {
 class FrontPointPlatform {
   constructor(log, config, api) {
     this.log = log
-    this.config = config || { platform: 'FrontPoint' }
+    this.config = config || { platform: PLUGIN_NAME }
     this.debug = this.config.debug || false
 
     if (!this.config.username)
@@ -98,6 +99,7 @@ class FrontPointPlatform {
     const now = +new Date()
     if (this.authOpts.expires > now) return Promise.resolve(this.authOpts)
 
+    this.log(`Logging into FrontPoint as ${this.config.username}`)
     return frontpoint
       .login(this.config.username, this.config.password)
       .then(authOpts => {
@@ -105,6 +107,7 @@ class FrontPointPlatform {
         authOpts.expires = +new Date() + AUTH_TIMEOUT_MS
         this.authOpts = authOpts
 
+        this.log(`Logged into FrontPoint as ${this.config.username}`)
         return authOpts
       })
   }
@@ -175,6 +178,27 @@ class FrontPointPlatform {
   }
 
   setupPartition(accessory) {
+    const id = accessory.context.accID
+    const name = accessory.context.name
+    const model = 'Security Panel'
+
+    // Always reachable
+    accessory.reachable = true
+
+    // Setup HomeKit accessory information
+    accessory
+      .getService(Service.AccessoryInformation)
+      .setCharacteristic(Characteristic.Manufacturer, MANUFACTURER)
+      .setCharacteristic(Characteristic.Model, model)
+      .setCharacteristic(Characteristic.SerialNumber, id)
+
+    // Setup event listeners
+
+    accessory.on('identify', (paired, callback) => {
+      this.log(`${name} identify requested, paired=${paired}`)
+      callback()
+    })
+
     const service = accessory.getService(Service.SecuritySystem)
 
     service
@@ -226,10 +250,29 @@ class FrontPointPlatform {
   }
 
   setupSensor(accessory) {
+    const id = accessory.context.accID
+    const name = accessory.context.name
     const model = accessory.context.sensorType
     const [type, characteristic] = sensorModelToType(model)
     if (!characteristic)
       throw new Error(`Unrecognized sensor ${accessory.context.accID}`)
+
+    // Always reachable
+    accessory.reachable = true
+
+    // Setup HomeKit accessory information
+    accessory
+      .getService(Service.AccessoryInformation)
+      .setCharacteristic(Characteristic.Manufacturer, MANUFACTURER)
+      .setCharacteristic(Characteristic.Model, model)
+      .setCharacteristic(Characteristic.SerialNumber, id)
+
+    // Setup event listeners
+
+    accessory.on('identify', (paired, callback) => {
+      this.log(`${name} identify requested, paired=${paired}`)
+      callback()
+    })
 
     const service = accessory.getService(type)
 
@@ -249,24 +292,6 @@ class FrontPointPlatform {
 
     // Setup HomeKit service
     accessory.addService(type, name)
-
-    // New accessory is always reachable
-    accessory.reachable = true
-    accessory.updateReachability(true)
-
-    // Setup HomeKit accessory information
-    accessory
-      .getService(Service.AccessoryInformation)
-      .setCharacteristic(Characteristic.Manufacturer, 'FrontPoint')
-      .setCharacteristic(Characteristic.Model, model)
-      .setCharacteristic(Characteristic.SerialNumber, id)
-
-    // Setup event listeners
-
-    accessory.on('identify', (paired, callback) => {
-      this.log(`${name} identify requested, paired=${paired}`)
-      callback()
-    })
 
     // Register new accessory in HomeKit
     this.api.registerPlatformAccessories(PLUGIN_ID, PLUGIN_NAME, [accessory])
@@ -372,17 +397,22 @@ class FrontPointPlatform {
   changePartitionState(accessory, value, callback) {
     const id = accessory.context.accID
     let method
+    const opts = {}
 
     switch (value) {
       case Characteristic.SecuritySystemTargetState.STAY_ARM:
       case Characteristic.SecuritySystemTargetState.NIGHT_ARM:
         method = frontpoint.armStay
+        break
       case Characteristic.SecuritySystemTargetState.AWAY_ARM:
         method = frontpoint.armAway
+        break
       case Characteristic.SecuritySystemTargetState.DISARM:
         method = frontpoint.disarm
+        break
       default:
         const msg = `Can't set SecuritySystem to unknown value ${value}`
+        this.log(msg)
         return callback(new Error(msg))
     }
 
@@ -390,11 +420,12 @@ class FrontPointPlatform {
     accessory.context.desiredState = value
 
     this.login()
-      .then(res => method(id, res)) // Usually 20-30 seconds
+      .then(res => method(id, res, opts)) // Usually 20-30 seconds
+      .then(res => res.data)
       .then(partition => this.setPartitionState(accessory, partition))
       .then(_ => callback())
       .catch(err => {
-        this.log(`Error: Failed to change partition state: ${err}`)
+        this.log(`Error: Failed to change partition state: ${err.stack}`)
         this.refreshDevices()
         callback(err)
       })
