@@ -388,22 +388,16 @@ class FrontPointPlatform {
 
     this.log(`changePartitionState(${accessory.context.accID}, ${value})`)
     accessory.context.desiredState = value
-    accessory
-      .getService(Service.SecuritySystem)
-      .getCharacteristic(Characteristic.SecuritySystemTargetState)
-      .updateValue(value)
 
     this.login()
-      .then(res => method(id, res))
+      .then(res => method(id, res)) // Usually 20-30 seconds
       .then(partition => this.setPartitionState(accessory, partition))
+      .then(_ => callback())
       .catch(err => {
         this.log(`Error: Failed to change partition state: ${err}`)
         this.refreshDevices()
+        callback(err)
       })
-
-    // Return immediately after desiredState is set, don't wait 20-30s for the
-    // arm or disarm to complete
-    callback()
   }
 }
 
