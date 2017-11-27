@@ -44,8 +44,9 @@ class FrontPointPlatform {
     this.listDevices()
       .then(res => {
         this.log(
-          `Received ${res.partitions.length} partitions(s) and ${res.sensors
-            .length} sensor(s) from FrontPoint`
+          `Received ${res.partitions.length} partitions(s) and ${
+            res.sensors.length
+          } sensor(s) from FrontPoint`
         )
 
         res.partitions.forEach(p => {
@@ -71,8 +72,9 @@ class FrontPointPlatform {
 
   configureAccessory(accessory) {
     this.log(
-      `Loaded from cache: ${accessory.context.name} (${accessory.context
-        .accID})`
+      `Loaded from cache: ${accessory.context.name} (${
+        accessory.context.accID
+      })`
     )
 
     const existing = this.accessories[accessory.context.accID]
@@ -278,41 +280,44 @@ class FrontPointPlatform {
 
     if (state !== accessory.context.state) {
       this.log(
-        `Updating partition ${id}, state=${state}, prev=${accessory.context
-          .state}`
+        `Updating partition ${id}, state=${state}, prev=${
+          accessory.context.state
+        }`
       )
 
       accessory.context.state = state
       accessory
         .getService(Service.SecuritySystem)
         .getCharacteristic(Characteristic.SecuritySystemCurrentState)
-        .setValue(state)
+        .updateValue(state)
     }
 
     if (desiredState !== accessory.context.desiredState) {
       this.log(
-        `Updating partition ${id}, desiredState=${desiredState}, prev=${accessory
-          .context.desiredState}`
+        `Updating partition ${id}, desiredState=${desiredState}, prev=${
+          accessory.context.desiredState
+        }`
       )
 
       accessory.context.desiredState = desiredState
       accessory
         .getService(Service.SecuritySystem)
         .getCharacteristic(Characteristic.SecuritySystemTargetState)
-        .setValue(desiredState)
+        .updateValue(desiredState)
     }
 
     if (statusFault !== accessory.context.statusFault) {
       this.log(
-        `Updating partition ${id}, statusFault=${statusFault}, prev=${accessory
-          .context.statusFault}`
+        `Updating partition ${id}, statusFault=${statusFault}, prev=${
+          accessory.context.statusFault
+        }`
       )
 
       accessory.context.statusFault = statusFault
       accessory
         .getService(Service.SecuritySystem)
         .getCharacteristic(Characteristic.StatusFault)
-        .setValue(statusFault)
+        .updateValue(statusFault)
     }
   }
 
@@ -333,20 +338,21 @@ class FrontPointPlatform {
       accessory
         .getService(type)
         .getCharacteristic(characteristic)
-        .setValue(state)
+        .updateValue(state)
     }
 
     if (batteryLow !== accessory.context.batteryLow) {
       this.log(
-        `Updating sensor ${id}, batteryLow=${batteryLow}, prev=${accessory
-          .context.batteryLow}`
+        `Updating sensor ${id}, batteryLow=${batteryLow}, prev=${
+          accessory.context.batteryLow
+        }`
       )
 
       accessory.context.batteryLow = batteryLow
       accessory
         .getService(type)
         .getCharacteristic(Characteristic.StatusLowBattery)
-        .setValue(batteryLow)
+        .updateValue(batteryLow)
     }
   }
 
@@ -385,7 +391,7 @@ class FrontPointPlatform {
     accessory
       .getService(Service.SecuritySystem)
       .getCharacteristic(Characteristic.SecuritySystemTargetState)
-      .setValue(value)
+      .updateValue(value)
 
     this.login()
       .then(res => method(id, res))
