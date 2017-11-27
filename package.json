@@ -1,6 +1,6 @@
 {
   "name": "homebridge-frontpoint",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Homebridge plugin for FrontPoint alarm systems",
   "main": "index.js",
   "scripts": {
