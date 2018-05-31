@@ -33,6 +33,30 @@ class FrontPointPlatform {
     this.accessories = {}
     this.authOpts = { expires: +new Date() - 1 }
 
+    // Default arming mode options
+    this.armingModes = {
+      "away": {
+        noEntryDelay: false,
+        silentArming: false
+      },
+      "night": {
+        noEntryDelay: false,
+        silentArming: true
+      },
+      "stay": {
+        noEntryDelay: false,
+        silentArming: true
+      }
+    };
+
+    // Overwrite default arming modes with config settings.
+    if (this.config.armingModes !== undefined) {
+      for(var key in this.config.armingModes) {
+        this.armingModes[key].noEntryDelay = Boolean(this.config.armingModes[key].noEntryDelay);
+        this.armingModes[key].silentArming = Boolean(this.config.armingModes[key].silentArming);
+      }
+    }
+
     if (api) {
       this.api = api
       this.api.on('didFinishLaunching', this.didFinishLaunching.bind(this))
@@ -402,14 +426,18 @@ class FrontPointPlatform {
     switch (value) {
       case Characteristic.SecuritySystemTargetState.STAY_ARM:
         method = frontpoint.armStay
+        opts.noEntryDelay = this.armingModes.stay.noEntryDelay;
+        opts.silentArming = this.armingModes.stay.silentArming;
         break
       case Characteristic.SecuritySystemTargetState.NIGHT_ARM:
         method = frontpoint.armStay
-        opts.noEntryDelay = true
-        opts.silentArming = true
+        opts.noEntryDelay = this.armingModes.night.noEntryDelay;
+        opts.silentArming = this.armingModes.night.silentArming;
         break
       case Characteristic.SecuritySystemTargetState.AWAY_ARM:
         method = frontpoint.armAway
+        opts.noEntryDelay = this.armingModes.away.noEntryDelay;
+        opts.silentArming = this.armingModes.away.silentArming;
         break
       case Characteristic.SecuritySystemTargetState.DISARM:
         method = frontpoint.disarm
