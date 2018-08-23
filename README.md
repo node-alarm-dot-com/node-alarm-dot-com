@@ -6,7 +6,7 @@ TBD:
 
     % sudo npm install -g node-alarm-dot-com
 
-# Many Thanks
+# Acknowledgements
 Many thanks to:
 
  - [Schwark Satyavolu](https://github.com/schwark), original author of [pyalarmcom](https://github.com/schwark/pyalarmcom)
