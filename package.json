@@ -28,10 +28,8 @@
   },
   "dependencies": {
     "lodash": "*",
-    "util": "*",
-    "mechanize": "*",
-    "request": "^2.88.0",
-    "request-promise": "^4.2.2",
-    "underscore": "^1.8.3"
+    "needle": "^2.2.2",
+    "promise": "^8.0.1",
+    "util": "*"
   }
 }
