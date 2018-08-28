@@ -1,6 +1,6 @@
 {
   "name": "node-alarm-dot-com",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "An Alarm.com interface module.",
   "author": {
     "name": "Mike Kormendy",
@@ -27,9 +27,6 @@
     "node": ">=0.12.0"
   },
   "dependencies": {
-    "lodash": "*",
-    "needle": "^2.2.2",
-    "promise": "^8.0.1",
-    "util": "*"
+    "needle": "^2.2.2"
   }
 }

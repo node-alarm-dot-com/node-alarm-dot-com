@@ -2,15 +2,12 @@
 "use strict";
 
 // dependencies & defaults
-var _           = require('lodash'),
-    util        = require('util'),
-    promise     = require('promise'),
-    needle      = require('needle'),
+var needle      = require('needle'),
 
     // cliargs     = process.argv.slice(2); // 0 is node, 1 is command, 2 is arguments
     cliargs     = ['username','password','status'],
-    logged_in   = false,
-    panel_id    = null,
+    loggedin    = false,
+    panelid     = null,
     state       = 'UNKNOWN',
     jar         = {};
 
@@ -20,7 +17,7 @@ if (cliargs.length > 0) {
       password  = cliargs[1],
       operation = cliargs[2];
 } else {
-  console.log("Missing username and password");
+  console.log("Missing username and password.");
   return;
 }
 
@@ -39,9 +36,9 @@ function merge(obj1,obj2){
 }
 
 // method for logging in
-function _login(callback) {
+function _login(operation) {
 
-  if (!logged_in) {
+  if (!loggedin) {
 
     needle.get('https://www.alarm.com/login.aspx', {cookies: jar}, function(err, resp, body) {
 
@@ -65,7 +62,7 @@ function _login(callback) {
         } // console.log("EVENTVALIDATION = "+eventval);
 
         // attempt clean login
-        logged_in = null;
+        loggedin = null;
 
         // submit login form
         needle.post('https://www.alarm.com/web/Default.aspx', {
@@ -95,16 +92,18 @@ function _login(callback) {
 
                   // console.log(resp.headers.location);
 
+                  loggedin = true;
+                  console.log('Logged in!');
+
                   jar = merge(jar, resp.cookies);
+                  console.log('ajaxkey: '+jar.afg);
                   // console.log('SESSION COOKIES: '+JSON.stringify(jar, null, 4));
 
-                  console.log('Logged in!');
-                  logged_in = true;
-                  _get_panel();
+                  _get_panel(operation);
 
                 }
                 else {
-                  console.log('Could not redirect to dashboard:');
+                  console.log('There was an error with redirecting to dashboard:');
                   console.log(err);
                 }
 
@@ -112,14 +111,14 @@ function _login(callback) {
 
             }
             else {
-              console.log('Could not login to login form:');
+              console.log('There was an error with loggin in:');
               console.log(err);
             }
 
           });
       }
       else {
-        console.log('Could not connect to website:');
+        console.log('There was an error with connecting to the website:');
         console.log(err);
       }
       
@@ -131,29 +130,43 @@ function _login(callback) {
 }
 
 // method to get panel id for account
-function _get_panel() {
+function _get_panel(operation) {
 
-  if (!panel_id) {
+  if (!panelid) {
 
-    api_call('GET', 'systems/availableSystemItems');
-    // console.log(result);
+    // get user id, used for getting the panel id
+    api_call('GET', 'systems/availableSystemItems', null, function(result) {
+      
+      // console.log('api_call body: '+JSON.stringify(result, null, 4));
+      console.log('userid: '+result.value[0].id);
+      var userid = result.value[0].id
+
+      // get panel id, used in sending the command to the panel
+      api_call('GET', 'systems/systems/'+userid, null, function(result) {
+
+        // console.log('api_call body: '+JSON.stringify(result, null, 4));
+        console.log('panelid: '+result.value.partitions[0].id);
+        panelid = result.value.partitions[0].id;
+
+        command(operation);
+
+      });
+
+    });
 
   }
-
-  return panel_id;
 
 }
 
 // method for making calls to the alarm.com pseudo API
-function api_call(apiMethod='GET', apiEndpoint, apiBody='') {
+function api_call(apimethod='GET', apiendpoint, apibody='', callback) {
 
   // store ajax key
   var ajaxkey = null;
   ajaxkey = jar.afg;
-  console.log('ajaxkey: '+ajaxkey);
 
   var result = null;
-  needle.request(apiMethod, 'https://www.alarm.com/web/api/'+apiEndpoint, apiBody, {
+  needle.request(apimethod, 'https://www.alarm.com/web/api/'+apiendpoint, apibody, {
       cookies: jar,
       json: true,
       headers: {
@@ -163,17 +176,55 @@ function api_call(apiMethod='GET', apiEndpoint, apiBody='') {
       }
     }, function(err, resp, body) {
       if (!err) {
-        console.log('api_call body: '+JSON.stringify(body, null, 4));
-        result = body;
+        if (typeof callback === "function") {
+          callback(body);
+        }
       }
       else {
-        console.log('Could not access api endpoint:');
+        console.log('There was an error with the api_call:');
+        console.log('apimethod: '+apimethod);
+        console.log('apiendpoint: https://www.alarm.com/web/api/'+apiendpoint);
+        console.log('apibody: '+apibody);
         console.log(err);
         // result = null;
       }
     })
-  return result;
 
 }
 
-_login();
+function command(operation, forcebypass=false, noentrydelay=false, silentarming=false) {
+  var apimethod,
+      apibody,
+      states      = ['UNKNOWN', 'DISARM', 'ARMSTAY', 'ARMAWAY'],
+      operations  = {'ARMSTAY': '/armStay', 'ARMAWAY': '/armAway', 'DISARM': '/disarm', 'STATUS': ''},
+      operation   = operation.toUpperCase(),
+      apiendpoint = 'devices/partitions/'+panelid+operations[operation];
+
+  console.log('Running command: '+operation);
+
+  if (operation === 'STATUS') {
+    apimethod = 'GET';
+    apibody   = '';
+  }
+  else {
+    apimethod = 'POST';
+    apibody   = '{"forceBypass":'+String(forcebypass).toLowerCase()+',"noEntryDelay":'+String(noentrydelay).toLowerCase()+',"silentArming":'+String(silentarming).toLowerCase()+',"statePollOnly":false}';
+  }
+
+  // console.log(apimethod);
+  // console.log(apiendpoint);
+  // console.log(apibody);
+
+  // run command operation to the panel (arm, disarm, get status)
+  api_call(apimethod, apiendpoint, apibody, function(result) {
+
+    // console.log('api_call body: '+JSON.stringify(result, null, 4));
+    // console.log('current state: '+result.value.state);
+    state = states[result.value.state];
+    console.log('The current status is: '+state);
+
+  });
+
+}
+
+_login(operation);
