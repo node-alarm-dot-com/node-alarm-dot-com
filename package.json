@@ -1,6 +1,6 @@
 {
   "name": "node-alarm-dot-com",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "An Alarm.com interface module.",
   "author": {
     "name": "Mike Kormendy",
