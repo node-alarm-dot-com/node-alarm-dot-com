@@ -2,9 +2,25 @@
 An [Alarm.com](https://alarm.com/) interface module.
 
 # Installation
-TBD:
 
     % sudo npm install -g node-alarm-dot-com
+
+# Usage
+
+#### Command Line
+
+    % nodeADC <username> <password> <command>
+
+#### As a Node.js Module
+
+    var nodeADC = require('node-alarm-dot-com');
+
+    nodeADC('username', 'password', 'disarm', function(state) {
+       console.log(state);
+    });
+    
+    // should output: DISARM
+
 
 # Acknowledgements
 Many thanks to:

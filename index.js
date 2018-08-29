@@ -1,25 +1,16 @@
+#!/usr/bin/env node
+
 /* jshint asi: true, node: true, laxbreak: true, laxcomma: true, undef: true, unused: true */
 "use strict";
 
-// dependencies & defaults
+// dependencies
 var needle      = require('needle'),
-
-    // cliargs     = process.argv.slice(2); // 0 is node, 1 is command, 2 is arguments
-    cliargs     = ['username','password','status'],
+// defaults
+    logging     = false,
     loggedin    = false,
     panelid     = null,
     state       = 'UNKNOWN',
     jar         = {};
-
-// parse CLI arguments
-if (cliargs.length > 0) {
-  var username  = cliargs[0],
-      password  = cliargs[1],
-      operation = cliargs[2];
-} else {
-  console.log("Missing username and password.");
-  return;
-}
 
 // set needle HTTP client defaults
 needle.defaults({
@@ -36,7 +27,7 @@ function merge(obj1,obj2){
 }
 
 // method for logging in
-function _login(operation) {
+function _login(username, password, operation, callback) {
 
   if (!loggedin) {
 
@@ -93,33 +84,38 @@ function _login(operation) {
                   // console.log(resp.headers.location);
 
                   loggedin = true;
-                  console.log('Logged in!');
+                  // console.log('Logged in!');
 
                   jar = merge(jar, resp.cookies);
-                  console.log('ajaxkey: '+jar.afg);
+                  // console.log('ajaxkey: '+jar.afg);
                   // console.log('SESSION COOKIES: '+JSON.stringify(jar, null, 4));
 
-                  _get_panel(operation);
+                  _get_panel(operation, function(result) {
+                    
+                    callback && callback(result);
+
+                  });
+
 
                 }
                 else {
-                  console.log('There was an error with redirecting to dashboard:');
-                  console.log(err);
+                  console.error('There was an error with redirecting to dashboard:');
+                  console.error(err);
                 }
 
               });
 
             }
             else {
-              console.log('There was an error with loggin in:');
-              console.log(err);
+              console.error('There was an error with loggin in:');
+              console.error(err);
             }
 
           });
       }
       else {
-        console.log('There was an error with connecting to the website:');
-        console.log(err);
+        console.error('There was an error with connecting to the website:');
+        console.error(err);
       }
       
 
@@ -130,7 +126,7 @@ function _login(operation) {
 }
 
 // method to get panel id for account
-function _get_panel(operation) {
+function _get_panel(operation, callback) {
 
   if (!panelid) {
 
@@ -138,17 +134,19 @@ function _get_panel(operation) {
     api_call('GET', 'systems/availableSystemItems', null, function(result) {
       
       // console.log('api_call body: '+JSON.stringify(result, null, 4));
-      console.log('userid: '+result.value[0].id);
+      // console.log('userid: '+result.value[0].id);
       var userid = result.value[0].id
 
       // get panel id, used in sending the command to the panel
       api_call('GET', 'systems/systems/'+userid, null, function(result) {
 
         // console.log('api_call body: '+JSON.stringify(result, null, 4));
-        console.log('panelid: '+result.value.partitions[0].id);
+        // console.log('panelid: '+result.value.partitions[0].id);
         panelid = result.value.partitions[0].id;
 
-        command(operation);
+        command(operation, null, null, null, function(result) {
+          callback && callback(result);
+        });
 
       });
 
@@ -158,7 +156,48 @@ function _get_panel(operation) {
 
 }
 
-// method for making calls to the alarm.com pseudo API
+function command(operation, forcebypass=false, noentrydelay=false, silentarming=false, callback) {
+
+  var apimethod,
+      apibody,
+      states      = ['UNKNOWN', 'DISARM', 'ARMSTAY', 'ARMAWAY'],
+      operations  = {'ARMSTAY': '/armStay', 'ARMAWAY': '/armAway', 'DISARM': '/disarm', 'STATUS': ''},
+      operation   = operation.toUpperCase(),
+      apiendpoint = 'devices/partitions/'+panelid+operations[operation];
+
+  // console.log('Running command: '+operation);
+
+  if (operation === 'STATUS') {
+    apimethod = 'GET';
+    apibody   = '';
+  }
+  else {
+    apimethod = 'POST';
+    apibody   = '{"forceBypass":'+String(forcebypass).toLowerCase()+',"noEntryDelay":'+String(noentrydelay).toLowerCase()+',"silentArming":'+String(silentarming).toLowerCase()+',"statePollOnly":false}';
+  }
+
+  // console.log(apimethod);
+  // console.log(apiendpoint);
+  // console.log(apibody);
+
+  // run command operation to the panel (arm, disarm, get status) and output the resulting status
+  api_call(apimethod, apiendpoint, apibody, function(result) {
+
+    // console.log('api_call body: '+JSON.stringify(result, null, 4));
+    // console.log('current state: '+result.value.state);
+    state = states[result.value.state];
+    if (logging === true) {
+      var output = {};
+      output.current_status = state;
+      console.log(JSON.stringify(output));
+    }
+    callback && callback(state);
+
+  });
+
+}
+
+// method for making calls to the alarm.com HTTP API
 function api_call(apimethod='GET', apiendpoint, apibody='', callback) {
 
   // store ajax key
@@ -176,55 +215,71 @@ function api_call(apimethod='GET', apiendpoint, apibody='', callback) {
       }
     }, function(err, resp, body) {
       if (!err) {
-        if (typeof callback === "function") {
-          callback(body);
-        }
+        callback && callback(body);
       }
       else {
-        console.log('There was an error with the api_call:');
-        console.log('apimethod: '+apimethod);
-        console.log('apiendpoint: https://www.alarm.com/web/api/'+apiendpoint);
-        console.log('apibody: '+apibody);
-        console.log(err);
-        // result = null;
+        console.error('There was an error with the api_call:');
+        console.error('apimethod: '+apimethod);
+        console.error('apiendpoint: https://www.alarm.com/web/api/'+apiendpoint);
+        console.error('apibody: '+apibody);
+        console.error(err);
       }
     })
 
 }
 
-function command(operation, forcebypass=false, noentrydelay=false, silentarming=false) {
-  var apimethod,
-      apibody,
-      states      = ['UNKNOWN', 'DISARM', 'ARMSTAY', 'ARMAWAY'],
-      operations  = {'ARMSTAY': '/armStay', 'ARMAWAY': '/armAway', 'DISARM': '/disarm', 'STATUS': ''},
-      operation   = operation.toUpperCase(),
-      apiendpoint = 'devices/partitions/'+panelid+operations[operation];
 
-  console.log('Running command: '+operation);
 
-  if (operation === 'STATUS') {
-    apimethod = 'GET';
-    apibody   = '';
+// the module is run on the command line
+if (require.main == module) {
+
+  logging = true;
+
+  // get command line arguments
+  var cliargs = process.argv.slice(2); // 0 is node, 1 is command, 2 is arguments
+  // var cliargs = ['username', 'password', 'status'],
+
+  // parse CLI arguments
+  if (cliargs.length > 0) {
+
+    var username  = cliargs[0],
+        password  = cliargs[1],
+        operation = cliargs[2];
+
+    if (String(operation).toLowerCase() != 'status' &&
+        String(operation).toLowerCase() != 'armaway' &&
+        String(operation).toLowerCase() != 'armstay' &&
+        String(operation).toLowerCase() != 'disarm') {
+
+      console.error("Unknown or missing command (E.g., status, armaway, armstay, disarm).");
+      return;
+
+    }
+    else {
+      _login(username, password, operation);
+    }
+
   }
   else {
-    apimethod = 'POST';
-    apibody   = '{"forceBypass":'+String(forcebypass).toLowerCase()+',"noEntryDelay":'+String(noentrydelay).toLowerCase()+',"silentArming":'+String(silentarming).toLowerCase()+',"statePollOnly":false}';
+
+    console.error("Missing username and password.");
+    return;
+
   }
+  
+}
+// the module is run as a required module, e.g., require('node-alarm-dot-com')
+else {
 
-  // console.log(apimethod);
-  // console.log(apiendpoint);
-  // console.log(apibody);
+  module.exports = function(username, password, operation, callback) {
 
-  // run command operation to the panel (arm, disarm, get status)
-  api_call(apimethod, apiendpoint, apibody, function(result) {
+    return _login(username, password, operation, callback);
 
-    // console.log('api_call body: '+JSON.stringify(result, null, 4));
-    // console.log('current state: '+result.value.state);
-    state = states[result.value.state];
-    console.log('The current status is: '+state);
-
-  });
+  };
 
 }
 
-_login(operation);
+
+
+
+

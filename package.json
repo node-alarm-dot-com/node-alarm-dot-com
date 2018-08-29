@@ -7,6 +7,9 @@
     "email": "mike@somethinginteractive.com"
   },
   "main": "index.js",
+  "bin": {
+    "nodeADC": "./index.js"
+  },
   "scripts": {
     "lint": "jshint package.json *.js"
   },
