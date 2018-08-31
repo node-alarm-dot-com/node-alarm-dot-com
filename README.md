@@ -1,9 +1,9 @@
-# node-alarm-dot-com
+# node-alarmdotcom
 An [Alarm.com](https://alarm.com/) interface module.
 
 # Installation
 
-    % sudo npm install -g node-alarm-dot-com
+    % sudo npm install -g node-alarmdotcom
 
 # Usage
 
@@ -13,7 +13,7 @@ An [Alarm.com](https://alarm.com/) interface module.
 
 #### As a Node.js Module
 
-    var nodeADC = require('node-alarm-dot-com');
+    var nodeADC = require('node-alarmdotcom');
 
     nodeADC('username', 'password', 'disarm', function(state) {
        console.log(state);
