@@ -1,7 +1,7 @@
 {
-  "name": "node-alarm-dot-com",
-  "version": "0.3.0",
-  "description": "An Alarm.com interface module.",
+  "name": "node-alarmdotcom",
+  "version": "0.4.0",
+  "description": "An interface module written in node.js Alarm.com interface module.",
   "author": {
     "name": "Mike Kormendy",
     "email": "mike@somethinginteractive.com"
@@ -15,16 +15,19 @@
   },
   "license": "MIT",
   "keywords": [
+    "node",
     "alarm.com",
     "alarm-dot-com",
-    "alarm"
+    "alarmdotcom",
+    "alarm",
+    "homebridge"
   ],
   "repository": {
     "type": "git",
-    "url": "git://github.com/mkormendy/node-alarm-dot-com.git"
+    "url": "git://github.com/mkormendy/node-alarmdotcom.git"
   },
   "bugs": {
-    "url": "https://github.com/mkormendy/node-alarm-dot-com/issues"
+    "url": "https://github.com/mkormendy/node-alarmdotcom/issues"
   },
   "engines": {
     "node": ">=0.12.0"
