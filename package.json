@@ -1,7 +1,7 @@
 {
-  "name": "node-alarmdotcom",
+  "name": "node-alarm-dot-com",
   "version": "0.4.0",
-  "description": "An interface module written in node.js Alarm.com interface module.",
+  "description": "An interface module written in node.js to arm and disarm Alarm.com security systems.",
   "author": {
     "name": "Mike Kormendy",
     "email": "mike@somethinginteractive.com"
@@ -24,10 +24,10 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git://github.com/mkormendy/node-alarmdotcom.git"
+    "url": "git://github.com/mkormendy/node-alarm-dot-com.git"
   },
   "bugs": {
-    "url": "https://github.com/mkormendy/node-alarmdotcom/issues"
+    "url": "https://github.com/mkormendy/node-alarm-dot-com/issues"
   },
   "engines": {
     "node": ">=0.12.0"
