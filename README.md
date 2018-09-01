@@ -1,5 +1,6 @@
 # node-alarm-dot-com
-An [Alarm.com](https://alarm.com/) interface module.
+An interface module written in node.js to arm and disarm [Alarm.com](https://alarm.com/) security systems.
+
 
 # Installation
 
