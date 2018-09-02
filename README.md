@@ -1,10 +1,10 @@
 # HomeBridge Alarm.com Plugin
 
-Alarm.com plugin for [Homebridge](https://github.com/nfarina/homebridge).
+Alarm.com plugin for [Homebridge](https://github.com/nfarina/homebridge) using the [node-alarm-dot-com](https://github.com/mkormendy/node-alarm-dot-com) interface.
 
-Based purely off of John Hurliman's FrontPoint* plugin for Homebridge<small>[↗](https://github.com/jhurliman/homebridge-frontpoint)</small> with modifications to the namespace and nomenclature as Alarm.com-branded instead.
+Based purely off of John Hurliman's FrontPoint* plugin for Homebridge<small>[↗](https://github.com/jhurliman/homebridge-frontpoint)</small> with modifications to the namespace and branding as Alarm.com instead.
 
-> **PRO:** This plugin does not require any additional access to external proxy APIs (e.g., WrapAPI), instead it uses Node.js to interact with Alarm.com directly.
+> **NOTE:** Because this uses Node.js-based HTTP requests to communicate with Alarm.com directly, this plugin does not require any additional accounts with access to external proxy APIs (e.g., WrapAPI). 🎉
 
 <small>*FrontPoint is simply a rebranded service provider for Alarm.com, but FrontPoint is not needed for this plugin to work.</small>
 

@@ -1,7 +1,7 @@
 {
-  "name": "homebridge-alarm-dot-com",
+  "name": "homebridge-node-alarm-dot-com",
   "version": "1.1.0",
-  "description": "Homebridge plugin for Alarm.com alarm systems",
+  "description": "Homebridge plugin for operating Alarm.com alarm systems (Node.js-only authentication).",
   "author": {
     "name": "Mike Kormendy",
     "email": "mike@somethinginteractive.com"
@@ -20,11 +20,11 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mkormendy/homebridge-alarm-dot-com.git"
+    "url": "git+https://github.com/mkormendy/homebridge-node-alarm-dot-com.git"
   },
-  "homepage": "https://github.com/mkormendy/homebridge-alarm-dot-com#readme",
+  "homepage": "https://github.com/mkormendy/homebridge-node-alarm-dot-com#readme",
   "bugs": {
-    "url": "https://github.com/mkormendy/homebridge-alarm-dot-com/issues"
+    "url": "https://github.com/mkormendy/homebridge-node-alarm-dot-com/issues"
   },
   "main": "index.js",
   "scripts": {
