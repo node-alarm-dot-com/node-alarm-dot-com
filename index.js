@@ -1,8 +1,8 @@
-const frontpoint = require('frontpoint')
+const nodeADC = require('node-alarm-dot-com')
 
-const PLUGIN_ID = 'homebridge-frontpoint'
-const PLUGIN_NAME = 'FrontPoint'
-const MANUFACTURER = 'FrontPoint Security'
+const PLUGIN_ID = 'homebridge-alarm-dot-com'
+const PLUGIN_NAME = 'Alarm-dot-com'
+const MANUFACTURER = 'Alarm.com'
 const AUTH_TIMEOUT_MS = 1000 * 60 * 10
 const DEFAULT_REFRESH_S = 60
 
@@ -14,19 +14,19 @@ module.exports = function(homebridge) {
   Characteristic = homebridge.hap.Characteristic
   UUIDGen = homebridge.hap.uuid
 
-  homebridge.registerPlatform(PLUGIN_ID, PLUGIN_NAME, FrontPointPlatform, true)
+  homebridge.registerPlatform(PLUGIN_ID, PLUGIN_NAME, ADCPlatform, true)
 }
 
-class FrontPointPlatform {
+class ADCPlatform {
   constructor(log, config, api) {
     this.log = log
     this.config = config || { platform: PLUGIN_NAME }
     this.debug = this.config.debug || false
 
     if (!this.config.username)
-      throw new Error('FrontPoint: Missing required username in config')
+      throw new Error('Alarm.com: Missing required username in config')
     if (!this.config.password)
-      throw new Error('FrontPoint: Missing required password in config')
+      throw new Error('Alarm.com: Missing required password in config')
 
     this.config.refreshSeconds = this.config.refreshSeconds || DEFAULT_REFRESH_S
 
@@ -71,7 +71,7 @@ class FrontPointPlatform {
         this.log(
           `Received ${res.partitions.length} partitions(s) and ${
             res.sensors.length
-          } sensor(s) from FrontPoint`
+          } sensor(s) from Alarm.com`
         )
 
         res.partitions.forEach(p => {
@@ -123,15 +123,15 @@ class FrontPointPlatform {
     const now = +new Date()
     if (this.authOpts.expires > now) return Promise.resolve(this.authOpts)
 
-    this.log(`Logging into FrontPoint as ${this.config.username}`)
-    return frontpoint
+    this.log(`Logging into Alarm.com as ${this.config.username}`)
+    return nodeADC
       .login(this.config.username, this.config.password)
       .then(authOpts => {
         // Cache login response and estimated expiration time
         authOpts.expires = +new Date() + AUTH_TIMEOUT_MS
         this.authOpts = authOpts
 
-        this.log(`Logged into FrontPoint as ${this.config.username}`)
+        this.log(`Logged into Alarm.com as ${this.config.username}`)
         return authOpts
       })
   }
@@ -425,22 +425,22 @@ class FrontPointPlatform {
 
     switch (value) {
       case Characteristic.SecuritySystemTargetState.STAY_ARM:
-        method = frontpoint.armStay
+        method = nodeADC.armStay
         opts.noEntryDelay = this.armingModes.stay.noEntryDelay;
         opts.silentArming = this.armingModes.stay.silentArming;
         break
       case Characteristic.SecuritySystemTargetState.NIGHT_ARM:
-        method = frontpoint.armStay
+        method = nodeADC.armStay
         opts.noEntryDelay = this.armingModes.night.noEntryDelay;
         opts.silentArming = this.armingModes.night.silentArming;
         break
       case Characteristic.SecuritySystemTargetState.AWAY_ARM:
-        method = frontpoint.armAway
+        method = nodeADC.armAway
         opts.noEntryDelay = this.armingModes.away.noEntryDelay;
         opts.silentArming = this.armingModes.away.silentArming;
         break
       case Characteristic.SecuritySystemTargetState.DISARM:
-        method = frontpoint.disarm
+        method = nodeADC.disarm
         break
       default:
         const msg = `Can't set SecuritySystem to unknown value ${value}`
@@ -465,19 +465,19 @@ class FrontPointPlatform {
 }
 
 function fetchStateForAllSystems(res) {
-  return Promise.all(res.systems.map(id => frontpoint.getCurrentState(id, res)))
+  return Promise.all(res.systems.map(id => nodeADC.getCurrentState(id, res)))
 }
 
 function getPartitionState(state) {
   switch (state) {
-    case frontpoint.SYSTEM_STATES.ARMED_STAY:
+    case nodeADC.SYSTEM_STATES.ARMED_STAY:
       return Characteristic.SecuritySystemCurrentState.STAY_ARM
-    case frontpoint.SYSTEM_STATES.ARMED_AWAY:
+    case nodeADC.SYSTEM_STATES.ARMED_AWAY:
       return Characteristic.SecuritySystemCurrentState.AWAY_ARM
-    case frontpoint.SYSTEM_STATES.ARMED_NIGHT:
+    case nodeADC.SYSTEM_STATES.ARMED_NIGHT:
       return Characteristic.SecuritySystemCurrentState.NIGHT_ARM
-    case frontpoint.SYSTEM_STATES.UNKNOWN:
-    case frontpoint.SYSTEM_STATES.DISARMED:
+    case nodeADC.SYSTEM_STATES.UNKNOWN:
+    case nodeADC.SYSTEM_STATES.DISARMED:
     default:
       return Characteristic.SecuritySystemCurrentState.DISARMED
   }
@@ -485,17 +485,17 @@ function getPartitionState(state) {
 
 function getSensorState(sensor) {
   switch (sensor.attributes.state) {
-    case frontpoint.SENSOR_STATES.OPEN:
+    case nodeADC.SENSOR_STATES.OPEN:
       return Characteristic.ContactSensorState.CONTACT_NOT_DETECTED
-    case frontpoint.SENSOR_STATES.CLOSED:
+    case nodeADC.SENSOR_STATES.CLOSED:
       return Characteristic.ContactSensorState.CONTACT_DETECTED
-    case frontpoint.SENSOR_STATES.ACTIVE:
+    case nodeADC.SENSOR_STATES.ACTIVE:
       return Characteristic.OccupancyDetected.OCCUPANCY_DETECTED
-    case frontpoint.SENSOR_STATES.IDLE:
+    case nodeADC.SENSOR_STATES.IDLE:
       return Characteristic.OccupancyDetected.OCCUPANCY_NOT_DETECTED
-    case frontpoint.SENSOR_STATES.WET:
+    case nodeADC.SENSOR_STATES.WET:
       return Characteristic.LeakDetected.LEAK_DETECTED
-    case frontpoint.SENSOR_STATES.DRY:
+    case nodeADC.SENSOR_STATES.DRY:
       return Characteristic.LeakDetected.LEAK_NOT_DETECTED
     default:
       return undefined
@@ -506,23 +506,27 @@ function getSensorType(sensor) {
   const state = sensor.attributes.state
 
   switch (state) {
-    case frontpoint.SENSOR_STATES.CLOSED:
-    case frontpoint.SENSOR_STATES.OPEN:
+    case nodeADC.SENSOR_STATES.CLOSED:
+    case nodeADC.SENSOR_STATES.OPEN:
       return [
         Service.ContactSensor,
         Characteristic.ContactSensorState,
         'Contact Sensor'
       ]
-    case frontpoint.SENSOR_STATES.IDLE:
-    case frontpoint.SENSOR_STATES.ACTIVE:
+    case nodeADC.SENSOR_STATES.IDLE:
+    case nodeADC.SENSOR_STATES.ACTIVE:
       return [
         Service.OccupancySensor,
         Characteristic.OccupancyDetected,
         'Occupancy Sensor'
       ]
-    case frontpoint.SENSOR_STATES.DRY:
-    case frontpoint.SENSOR_STATES.WET:
-      return [Service.LeakSensor, Characteristic.LeakDetected, 'Leak Sensor']
+    case nodeADC.SENSOR_STATES.DRY:
+    case nodeADC.SENSOR_STATES.WET:
+      return [
+        Service.LeakSensor,
+        Characteristic.LeakDetected,
+        'Leak Sensor'
+      ]
     default:
       return [undefined, undefined, undefined]
   }
@@ -531,11 +535,20 @@ function getSensorType(sensor) {
 function sensorModelToType(model) {
   switch (model) {
     case 'Contact Sensor':
-      return [Service.ContactSensor, Characteristic.ContactSensorState]
+      return [
+        Service.ContactSensor,
+        Characteristic.ContactSensorState
+      ]
     case 'Occupancy Sensor':
-      return [Service.OccupancySensor, Characteristic.OccupancyDetected]
+      return [
+        Service.OccupancySensor,
+        Characteristic.OccupancyDetected
+      ]
     case 'Leak Sensor':
-      return [Service.LeakSensor, Characteristic.LeakDetected]
+      return [
+        Service.LeakSensor,
+        Characteristic.LeakDetected
+      ]
     default:
       return [undefined, undefined]
   }
