@@ -1,4 +1,4 @@
-const frontpoint = require('..')
+const nodeADC = require('..')
 
 main()
 
@@ -7,16 +7,16 @@ function main() {
     .usage('Usage: $0 [options]')
     .option('u', {
       alias: 'username',
-      default: process.env.FRONTPOINT_USERNAME,
-      defaultDescription: 'FRONTPOINT_USERNAME environment variable',
-      describe: 'FrontPoint username',
+      default: process.env.USERNAME,
+      defaultDescription: 'USERNAME environment variable',
+      describe: 'Username',
       type: 'string'
     })
     .option('p', {
       alias: 'password',
-      default: process.env.FRONTPOINT_PASSWORD,
-      defaultDescription: 'FRONTPOINT_PASSWORD environment variable',
-      describe: 'FrontPoint password',
+      default: process.env.PASSWORD,
+      defaultDescription: 'PASSWORD environment variable',
+      describe: 'Password',
       type: 'string'
     })
     .help('h')
@@ -26,14 +26,14 @@ function main() {
   const username = yargs.argv.username
   const password = yargs.argv.password
   if (!username || !password) {
-    console.error(`Error: FrontPoint username and password are required`)
+    console.error(`Error: username and password are required`)
     yargs.showHelp()
     return process.exit(1)
   }
 
-  frontpoint
+  nodeADC
     .login(username, password)
-    .then(res => frontpoint.getCurrentState(res.systems[0], res))
+    .then(res => nodeADC.getCurrentState(res.systems[0], res))
     .then(res => {
       res.partitions.forEach((p, i) => {
         const name = `${res.attributes.description}${i ? ' ' + i : ''}`
@@ -73,35 +73,35 @@ function getStateString(partition) {
 
   if (current === target) {
     switch (current) {
-      case frontpoint.SYSTEM_STATES.DISARMED:
+      case nodeADC.SYSTEM_STATES.DISARMED:
         return 'Disarmed'
-      case frontpoint.SYSTEM_STATES.ARMED_AWAY:
+      case nodeADC.SYSTEM_STATES.ARMED_AWAY:
         return 'Armed Away'
-      case frontpoint.SYSTEM_STATES.ARMED_STAY:
+      case nodeADC.SYSTEM_STATES.ARMED_STAY:
         return 'Armed Stay'
       default:
         return `UNKNOWN (${current})`
     }
   } else {
     switch (current) {
-      case frontpoint.SYSTEM_STATES.DISARMED:
+      case nodeADC.SYSTEM_STATES.DISARMED:
         switch (target) {
-          case frontpoint.SYSTEM_STATES.ARMED_AWAY:
+          case nodeADC.SYSTEM_STATES.ARMED_AWAY:
             return 'Arming Away'
-          case frontpoint.SYSTEM_STATES.ARMED_STAY:
+          case nodeADC.SYSTEM_STATES.ARMED_STAY:
             return 'Arming Stay'
           default:
             return `UNKNOWN (Disarmed -> ${target})`
         }
         break
-      case frontpoint.SYSTEM_STATES.ARMED_AWAY:
-      case frontpoint.SYSTEM_STATES.ARMED_STAY:
+      case nodeADC.SYSTEM_STATES.ARMED_AWAY:
+      case nodeADC.SYSTEM_STATES.ARMED_STAY:
         switch (current) {
-          case frontpoint.SYSTEM_STATES.DISARMED:
+          case nodeADC.SYSTEM_STATES.DISARMED:
             return 'Disarming'
-          case frontpoint.SYSTEM_STATES.ARMED_AWAY:
+          case nodeADC.SYSTEM_STATES.ARMED_AWAY:
             return 'Arming Away'
-          case frontpoint.SYSTEM_STATES.ARMED_STAY:
+          case nodeADC.SYSTEM_STATES.ARMED_STAY:
             return 'Arming Stay'
           default:
             return `UNKNOWN (${current} -> ${target})`

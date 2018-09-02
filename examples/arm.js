@@ -1,4 +1,4 @@
-const frontpoint = require('..')
+const nodeADC = require('..')
 
 main()
 
@@ -26,16 +26,16 @@ function main() {
     .demandCommand(1, 1, 'You must specify a command (stay/away/disarm)')
     .option('u', {
       alias: 'username',
-      default: process.env.FRONTPOINT_USERNAME,
-      defaultDescription: 'FRONTPOINT_USERNAME environment variable',
-      describe: 'FrontPoint username',
+      default: process.env.USERNAME,
+      defaultDescription: 'USERNAME environment variable',
+      describe: 'Username',
       type: 'string'
     })
     .option('p', {
       alias: 'password',
-      default: process.env.FRONTPOINT_PASSWORD,
-      defaultDescription: 'FRONTPOINT_PASSWORD environment variable',
-      describe: 'FrontPoint password',
+      default: process.env.PASSWORD,
+      defaultDescription: 'PASSWORD environment variable',
+      describe: 'Password',
       type: 'string'
     })
     .option('n', {
@@ -57,18 +57,18 @@ function main() {
   const username = yargs.argv.username
   const password = yargs.argv.password
   if (!username || !password) {
-    console.error(`Error: FrontPoint username and password are required`)
+    console.error(`Error: username and password are required`)
     yargs.showHelp()
     return process.exit(1)
   }
 
   console.log('Authenticating...')
 
-  frontpoint
+  nodeADC
     .login(username, password)
     .then(res => {
       authOpts = res
-      return frontpoint.getCurrentState(res.systems[0], authOpts)
+      return nodeADC.getCurrentState(res.systems[0], authOpts)
     })
     .then(res => {
       if (!res.partitions.length)
@@ -88,7 +88,7 @@ function main() {
         noEntryDelay: yargs.argv.noEntryDelay,
         silentArming: yargs.argv.silentArming
       }
-      const method = frontpoint[command]
+      const method = nodeADC[command]
 
       method(partition.id, authOpts, opts).then(res => {
         console.log('Success')

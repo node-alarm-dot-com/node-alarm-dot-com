@@ -6,29 +6,33 @@
     "name": "Mike Kormendy",
     "email": "mike@somethinginteractive.com"
   },
+  "license": "MIT",
+  "keywords": [
+    "node-only",
+    "security",
+    "alarm",
+    "alarm.com",
+    "alarm-dot-com",
+    "alarmdotcom",
+    "frontpoint",
+    "homekit",
+    "homebridge",
+    "homebridge-plugin"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/mkormendy/node-alarm-dot-com.git"
+  },
+  "homepage": "https://github.com/mkormendy/node-alarm-dot-com#readme",
+  "bugs": {
+    "url": "https://github.com/mkormendy/node-alarm-dot-com/issues"
+  },
   "main": "index.js",
   "bin": {
     "nodeADC": "./index.js"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "license": "MIT",
-  "keywords": [
-    "node",
-    "alarm.com",
-    "alarm-dot-com",
-    "alarmdotcom",
-    "alarm",
-    "frontpoint",
-    "homebridge"
-  ],
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/mkormendy/node-alarm-dot-com.git"
-  },
-  "bugs": {
-    "url": "https://github.com/mkormendy/node-alarm-dot-com/issues"
   },
   "engines": {
     "node": ">=0.12.0"

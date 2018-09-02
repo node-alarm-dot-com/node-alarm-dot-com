@@ -1,4 +1,4 @@
-const frontpoint = require('..')
+const nodeADC = require('..')
 
 main()
 
@@ -31,11 +31,11 @@ function main() {
     return process.exit(1)
   }
 
-  frontpoint
+  nodeADC
     .login(username, password)
-    .then(res => frontpoint.getCurrentState(res.systems[0], res))
+    .then(res => nodeADC.getCurrentState(res.systems[0], res))
     .then(res => {
-      console.log(Object.keys(frontpoint.SYSTEM_STATES)[parseInt(res.partitions[0].attributes.state)])
+      console.log(Object.keys(nodeADC.SYSTEM_STATES)[parseInt(res.partitions[0].attributes.state)])
     })
     .catch(err => {
       console.error(err)
