@@ -1,5 +1,5 @@
 /**
- * @module frontpoint
+ * @module node-alarm-dot-com
  */
 
 const fetch = require('node-fetch')
@@ -7,13 +7,23 @@ const fetch = require('node-fetch')
 const LOGIN_URL = 'https://my.frontpointsecurity.com/login'
 const TOKEN_URL = 'https://my.frontpointsecurity.com/api/Login/token'
 const SSO_URL = 'https://my.frontpointsecurity.com/api/Account/AdcRedirectUrl'
+const ADCLOGIN_URL = 'https://www.alarm.com/pda/Default.aspx'
 const IDENTITIES_URL = 'https://www.alarm.com/web/api/identities'
 const HOME_URL = 'https://www.alarm.com/web/system/home'
 const SYSTEM_URL = 'https://www.alarm.com/web/api/systems/systems/'
 const PARTITION_URL = 'https://www.alarm.com/web/api/devices/partitions/'
 const SENSORS_URL = 'https://www.alarm.com/web/api/devices/sensors'
 const CT_JSON = 'application/json;charset=UTF-8'
-const UA = `node-frontpoint/${require('./package').version}`
+let UA, isFP
+
+// if the name of the parent package calling this script is frontpoint
+if (require(module.parent.filename.split("/").slice(0,-1).join("/")+'/package').name === 'frontpoint') {
+  isFP = true
+  UA = `node-frontpoint/${require('./package').version}`
+}
+else {
+  UA = `node-alarm-dot-com/${require('./package').version}`
+}
 
 const SYSTEM_STATES = {
   UNKNOWN: 0,
@@ -55,65 +65,167 @@ exports.SENSOR_STATES = SENSOR_STATES
  * @returns {Promise}
  */
 function login(username, password) {
-  let loginCookies, ajaxKey
+  let loginCookies, ajaxKey, loginFormBody, pdaSessionUrl
+  // if FrontPoint, use FrontPoint authentication
+  if (isFP) {
+    return post(TOKEN_URL, {
+      headers: { 'Content-Type': CT_JSON, Referer: LOGIN_URL, 'User-Agent': UA },
+      body: { Username: username, Password: password, RememberMe: false }
+    })
+      .then(res => {
+        const token = res.headers.get('x-fpsso')
+        if (!token)
+          throw new Error(`No X-FPSSO header: ${JSON.stringify(headers.raw())}`)
 
-  return post(TOKEN_URL, {
-    headers: { 'Content-Type': CT_JSON, Referer: LOGIN_URL, 'User-Agent': UA },
-    body: { Username: username, Password: password, RememberMe: false }
-  })
-    .then(res => {
-      const token = res.headers.get('x-fpsso')
-      if (!token)
-        throw new Error(`No X-FPSSO header: ${JSON.stringify(headers.raw())}`)
-
-      return post(SSO_URL, {
-        body: { Href: LOGIN_URL },
-        headers: {
-          'Content-Type': CT_JSON,
-          Cookie: `FPTOKEN=${token}`,
-          Authorization: `Bearer ${token}`,
-          Referer: LOGIN_URL,
-          'User-Agent': UA
-        }
+        return post(SSO_URL, {
+          body: { Href: LOGIN_URL },
+          headers: {
+            'Content-Type': CT_JSON,
+            Cookie: `FPTOKEN=${token}`,
+            Authorization: `Bearer ${token}`,
+            Referer: LOGIN_URL,
+            'User-Agent': UA
+          }
+        })
       })
-    })
-    .then(res => {
-      const redirectUrl = res.body
-      return fetch(redirectUrl, { method: 'GET', redirect: 'manual' })
-    })
-    .then(res => {
-      const cookies = res.headers.raw()['set-cookie']
-      loginCookies = cookies.map(c => c.split(';')[0]).join('; ')
-
-      const re = /afg=([^;]+);/.exec(loginCookies)
-      if (!re) throw new Error(`No afg cookie: ${loginCookies}`)
-
-      ajaxKey = re[1]
-    })
-    .then(() =>
-      get(IDENTITIES_URL, {
-        headers: {
-          Accept: 'application/vnd.api+json',
-          Cookie: loginCookies,
-          AjaxRequestUniqueKey: ajaxKey,
-          Referer: 'https://www.alarm.com/web/system/home',
-          'User-Agent': UA
-        }
+      .then(res => {
+        const redirectUrl = res.body
+        return fetch(redirectUrl, { method: 'GET', redirect: 'manual' })
       })
-    )
-    .then(res => {
-      const identities = res.body
-      const systems = (identities.data || []).map(d =>
-        getValue(d, 'relationships.selectedSystem.data.id')
+      .then(res => {
+        const cookies = res.headers.raw()['set-cookie']
+        loginCookies = cookies.map(c => c.split(';')[0]).join('; ')
+
+        const re = /afg=([^;]+);/.exec(loginCookies)
+        if (!re) throw new Error(`No afg cookie: ${loginCookies}`)
+
+        ajaxKey = re[1]
+      })
+      .then(() =>
+        get(IDENTITIES_URL, {
+          headers: {
+            Accept: 'application/vnd.api+json',
+            Cookie: loginCookies,
+            AjaxRequestUniqueKey: ajaxKey,
+            Referer: 'https://www.alarm.com/web/system/home',
+            'User-Agent': UA
+          }
+        })
       )
+      .then(res => {
+        const identities = res.body
+        const systems = (identities.data || []).map(d =>
+          getValue(d, 'relationships.selectedSystem.data.id')
+        )
 
-      return {
-        cookie: loginCookies,
-        ajaxKey: ajaxKey,
-        systems: systems,
-        identities: identities
-      }
-    })
+        return {
+          cookie: loginCookies,
+          ajaxKey: ajaxKey,
+          systems: systems,
+          identities: identities
+        }
+      })
+  }
+  // otherwise, use Alarm.com authentication
+  else {
+    // load initial mobile page
+    return get(ADCLOGIN_URL)
+      .then(res => {
+        // capture and store sessionized redirect url to mobile login page
+        pdaSessionUrl = res.headers.get('Location')
+      })
+      .then(res => {
+        // get sessionized mobile login page
+        return get(pdaSessionUrl)
+          .then(res => {
+            const loginObj = {
+              '__EVENTTARGET': null,
+              '__EVENTARGUMENT': null,
+              '__VIEWSTATEENCRYPTED': null,
+              '__EVENTVALIDATION':
+                res.body.match(/name="__EVENTVALIDATION".*?value="([^"]*)"/)[1],
+              '__VIEWSTATE':
+                res.body.match(/name="__VIEWSTATE".*?value="([^"]*)"/)[1],
+              '__VIEWSTATEGENERATOR':
+                res.body.match(/name="__VIEWSTATEGENERATOR".*?value="([^"]*)"/)[1],
+              'ctl00$ContentPlaceHolder1$txtLogin': username,
+              'ctl00$ContentPlaceHolder1$txtPassword': password,
+              'ctl00$ContentPlaceHolder1$btnLogin': 'Login'
+            }
+            loginFormBody = Object.keys(loginObj).map(k => encodeURIComponent(k)
+                              + '=' + encodeURIComponent(loginObj[k])).join('&')
+          })
+          .catch(err => {
+            throw new Error(`GET ${pdaSessionUrl} failed: ${err.message || err}`)
+          })
+      })
+      .then(res => {
+        // submit form on sessionized mobile login page
+        return fetch(pdaSessionUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'User-Agent': UA,
+              'Cookie': loginCookies
+            },
+            body: loginFormBody,
+            redirect: 'manual'
+          })
+          .then(res => {
+            // capture cookies
+            loginCookies = res.headers.raw()['set-cookie']
+                            .map(c => c.split(';')[0]).join('; ')
+
+            // get Mobile-to-Desktop web-API redirect
+            return get(res.headers.get('Location'), {
+                headers: {
+                  'Cookie': loginCookies
+                },
+                redirect: 'manual'
+              })
+              .then(res => {
+                // capture new cookies with apikey and sessionid (very important)
+                loginCookies = res.headers.raw()['set-cookie']
+                                .map(c => c.split(';')[0]).join('; ')
+                // capture ajaxkey for future submission headers as well
+                const re = /afg=([^;]+);/.exec(loginCookies)
+                if (!re) throw new Error(`No afg cookie: ${loginCookies}`)
+                ajaxKey = re[1]
+              })
+              .catch(err => {
+                throw new Error(`GET ${res.headers.get('Location')} failed:
+                                ${err.message || err}`)
+              })
+          })
+          .catch(err => {
+            throw new Error(`POST ${pdaSessionUrl} failed: ${err.message || err}`)
+          })
+      })
+      .then(() =>
+        get(IDENTITIES_URL, {
+          headers: {
+            Accept: 'application/vnd.api+json',
+            Cookie: loginCookies,
+            AjaxRequestUniqueKey: ajaxKey,
+            Referer: 'https://www.alarm.com/web/system/home',
+            'User-Agent': UA
+          }
+        })
+      )
+      .then(res => {
+        const identities = res.body
+        const systems = (identities.data || []).map(d =>
+          getValue(d, 'relationships.selectedSystem.data.id')
+        )
+
+        return {
+          cookie: loginCookies,
+          ajaxKey: ajaxKey,
+          systems: systems,
+          identities: identities
+        }
+      })
+  }
 }
 
 /**
