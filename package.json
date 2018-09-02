@@ -1,35 +1,40 @@
 {
-  "name": "homebridge-frontpoint",
+  "name": "homebridge-alarm-dot-com",
   "version": "1.0.4",
-  "description": "Homebridge plugin for FrontPoint alarm systems",
+  "description": "Homebridge plugin for Alarm.com alarm systems",
+  "author": {
+    "name": "Mike Kormendy",
+    "email": "mike@somethinginteractive.com"
+  },
+  "license": "MIT",
+  "keywords": [
+    "node-only",
+    "security",
+    "alarm",
+    "alarm.com",
+    "alarm-dot-com",
+    "alarmdotcom",
+    "homekit",
+    "homebridge",
+    "homebridge-plugin"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mkormendy/homebridge-alarm-dot-com.git"
+  },
+  "homepage": "https://github.com/mkormendy/homebridge-alarm-dot-com#readme",
+  "bugs": {
+    "url": "https://github.com/mkormendy/homebridge-alarm-dot-com/issues"
+  },
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/jhurliman/homebridge-frontpoint.git"
-  },
-  "author": "John Hurliman <jhurliman@jhurliman.org>",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/jhurliman/homebridge-frontpoint/issues"
-  },
-  "homepage": "https://github.com/jhurliman/homebridge-frontpoint#readme",
-  "keywords": [
-    "homebridge-plugin",
-    "frontpoint",
-    "security",
-    "alarm",
-    "alarm.com",
-    "homebridge",
-    "homekit"
-  ],
   "engines": {
     "node": ">=6.0.0",
     "homebridge": ">=0.4.21"
   },
   "dependencies": {
-    "frontpoint": "^1.2.0"
+    "node-alarm-dot-com": "^1.5.0"
   }
 }
