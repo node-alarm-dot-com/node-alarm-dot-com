@@ -13,19 +13,19 @@ Supported Features
 ------------------
 
  * Querying panels
-  * Arming
-  * Disarming
+   * Arming
+   * Disarming
  * Sensors
-  * Contact states
-  * Occupancy states
-  * Water Leak states
+   * Contact states
+   * Occupancy states
+   * Water Leak states
  * (Lights states/action - coming soon)
-  * on
-  * off
-  * dimmer
+   * on
+   * off
+   * dimmer
  * (Locks states/action - coming soon)
-  * lock
-  * unlock
+   * lock
+   * unlock
 
 Usage
 -----
