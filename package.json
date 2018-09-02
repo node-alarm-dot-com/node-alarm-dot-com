@@ -1,17 +1,38 @@
 {
-  "name": "frontpoint",
+  "name": "node-alarm-dot-com",
   "version": "1.2.0",
-  "description": "FrontPoint Security API client.",
+  "description": "An interface module written in node.js to arm and disarm Alarm.com security systems.",
+  "author": {
+    "name": "Mike Kormendy",
+    "email": "mike@somethinginteractive.com"
+  },
   "main": "index.js",
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/jhurliman/node-frontpoint.git"
+  "bin": {
+    "nodeADC": "./index.js"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "John Hurliman <jhurliman@jhurliman.org>",
   "license": "MIT",
+  "keywords": [
+    "node",
+    "alarm.com",
+    "alarm-dot-com",
+    "alarmdotcom",
+    "alarm",
+    "frontpoint",
+    "homebridge"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/mkormendy/node-alarm-dot-com.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mkormendy/node-alarm-dot-com/issues"
+  },
+  "engines": {
+    "node": ">=0.12.0"
+  },
   "dependencies": {
     "node-fetch": "^1.7.3"
   },
