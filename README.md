@@ -28,7 +28,7 @@ Forked from John Hurliman's FrontPoint* plugin for Homebridge<small>[↗](https:
 # Installation
 
 1. Install homebridge: `npm install -g homebridge`
-2. Install this plugin: `npm install -g homebridge-alarm-dot-com`
+2. Install this plugin: `npm install -g homebridge-node-alarm-dot-com`
 3. Update your configuration file (see below).
 
 # Configuration
