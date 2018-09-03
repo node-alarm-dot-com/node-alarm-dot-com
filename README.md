@@ -39,7 +39,7 @@ Forked from John Hurliman's FrontPoint* plugin for Homebridge<small>[↗](https:
 ```json
 //...
 {
-    "platform": "Alarm-dot-com",
+    "platform": "Alarmdotcom",
     "name": "Security System",
     "username": "<ENTER YOUR ALARM.COM USERNAME>",
     "password": "<ENTER YOUR ALARM.COM PASSWORD>",
@@ -62,7 +62,7 @@ Forked from John Hurliman's FrontPoint* plugin for Homebridge<small>[↗](https:
 ```
 ### Fields:
 
-* "platform": Must always be "Alarm-dot-com" (required)
+* "platform": Must always be "Alarmdotcom" (required)
 * "name": Can be anything (required)
 * "username": Alarm.com login username, same as app (required)
 * "password": Alarm.com login password, same as app (required)
