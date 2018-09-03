@@ -1,8 +1,8 @@
 const nodeADC = require('node-alarm-dot-com')
 
 const PLUGIN_ID = 'homebridge-node-alarm-dot-com'
-const PLUGIN_NAME = 'Alarm-dot-com'
-const MANUFACTURER = 'Alarmdotcom'
+const PLUGIN_NAME = 'Alarmdotcom'
+const MANUFACTURER = 'Alarm.com'
 const AUTH_TIMEOUT_MS = 1000 * 60 * 10
 const DEFAULT_REFRESH_S = 60
 

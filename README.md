@@ -1,15 +1,14 @@
-# HomeBridge Alarm.com Plugin
+# Alarm.com plugin for Homebridge using Node.js
 
 Alarm.com plugin for [Homebridge](https://github.com/nfarina/homebridge) using the [node-alarm-dot-com](https://github.com/mkormendy/node-alarm-dot-com) interface.
 
-Based purely off of John Hurliman's FrontPoint* plugin for Homebridge<small>[↗](https://github.com/jhurliman/homebridge-frontpoint)</small> with modifications to the namespace and branding as Alarm.com instead.
+Forked from John Hurliman's FrontPoint* plugin for Homebridge<small>[↗](https://github.com/jhurliman/homebridge-frontpoint)</small> to replace the branding and code namespace from FrontPoint to Alarm.com.
 
-> **NOTE:** Because this uses Node.js-based HTTP requests to communicate with Alarm.com directly, this plugin does not require any additional accounts with access to external proxy APIs (e.g., WrapAPI). 🎉
+> **NOTE:** Because this implementation uses Node.js-based HTTP requests to communicate with Alarm.com directly, this plugin does not require accounts or access with WrapAPI. 🎉
 
 <small>*FrontPoint is simply a rebranded service provider for Alarm.com, but FrontPoint is not needed for this plugin to work.</small>
 
-Supported Features
-------------------
+# Supported Features
 
  * Querying panels
    * Arming
@@ -68,3 +67,9 @@ Supported Features
 * "username": Alarm.com login username, same as app (required)
 * "password": Alarm.com login password, same as app (required)
 * "armingModes": Object of objects with arming mode options of boolean choices
+
+# Troubleshooting
+
+If you are replacing the Bryan Bartow's Homebridge plugin with this implementation, you may be required to delete the `~/.homebridge/accessories/cachedAccessories` file for the new platform to show up with the new panel, accessories and devices.
+
+**WARNING:** If you delete the contents of the `~/.homebridge/persist` folder, your Homebridge and devices will become unresponsive and you will have to entirely re-pair the Homebridge bridge (remove and re-scan the QR-code for Homebridge and set up all of your accessories/devices again).
