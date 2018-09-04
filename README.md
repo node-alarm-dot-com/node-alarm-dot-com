@@ -5,7 +5,7 @@ Unofficial interface module written in Node.js to access and operate [Alarm.com]
 
 This interface works best with the fork: [https://github.com/mkormendy/homebridge-node-alarm-dot-com](https://github.com/mkormendy/homebridge-node-alarm-dot-com), based off of John Hurliman's FrontPoint* plugin for Homebridge<small>[↗](https://github.com/jhurliman/homebridge-frontpoint)</small>. This variation adds default login authentication for Alarm.com with a switch to use the FrontPoint login authentication process if desired.
 
-<small>*FrontPoint is a rebranded service provider for Alarm.com.</small>
+<small>*FrontPoint is simply a rebranded service provider for Alarm.com.</small>
 
 Originally intended for use with the fork: [https://github.com/mkormendy/homebridge-alarm.com](https://github.com/mkormendy/homebridge-alarm.com), originally created by Bryan Bartow for his Alarm.com plugin for Homebridge<small>[↗](https://github.com/bryan-bartow/homebridge-alarm.com)</small>.
 
@@ -32,7 +32,7 @@ Usage
 
 **Install:**
 
-`npm i homebridge-alarm-dot-com`
+`npm i node-alarm-dot-com`
 
 **Querying:**
 
