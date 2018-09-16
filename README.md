@@ -3,7 +3,7 @@ Node.js Alarm.com Interface
 
 Unofficial interface module written in Node.js to access and operate [Alarm.com](https://www.alarm.com/) security systems.
 
-This interface works best with the fork: [https://github.com/mkormendy/homebridge-node-alarm-dot-com](https://github.com/mkormendy/homebridge-node-alarm-dot-com), based off of John Hurliman's FrontPoint* plugin for Homebridge<small>[↗](https://github.com/jhurliman/homebridge-frontpoint)</small>. This variation adds default login authentication for Alarm.com with a switch to use the FrontPoint login authentication process if desired.
+This interface works best with the fork: [https://github.com/mkormendy/homebridge-node-alarm-dot-com](https://github.com/mkormendy/homebridge-node-alarm-dot-com), based off of John Hurliman's FrontPoint* plugin for Homebridge<small>[↗](https://github.com/jhurliman/homebridge-frontpoint)</small>. This variation <del>adds</del> changes the default login authentication <del>for</del> to Alarm.com. <del>with a switch to use the FrontPoint login authentication process if desired.</del>
 
 <small>*FrontPoint is simply a rebranded service provider for Alarm.com.</small>
 
@@ -172,6 +172,10 @@ Disarm a security system panel.
 | --- | --- | --- |
 | partitionID | <code>string</code> | Partition ID to disarm. |
 | authOpts | <code>Object</code> | Authentication object returned from the `login`   method. |
+
+Notes
+-----
+In efforts to maintain this project as a native Alarm.com implementation, I have removed any authentication and reference to FrontPoint altogether within the code as of versions 1.6.0. This allows for the codebase to be cleaner without having to solve everyone else's extraneous Alarm.com Verified-Partner setups, encouraging separate forks and augmentation for those unique scenarios.
 
 Acknowledgements
 ----------------
