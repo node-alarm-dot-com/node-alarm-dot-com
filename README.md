@@ -15,7 +15,7 @@ Forked from John Hurliman's FrontPoint* plugin for Homebridge<small>[↗](https:
    * Disarming
  * Sensors
    * Contact states
-   * Occupancy states
+   * <del>Occupancy states</del> (this does not work due to lag in the Alarm.com webAPI itself)
    * Water Leak states
  * *(Lights states/action - coming soon)*
    * *on*

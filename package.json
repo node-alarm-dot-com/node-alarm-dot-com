@@ -35,6 +35,7 @@
     "homebridge": ">=0.4.21"
   },
   "dependencies": {
-    "node-alarm-dot-com": "^1.5.0"
+    "node-alarm-dot-com": "^1.5.0",
+    "polling-to-event": "^2.1.0"
   }
 }
