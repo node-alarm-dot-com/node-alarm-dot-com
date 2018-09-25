@@ -37,7 +37,6 @@ Forked from John Hurliman's FrontPoint* plugin for Homebridge<small>[↗](https:
 
 
 ```json
-//...
 {
     "platform": "Alarmdotcom",
     "name": "Security System",
@@ -58,7 +57,6 @@ Forked from John Hurliman's FrontPoint* plugin for Homebridge<small>[↗](https:
         }
     }
 }
-//...
 ```
 ### Fields:
 
