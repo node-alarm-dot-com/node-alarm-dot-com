@@ -67,13 +67,7 @@ Forked from John Hurliman's FrontPoint* plugin for Homebridge<small>[↗](https:
 * "armingModes": Object of objects with arming mode options of boolean choices
 * "authTimeoutMinutes": Timeout to Re-Authenticate session (**WARNING:** choosing a time less than 10 minutes could possibly ban/disable your account from Alarm.com)
 * "pollTimeoutSeconds": Device polling interval (**WARNING:** choosing a time less than 60 seconds could possibly ban/disable your account from Alarm.com)
-* <details><summary>"logLevel": Adjust what gets reported in the logs **(click to expand)**</summary>
-	* 0 = NO LOG ENTRIES
-	* 1 = ONLY ERRORS
-	* 2 = ONLY WARNINGS and ERRORS
-	* **3 = GENERAL NOTICES, ERRORS and WARNINGS (default)**
-	* 4 = VERBOSE (everything including )
-</details>
+* <details><summary>"logLevel": Adjust what gets reported in the logs <strong>(click to expand)</strong></summary><ul><li>0 = NO LOG ENTRIES</li><li>1 = ONLY ERRORS</li><li>* 2 = ONLY WARNINGS and ERRORS</li><li><strong>3 = GENERAL NOTICES, ERRORS and WARNINGS (default)</strong></li><li>4 = VERBOSE (everything including )</li></ul></details>
 
 # Troubleshooting
 
