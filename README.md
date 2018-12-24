@@ -175,7 +175,7 @@ Disarm a security system panel.
 
 Notes
 -----
-In efforts to maintain this project as a native Alarm.com implementation, I have removed any authentication and reference to FrontPoint altogether within the code as of versions 1.6.0. This allows for the codebase to be cleaner without having to solve everyone else's extraneous Alarm.com Verified-Partner setups, encouraging separate forks and augmentation for those unique scenarios.
+In efforts to maintain this project as a native Alarm.com implementation, authentication and reference to FrontPoint have been removed altogether within the code as of versions 1.6.0. This allows for the codebase to be cleaner without having to solve everyone else's extraneous Alarm.com Verified-Partner setups, encouraging separate forks and augmentation for those unique scenarios.
 
 Acknowledgements
 ----------------
