@@ -4,7 +4,7 @@ Alarm.com plugin for [Homebridge](https://github.com/nfarina/homebridge) using t
 
 Forked from John Hurliman's FrontPoint* plugin for Homebridge<small>[↗](https://github.com/jhurliman/homebridge-frontpoint)</small> to replace the branding and code namespace from FrontPoint to Alarm.com.
 
-> **NOTE:** Because this implementation uses Node.js-based HTTP requests to communicate with Alarm.com directly, this plugin does not require accounts or access with WrapAPI. 🎉
+> **NOTE:** Because this implementation uses Node.js-based HTTP requests to communicate with Alarm.com directly, this plugin does not require accounts or access with WrapAPI. :tada:
 
 <small>*FrontPoint is simply a rebranded service provider for Alarm.com, but FrontPoint is not needed for this plugin to work.</small>
 
@@ -37,7 +37,6 @@ Forked from John Hurliman's FrontPoint* plugin for Homebridge<small>[↗](https:
 
 
 ```json
-//...
 {
     "platform": "Alarmdotcom",
     "name": "Security System",
@@ -58,7 +57,6 @@ Forked from John Hurliman's FrontPoint* plugin for Homebridge<small>[↗](https:
         }
     }
 }
-//...
 ```
 ### Fields:
 
