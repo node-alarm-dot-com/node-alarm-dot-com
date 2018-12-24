@@ -92,7 +92,6 @@ The default setting for log entries is set to report critical errors, warnings a
 To modify the log behaviour, add the "logLevel" field to the Alarmdotcom platform block in the Homebridge configuration file. The following example illustrates that we only want critical errors to be reported in the log.
 #### Sample config.json with "logLevel" setting:
 ```json
-//...
 {
     "platform": "Alarmdotcom",
     "name": "Security System",
@@ -114,5 +113,4 @@ To modify the log behaviour, add the "logLevel" field to the Alarmdotcom platfor
     },
     "logLevel": 1
 }
-//...
 ```
