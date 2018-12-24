@@ -67,9 +67,54 @@ Forked from John Hurliman's FrontPoint* plugin for Homebridge<small>[↗](https:
 * "username": Alarm.com login username, same as app (required)
 * "password": Alarm.com login password, same as app (required)
 * "armingModes": Object of objects with arming mode options of boolean choices
+* "authTimeoutMinutes": Timeout to Re-Authenticate session (**WARNING:** choosing a time less than 10 minutes could possibly ban/disable your account from Alarm.com)
+* "pollTimeoutSeconds": Device polling interval (**WARNING:** choosing a time less than 60 seconds could possibly ban/disable your account from Alarm.com)
+* <details><summary>"logLevel": Adjust what gets reported in the logs **(click to expand)**</summary>
+	* 0 = NO LOG ENTRIES
+	* 1 = ONLY ERRORS
+	* 2 = ONLY WARNINGS and ERRORS
+	* **3 = GENERAL NOTICES, ERRORS and WARNINGS (default)**
+	* 4 = VERBOSE (everything including )
+</details>
 
 # Troubleshooting
+
+Before assuming that something is wrong with the plugin, please review the [issues on this project's github repository](https://github.com/mkormendy/homebridge-node-alarm-dot-com/issues?utf8=%E2%9C%93&q=sort%3Aupdated-desc+) to see if there's already a similar issue reported where a solution has been proposed or the outcome is expected due to limitations with the Alarm.com web API.
+
+### Migrating from Bryan Bartow's homebridge-alarm.com
 
 If you are replacing the Bryan Bartow's Homebridge plugin with this implementation, you may be required to delete the `~/.homebridge/accessories/cachedAccessories` file for the new platform to show up with the new panel, accessories and devices.
 
 **WARNING:** If you delete the contents of the `~/.homebridge/persist` folder, your Homebridge and devices will become unresponsive and you will have to entirely re-pair the Homebridge bridge (remove and re-scan the QR-code for Homebridge and set up all of your accessories/devices again).
+
+### Logging
+
+The default setting for log entries is set to report critical errors, warnings about devices and notices about connecting to the Alarm.com account. Once you feel that your security system devices are being represented in HomeKit correctly you can choose to reduce the amount of information being output to the logs to save space or remove cruft while troubleshooting other Homebridge plugins.
+
+To modify the log behaviour, add the "logLevel" field to the Alarmdotcom platform block in the Homebridge configuration file. The following example illustrates that we only want critical errors to be reported in the log.
+#### Sample config.json with "logLevel" setting:
+```json
+//...
+{
+    "platform": "Alarmdotcom",
+    "name": "Security System",
+    "username": "<ENTER YOUR ALARM.COM USERNAME>",
+    "password": "<ENTER YOUR ALARM.COM PASSWORD>",
+    "armingModes": {
+        "away": {
+            "noEntryDelay": false,
+            "silentArming": false
+        },
+        "night": {
+            "noEntryDelay": false,
+            "silentArming": false
+        },
+        "stay": {
+            "noEntryDelay": false,
+            "silentArming": false
+        }
+    },
+    "logLevel": 1
+}
+//...
+```

@@ -3,8 +3,9 @@ const nodeADC = require('node-alarm-dot-com')
 const PLUGIN_ID = 'homebridge-node-alarm-dot-com'
 const PLUGIN_NAME = 'Alarmdotcom'
 const MANUFACTURER = 'Alarm.com'
-const AUTH_TIMEOUT_MS = 1000 * 60 * 10
-const DEFAULT_REFRESH_S = 60
+const AUTH_TIMEOUT_MINS = 10 // default for session authentication refresh
+const POLL_TIMEOUT_SECS = 60 // default for device state polling
+const LOG_LEVEL = 3  // default for log entries: 0 = NONE, 1 = ERROR, 2 = WARN, 3 = NOTICE, 4 = VERBOSE
 
 let Accessory, Service, Characteristic, UUIDGen
 
@@ -22,13 +23,15 @@ class ADCPlatform {
     this.log = log
     this.config = config || { platform: PLUGIN_NAME }
     this.debug = this.config.debug || false
+    this.config.logLevel = this.config.logLevel || LOG_LEVEL
 
     if (!this.config.username)
       throw new Error('Alarm.com: Missing required username in config')
     if (!this.config.password)
       throw new Error('Alarm.com: Missing required password in config')
 
-    this.config.refreshSeconds = this.config.refreshSeconds || DEFAULT_REFRESH_S
+    this.config.authTimeoutMinutes = this.config.authTimeoutMinutes || AUTH_TIMEOUT_MINS
+    this.config.pollTimeoutSeconds = this.config.pollTimeoutSeconds || POLL_TIMEOUT_SECS
 
     this.accessories = {}
     this.authOpts = { expires: +new Date() - 1 }
@@ -68,39 +71,44 @@ class ADCPlatform {
   didFinishLaunching() {
     this.listDevices()
       .then(res => {
-        this.log(
-          `Received ${res.partitions.length} partitions(s) and ${
-            res.sensors.length
-          } sensor(s) from Alarm.com`
-        )
+        if (this.config.logLevel > 2)
+          this.log(
+            `Received ${res.partitions.length} partitions(s) and ${
+              res.sensors.length
+            } sensor(s) from Alarm.com`
+          )
 
         res.partitions.forEach(p => {
           this.addPartition(p)
-          this.log(`Added partition ${p.attributes.description} (${p.id})`)
+          if (this.config.logLevel > 2)
+            this.log(`Added partition ${p.attributes.description} (${p.id})`)
         })
 
         res.sensors.forEach(s => {
           this.addSensor(s)
-          this.log(`Added sensor ${s.attributes.description} (${s.id})`)
+          if (this.config.logLevel > 2)
+            this.log(`Added sensor ${s.attributes.description} (${s.id})`)
         })
       })
       .catch(err => {
-        this.log(`UNHANDLED ERROR: ${err.stack}`)
+        if (this.config.logLevel > 0)
+          this.log(`UNHANDLED ERROR: ${err.stack}`)
       })
 
     // Start a timer to periodically refresh status
     this.timerID = setInterval(
       () => this.refreshDevices(),
-      this.config.refreshSeconds * 1000
+      this.config.pollTimeoutSeconds * 1000
     )
   }
 
   configureAccessory(accessory) {
-    this.log(
-      `Loaded from cache: ${accessory.context.name} (${
-        accessory.context.accID
-      })`
-    )
+    if (this.config.logLevel > 2)
+      this.log(
+        `Loaded from cache: ${accessory.context.name} (${
+          accessory.context.accID
+        })`
+      )
 
     const existing = this.accessories[accessory.context.accID]
     if (existing) this.removeAccessory(existing)
@@ -110,7 +118,8 @@ class ADCPlatform {
     } else if (accessory.context.sensorType) {
       this.setupSensor(accessory)
     } else {
-      this.log(`Unrecognized accessory ${accessory.context.accID}`)
+      if (this.config.logLevel > 1)
+        this.log(`Unrecognized accessory ${accessory.context.accID}`)
     }
 
     this.accessories[accessory.context.accID] = accessory
@@ -121,17 +130,22 @@ class ADCPlatform {
   login() {
     // Cache expiration check
     const now = +new Date()
-    if (this.authOpts.expires > now) return Promise.resolve(this.authOpts)
+    if (this.authOpts.expires > now)
+      return Promise.resolve(this.authOpts)
 
-    this.log(`Logging into Alarm.com as ${this.config.username}`)
+    if (this.config.logLevel > 2)
+      this.log(`Logging into Alarm.com as ${this.config.username}`)
+
     return nodeADC
       .login(this.config.username, this.config.password)
       .then(authOpts => {
         // Cache login response and estimated expiration time
-        authOpts.expires = +new Date() + AUTH_TIMEOUT_MS
+        authOpts.expires = +new Date() + 1000 * 60 * this.config.authTimeoutMinutes
         this.authOpts = authOpts
 
-        this.log(`Logged into Alarm.com as ${this.config.username}`)
+        if (this.config.logLevel > 2)
+          this.log(`Logged into Alarm.com as ${this.config.username}`)
+
         return authOpts
       })
   }
@@ -158,14 +172,16 @@ class ADCPlatform {
         systemStates.forEach(system => {
           system.partitions.forEach(partition => {
             const accessory = this.accessories[partition.id]
-            if (!accessory) return this.addPartition(partition)
+            if (!accessory)
+              return this.addPartition(partition)
 
             this.setPartitionState(accessory, partition)
           })
 
           system.sensors.forEach(sensor => {
             const accessory = this.accessories[sensor.id]
-            if (!accessory) return this.addSensor(sensor)
+            if (!accessory)
+              return this.addSensor(sensor)
 
             this.setSensorState(accessory, sensor)
           })
@@ -177,7 +193,8 @@ class ADCPlatform {
   addPartition(partition) {
     const id = partition.id
     let accessory = this.accessories[id]
-    if (accessory) this.removeAccessory(accessory)
+    if (accessory)
+      this.removeAccessory(accessory)
 
     const name = partition.attributes.description
     const uuid = UUIDGen.generate(id)
@@ -192,7 +209,9 @@ class ADCPlatform {
       partitionType: 'default'
     }
 
-    this.log(`Adding partition ${name} (id=${id}, uuid=${uuid})`)
+    if (this.config.logLevel > 2)
+      this.log(`Adding partition ${name} (id=${id}, uuid=${uuid})`)
+
     this.addAccessory(accessory, Service.SecuritySystem, 'Security Panel')
 
     this.setupPartition(accessory)
@@ -217,9 +236,10 @@ class ADCPlatform {
       .setCharacteristic(Characteristic.SerialNumber, id)
 
     // Setup event listeners
-
     accessory.on('identify', (paired, callback) => {
-      this.log(`${name} identify requested, paired=${paired}`)
+      if (this.config.logLevel > 3)
+        this.log(`${name} identify requested, paired=${paired}`)
+
       callback()
     })
 
@@ -244,11 +264,14 @@ class ADCPlatform {
   addSensor(sensor) {
     const id = sensor.id
     let accessory = this.accessories[id]
-    if (accessory) this.removeAccessory(accessory)
+    if (accessory)
+      this.removeAccessory(accessory)
 
     const [type, characteristic, model] = getSensorType(sensor)
     if (type === undefined) {
-      this.log(`Warning: Sensor with unknown state ${sensor.attributes.state}`)
+      if (this.config.logLevel > 1)
+        this.log(`Warning: Sensor with unknown state ${sensor.attributes.state}`)
+
       return
     }
 
@@ -264,7 +287,9 @@ class ADCPlatform {
       sensorType: model
     }
 
-    this.log(`Adding ${model} "${name}" (id=${id}, uuid=${uuid})`)
+    if (this.config.logLevel > 2)
+      this.log(`Adding ${model} "${name}" (id=${id}, uuid=${uuid})`)
+
     this.addAccessory(accessory, type, model)
 
     this.setupSensor(accessory)
@@ -278,7 +303,7 @@ class ADCPlatform {
     const name = accessory.context.name
     const model = accessory.context.sensorType
     const [type, characteristic] = sensorModelToType(model)
-    if (!characteristic)
+    if (!characteristic && this.config.logLevel > 1)
       throw new Error(`Unrecognized sensor ${accessory.context.accID}`)
 
     // Always reachable
@@ -294,7 +319,9 @@ class ADCPlatform {
     // Setup event listeners
 
     accessory.on('identify', (paired, callback) => {
-      this.log(`${name} identify requested, paired=${paired}`)
+      if (this.config.logLevel > 2)
+        this.log(`${name} identify requested, paired=${paired}`)
+
       callback()
     })
 
@@ -328,11 +355,12 @@ class ADCPlatform {
     const statusFault = Boolean(partition.attributes.needsClearIssuesPrompt)
 
     if (state !== accessory.context.state) {
-      this.log(
-        `Updating partition ${id}, state=${state}, prev=${
-          accessory.context.state
-        }`
-      )
+      if (this.config.logLevel > 2)
+        this.log(
+          `Updating partition ${id}, state=${state}, prev=${
+            accessory.context.state
+          }`
+        )
 
       accessory.context.state = state
       accessory
@@ -342,11 +370,12 @@ class ADCPlatform {
     }
 
     if (desiredState !== accessory.context.desiredState) {
-      this.log(
-        `Updating partition ${id}, desiredState=${desiredState}, prev=${
-          accessory.context.desiredState
-        }`
-      )
+      if (this.config.logLevel > 2)
+        this.log(
+          `Updating partition ${id}, desiredState=${desiredState}, prev=${
+            accessory.context.desiredState
+          }`
+        )
 
       accessory.context.desiredState = desiredState
       accessory
@@ -356,11 +385,12 @@ class ADCPlatform {
     }
 
     if (statusFault !== accessory.context.statusFault) {
-      this.log(
-        `Updating partition ${id}, statusFault=${statusFault}, prev=${
-          accessory.context.statusFault
-        }`
-      )
+      if (this.config.logLevel > 2)
+        this.log(
+          `Updating partition ${id}, statusFault=${statusFault}, prev=${
+            accessory.context.statusFault
+          }`
+        )
 
       accessory.context.statusFault = statusFault
       accessory
@@ -379,9 +409,10 @@ class ADCPlatform {
     const [type, characteristic, model] = getSensorType(sensor)
 
     if (state !== accessory.context.state) {
-      this.log(
-        `Updating sensor ${id}, state=${state}, prev=${accessory.context.state}`
-      )
+      if (this.config.logLevel > 2)
+        this.log(
+          `Updating sensor ${id}, state=${state}, prev=${accessory.context.state}`
+        )
 
       accessory.context.state = state
       accessory
@@ -391,11 +422,12 @@ class ADCPlatform {
     }
 
     if (batteryLow !== accessory.context.batteryLow) {
-      this.log(
-        `Updating sensor ${id}, batteryLow=${batteryLow}, prev=${
-          accessory.context.batteryLow
-        }`
-      )
+      if (this.config.logLevel > 2)
+        this.log(
+          `Updating sensor ${id}, batteryLow=${batteryLow}, prev=${
+            accessory.context.batteryLow
+          }`
+        )
 
       accessory.context.batteryLow = batteryLow
       accessory
@@ -409,7 +441,8 @@ class ADCPlatform {
     if (!accessory) return
 
     const id = accessory.context.accID
-    this.log(`${accessory.context.name} (${id}) removed from HomeBridge.`)
+    if (this.config.logLevel > 2)
+      this.log(`${accessory.context.name} (${id}) removed from HomeBridge.`)
     this.api.unregisterPlatformAccessories(PLUGIN_ID, PLUGIN_NAME, [accessory])
     delete this.accessories[id]
   }
@@ -444,11 +477,14 @@ class ADCPlatform {
         break
       default:
         const msg = `Can't set SecuritySystem to unknown value ${value}`
-        this.log(msg)
+        if (this.config.logLevel > 1)
+          this.log(msg)
         return callback(new Error(msg))
     }
 
-    this.log(`changePartitionState(${accessory.context.accID}, ${value})`)
+    if (this.config.logLevel > 2)
+      this.log(`changePartitionState(${accessory.context.accID}, ${value})`)
+
     accessory.context.desiredState = value
 
     this.login()
