@@ -66,7 +66,7 @@ class ADCPlatform {
     }
   }
 
-  // HomeBridge method overrides ///////////////////////////////////////////////
+  // HomeBridge Method Overrides ///////////////////////////////////////////////
 
   didFinishLaunching() {
     this.listDevices()
@@ -104,14 +104,11 @@ class ADCPlatform {
 
   configureAccessory(accessory) {
     if (this.config.logLevel > 2)
-      this.log(
-        `Loaded from cache: ${accessory.context.name} (${
-          accessory.context.accID
-        })`
-      )
+      this.log(`Loaded from cache: ${accessory.context.name} (${accessory.context.accID})`)
 
     const existing = this.accessories[accessory.context.accID]
-    if (existing) this.removeAccessory(existing)
+    if (existing)
+      this.removeAccessory(existing)
 
     if (accessory.context.partitionType) {
       this.setupPartition(accessory)
@@ -125,7 +122,7 @@ class ADCPlatform {
     this.accessories[accessory.context.accID] = accessory
   }
 
-  // Internal methods //////////////////////////////////////////////////////////
+  // Internal Methods //////////////////////////////////////////////////////////
 
   login() {
     // Cache expiration check
@@ -189,6 +186,8 @@ class ADCPlatform {
       })
       .catch(err => this.log(err))
   }
+
+  // Partition Mothods /////////////////////////////////////////////////////////
 
   addPartition(partition) {
     const id = partition.id
@@ -260,6 +259,109 @@ class ADCPlatform {
       .getCharacteristic(Characteristic.StatusFault)
       .on('get', callback => callback(null, accessory.context.statusFault))
   }
+
+  setPartitionState(accessory, partition) {
+    const id = accessory.context.accID
+    const name = accessory.context.name
+    const state = getPartitionState(partition.attributes.state)
+    const desiredState = getPartitionState(partition.attributes.desiredState)
+    const statusFault = Boolean(partition.attributes.needsClearIssuesPrompt)
+
+    if (state !== accessory.context.state) {
+      if (this.config.logLevel > 2)
+        this.log(
+          `Updating partition ${name} (${id}), state=${state}, prev=${
+            accessory.context.state
+          }`
+        )
+
+      accessory.context.state = state
+      accessory
+        .getService(Service.SecuritySystem)
+        .getCharacteristic(Characteristic.SecuritySystemCurrentState)
+        .updateValue(state)
+    }
+
+    if (desiredState !== accessory.context.desiredState) {
+      if (this.config.logLevel > 2)
+        this.log(
+          `Updating partition ${name} (${id}), desiredState=${desiredState}, prev=${
+            accessory.context.desiredState
+          }`
+        )
+
+      accessory.context.desiredState = desiredState
+      accessory
+        .getService(Service.SecuritySystem)
+        .getCharacteristic(Characteristic.SecuritySystemTargetState)
+        .updateValue(desiredState)
+    }
+
+    if (statusFault !== accessory.context.statusFault) {
+      if (this.config.logLevel > 2)
+        this.log(
+          `Updating partition ${name} (${id}), statusFault=${statusFault}, prev=${
+            accessory.context.statusFault
+          }`
+        )
+
+      accessory.context.statusFault = statusFault
+      accessory
+        .getService(Service.SecuritySystem)
+        .getCharacteristic(Characteristic.StatusFault)
+        .updateValue(statusFault)
+    }
+  }
+
+  changePartitionState(accessory, value, callback) {
+    const id = accessory.context.accID
+    let method
+    const opts = {}
+
+    switch (value) {
+      case Characteristic.SecuritySystemTargetState.STAY_ARM:
+        method = nodeADC.armStay
+        opts.noEntryDelay = this.armingModes.stay.noEntryDelay;
+        opts.silentArming = this.armingModes.stay.silentArming;
+        break
+      case Characteristic.SecuritySystemTargetState.NIGHT_ARM:
+        method = nodeADC.armStay
+        opts.noEntryDelay = this.armingModes.night.noEntryDelay;
+        opts.silentArming = this.armingModes.night.silentArming;
+        break
+      case Characteristic.SecuritySystemTargetState.AWAY_ARM:
+        method = nodeADC.armAway
+        opts.noEntryDelay = this.armingModes.away.noEntryDelay;
+        opts.silentArming = this.armingModes.away.silentArming;
+        break
+      case Characteristic.SecuritySystemTargetState.DISARM:
+        method = nodeADC.disarm
+        break
+      default:
+        const msg = `Can't set SecuritySystem to unknown value ${value}`
+        if (this.config.logLevel > 1)
+          this.log(msg)
+        return callback(new Error(msg))
+    }
+
+    if (this.config.logLevel > 2)
+      this.log(`changePartitionState(${accessory.context.accID}, ${value})`)
+
+    accessory.context.desiredState = value
+
+    this.login()
+      .then(res => method(id, res, opts)) // Usually 20-30 seconds
+      .then(res => res.data)
+      .then(partition => this.setPartitionState(accessory, partition))
+      .then(_ => callback())
+      .catch(err => {
+        this.log(`Error: Failed to change partition state: ${err.stack}`)
+        this.refreshDevices()
+        callback(err)
+      })
+  }
+
+  // Sensor Methods ////////////////////////////////////////////////////////////
 
   addSensor(sensor) {
     const id = sensor.id
@@ -336,6 +438,40 @@ class ADCPlatform {
       .on('get', callback => callback(null, accessory.context.batteryLow))
   }
 
+  setSensorState(accessory, sensor) {
+    const id = accessory.context.accID
+    const name = accessory.context.name
+    const state = getSensorState(sensor)
+    const batteryLow = Boolean(
+      sensor.attributes.lowBattery || sensor.attributes.criticalBattery
+    )
+    const [type, characteristic, model] = getSensorType(sensor)
+
+    if (state !== accessory.context.state) {
+      if (this.config.logLevel > 2)
+        this.log(`Updating sensor ${name} (${id}), state=${state}, prev=${accessory.context.state}`)
+
+      accessory.context.state = state
+      accessory
+        .getService(type)
+        .getCharacteristic(characteristic)
+        .updateValue(state)
+    }
+
+    if (batteryLow !== accessory.context.batteryLow) {
+      if (this.config.logLevel > 2)
+        this.log(`Updating sensor ${name} (${id}), batteryLow=${batteryLow}, prev=${accessory.context.batteryLow}`)
+
+      accessory.context.batteryLow = batteryLow
+      accessory
+        .getService(type)
+        .getCharacteristic(Characteristic.StatusLowBattery)
+        .updateValue(batteryLow)
+    }
+  }
+
+  // Accessory Methods /////////////////////////////////////////////////////////
+
   addAccessory(accessory, type, model) {
     const id = accessory.context.accID
     const name = accessory.context.name
@@ -348,101 +484,12 @@ class ADCPlatform {
     this.api.registerPlatformAccessories(PLUGIN_ID, PLUGIN_NAME, [accessory])
   }
 
-  setPartitionState(accessory, partition) {
-    const id = accessory.context.accID
-    const state = getPartitionState(partition.attributes.state)
-    const desiredState = getPartitionState(partition.attributes.desiredState)
-    const statusFault = Boolean(partition.attributes.needsClearIssuesPrompt)
-
-    if (state !== accessory.context.state) {
-      if (this.config.logLevel > 2)
-        this.log(
-          `Updating partition ${id}, state=${state}, prev=${
-            accessory.context.state
-          }`
-        )
-
-      accessory.context.state = state
-      accessory
-        .getService(Service.SecuritySystem)
-        .getCharacteristic(Characteristic.SecuritySystemCurrentState)
-        .updateValue(state)
-    }
-
-    if (desiredState !== accessory.context.desiredState) {
-      if (this.config.logLevel > 2)
-        this.log(
-          `Updating partition ${id}, desiredState=${desiredState}, prev=${
-            accessory.context.desiredState
-          }`
-        )
-
-      accessory.context.desiredState = desiredState
-      accessory
-        .getService(Service.SecuritySystem)
-        .getCharacteristic(Characteristic.SecuritySystemTargetState)
-        .updateValue(desiredState)
-    }
-
-    if (statusFault !== accessory.context.statusFault) {
-      if (this.config.logLevel > 2)
-        this.log(
-          `Updating partition ${id}, statusFault=${statusFault}, prev=${
-            accessory.context.statusFault
-          }`
-        )
-
-      accessory.context.statusFault = statusFault
-      accessory
-        .getService(Service.SecuritySystem)
-        .getCharacteristic(Characteristic.StatusFault)
-        .updateValue(statusFault)
-    }
-  }
-
-  setSensorState(accessory, sensor) {
-    const id = accessory.context.accID
-    const state = getSensorState(sensor)
-    const batteryLow = Boolean(
-      sensor.attributes.lowBattery || sensor.attributes.criticalBattery
-    )
-    const [type, characteristic, model] = getSensorType(sensor)
-
-    if (state !== accessory.context.state) {
-      if (this.config.logLevel > 2)
-        this.log(
-          `Updating sensor ${id}, state=${state}, prev=${accessory.context.state}`
-        )
-
-      accessory.context.state = state
-      accessory
-        .getService(type)
-        .getCharacteristic(characteristic)
-        .updateValue(state)
-    }
-
-    if (batteryLow !== accessory.context.batteryLow) {
-      if (this.config.logLevel > 2)
-        this.log(
-          `Updating sensor ${id}, batteryLow=${batteryLow}, prev=${
-            accessory.context.batteryLow
-          }`
-        )
-
-      accessory.context.batteryLow = batteryLow
-      accessory
-        .getService(type)
-        .getCharacteristic(Characteristic.StatusLowBattery)
-        .updateValue(batteryLow)
-    }
-  }
-
   removeAccessory(accessory) {
     if (!accessory) return
 
     const id = accessory.context.accID
     if (this.config.logLevel > 2)
-      this.log(`${accessory.context.name} (${id}) removed from HomeBridge.`)
+      this.log(`Removing ${accessory.context.name} (${id}) from HomeBridge.`)
     this.api.unregisterPlatformAccessories(PLUGIN_ID, PLUGIN_NAME, [accessory])
     delete this.accessories[id]
   }
@@ -451,53 +498,6 @@ class ADCPlatform {
     this.accessories.forEach(id => this.removeAccessory(this.accessories[id]))
   }
 
-  changePartitionState(accessory, value, callback) {
-    const id = accessory.context.accID
-    let method
-    const opts = {}
-
-    switch (value) {
-      case Characteristic.SecuritySystemTargetState.STAY_ARM:
-        method = nodeADC.armStay
-        opts.noEntryDelay = this.armingModes.stay.noEntryDelay;
-        opts.silentArming = this.armingModes.stay.silentArming;
-        break
-      case Characteristic.SecuritySystemTargetState.NIGHT_ARM:
-        method = nodeADC.armStay
-        opts.noEntryDelay = this.armingModes.night.noEntryDelay;
-        opts.silentArming = this.armingModes.night.silentArming;
-        break
-      case Characteristic.SecuritySystemTargetState.AWAY_ARM:
-        method = nodeADC.armAway
-        opts.noEntryDelay = this.armingModes.away.noEntryDelay;
-        opts.silentArming = this.armingModes.away.silentArming;
-        break
-      case Characteristic.SecuritySystemTargetState.DISARM:
-        method = nodeADC.disarm
-        break
-      default:
-        const msg = `Can't set SecuritySystem to unknown value ${value}`
-        if (this.config.logLevel > 1)
-          this.log(msg)
-        return callback(new Error(msg))
-    }
-
-    if (this.config.logLevel > 2)
-      this.log(`changePartitionState(${accessory.context.accID}, ${value})`)
-
-    accessory.context.desiredState = value
-
-    this.login()
-      .then(res => method(id, res, opts)) // Usually 20-30 seconds
-      .then(res => res.data)
-      .then(partition => this.setPartitionState(accessory, partition))
-      .then(_ => callback())
-      .catch(err => {
-        this.log(`Error: Failed to change partition state: ${err.stack}`)
-        this.refreshDevices()
-        callback(err)
-      })
-  }
 }
 
 function fetchStateForAllSystems(res) {
@@ -520,6 +520,8 @@ function getPartitionState(state) {
 }
 
 function getSensorState(sensor) {
+  // if (sensor.attributes.description == 'Master Motion')
+    // console.log(sensor)
   switch (sensor.attributes.state) {
     case nodeADC.SENSOR_STATES.OPEN:
       return Characteristic.ContactSensorState.CONTACT_NOT_DETECTED
