@@ -2,6 +2,11 @@
 
 Alarm.com plugin for [Homebridge](https://github.com/nfarina/homebridge) using the [node-alarm-dot-com](https://github.com/mkormendy/node-alarm-dot-com) interface.
 
+[![NPM](https://nodei.co/npm/homebridge-node-alarm-dot-com.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/homebridge-node-alarm-dot-com/)
+
+[![npm](https://img.shields.io/npm/dm/homebridge-node-alarm-dot-com.svg)](https://www.npmjs.com/package/homebridge-node-alarm-dot-com)
+[![npm](https://img.shields.io/npm/v/homebridge-node-alarm-dot-com.svg)](https://www.npmjs.com/package/homebridge-node-alarm-dot-com)
+
 Forked from John Hurliman's FrontPoint* plugin for Homebridge<small>[↗](https://github.com/jhurliman/homebridge-frontpoint)</small> to replace the branding and code namespace from FrontPoint to Alarm.com.
 
 > **NOTE:** Because this implementation uses Node.js-based HTTP requests to communicate with Alarm.com directly, this plugin does not require accounts or access with WrapAPI. :tada:
