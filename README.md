@@ -60,7 +60,11 @@ Forked from John Hurliman's FrontPoint* plugin for Homebridge<small>[↗](https:
             "noEntryDelay": false,
             "silentArming": false
         }
-    }
+    },
+    "ignoredDevices": [
+        "96922426-1",
+        "96922426-4"
+    ]
 }
 ```
 ### Fields:
@@ -73,6 +77,7 @@ Forked from John Hurliman's FrontPoint* plugin for Homebridge<small>[↗](https:
 * "authTimeoutMinutes": Timeout to Re-Authenticate session (**WARNING:** choosing a time less than 10 minutes could possibly ban/disable your account from Alarm.com)
 * "pollTimeoutSeconds": Device polling interval (**WARNING:** choosing a time less than 60 seconds could possibly ban/disable your account from Alarm.com)
 * <details><summary>"logLevel": Adjust what gets reported in the logs <strong>(click to expand)</strong></summary><ul><li>0 = NO LOG ENTRIES</li><li>1 = ONLY ERRORS</li><li>2 = ONLY WARNINGS and ERRORS</li><li><strong>3 = GENERAL NOTICES, ERRORS and WARNINGS (default)</strong></li><li>4 = VERBOSE (everything including development output)</li></ul></details>
+* "ignoredDevices": An array of IDs for Alarm.com accessories you wish to hide in Homekit
 
 # Troubleshooting
 
@@ -113,3 +118,8 @@ To modify the log behaviour, add the "logLevel" field to the Alarmdotcom platfor
     "logLevel": 1
 }
 ```
+
+### Ignoring Devices
+
+Accessories that you wish to hide in Homekit (e.g., fobs) can be identified by finding the Serial Number in the settings of the accessory in the Apple Home app, or alternatively in your output log (log level 3 or higher) when Homebridge starts up. If the accessories still exist in Homekit, please make sure that you have typed the serial number exactly. If they still continue to be displayed (or vice-versa they still don't show up after un-ignoring them), then you may be required to delete the `~/.homebridge/accessories/cachedAccessories` file as they may still be stored in the cache within Homebridge.
+

@@ -24,6 +24,7 @@ class ADCPlatform {
     this.config = config || { platform: PLUGIN_NAME }
     this.debug = this.config.debug || false
     this.config.logLevel = this.config.logLevel || LOG_LEVEL
+    this.ignoredDevices = this.config.ignoredDevices || []
 
     if (!this.config.username)
       throw new Error('Alarm.com: Missing required username in config')
@@ -85,9 +86,16 @@ class ADCPlatform {
         })
 
         res.sensors.forEach(s => {
-          this.addSensor(s)
-          if (this.config.logLevel > 2)
-            this.log(`Added sensor ${s.attributes.description} (${s.id})`)
+          // if the sensor id is not in the ignore list in the homebridge config
+          if (!this.ignoredDevices.includes(s.id)) {
+            this.addSensor(s)
+            if (this.config.logLevel > 2)
+              this.log(`Added sensor ${s.attributes.description} (${s.id})`)
+          }
+          else {
+            if (this.config.logLevel > 2)
+              this.log(`Ignored sensor ${s.attributes.description} (${s.id})`)
+          }
         })
       })
       .catch(err => {
@@ -366,6 +374,8 @@ class ADCPlatform {
   addSensor(sensor) {
     const id = sensor.id
     let accessory = this.accessories[id]
+    // in an ideal world, homebridge shouldn't be restarted too often
+    // so upon starting we clean out the cache of alarm accessories
     if (accessory)
       this.removeAccessory(accessory)
 
@@ -389,15 +399,17 @@ class ADCPlatform {
       sensorType: model
     }
 
-    if (this.config.logLevel > 2)
-      this.log(`Adding ${model} "${name}" (id=${id}, uuid=${uuid})`)
+    // if the sensor id is not in the ignore list in the homebridge config
+    if (!this.ignoredDevices.includes(id)) {
+      if (this.config.logLevel > 2)
+        this.log(`Adding ${model} "${name}" (id=${id}, uuid=${uuid})`)
 
-    this.addAccessory(accessory, type, model)
+      this.addAccessory(accessory, type, model)
+      this.setupSensor(accessory)
 
-    this.setupSensor(accessory)
-
-    // Set the initial sensor state
-    this.setSensorState(accessory, sensor)
+      // Set the initial sensor state
+      this.setSensorState(accessory, sensor)
+    }
   }
 
   setupSensor(accessory) {
