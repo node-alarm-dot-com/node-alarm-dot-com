@@ -10,6 +10,8 @@ const HOME_URL = 'https://www.alarm.com/web/system/home'
 const SYSTEM_URL = 'https://www.alarm.com/web/api/systems/systems/'
 const PARTITION_URL = 'https://www.alarm.com/web/api/devices/partitions/'
 const SENSORS_URL = 'https://www.alarm.com/web/api/devices/sensors'
+const LIGHTS_URL = 'https://www.alarm.com/web/api/devices/lights/'
+const LOCKS_URL = 'https://www.alarm.com/web/api/devices/locks/'
 const CT_JSON = 'application/json;charset=UTF-8'
 const UA = `node-alarm-dot-com/${require('./package').version}`
 
@@ -31,6 +33,25 @@ const SENSOR_STATES = {
   WET: 6
 }
 
+const LOCK_STATES = {
+  UNSECURED: 2,
+  SECURED: 1
+}
+
+const REL_TYPES = {
+  PARTITION: 'devices/partition',
+  LOCK: 'devices/lock',
+  CAMERA: 'video/camera',
+  GARAGE_DOOR: 'devices/garage-door',
+  SCENE: 'automation/scene',
+  SENSOR: 'devices/sensor',
+  LIGHT: 'devices/light',
+  THERMOSTAT: 'devices/thermostat',
+  GEO_DEVICE: 'geolocation/geo-device',
+  GEO_FENCE: 'geolocation/fence',
+  CONFIGURATION: 'systems/configuration'
+}
+
 exports.login = login
 exports.getCurrentState = getCurrentState
 exports.getPartition = getPartition
@@ -38,8 +59,11 @@ exports.getSensors = getSensors
 exports.armStay = armStay
 exports.armAway = armAway
 exports.disarm = disarm
+exports.unsecureLock = unsecureLock
+exports.secureLock = secureLock
 exports.SYSTEM_STATES = SYSTEM_STATES
 exports.SENSOR_STATES = SENSOR_STATES
+exports.LOCK_STATES = LOCK_STATES
 
 // Exported methods ////////////////////////////////////////////////////////////
 
@@ -79,7 +103,7 @@ function login(username, password) {
             'ctl00$ContentPlaceHolder1$btnLogin': 'Login'
           }
           loginFormBody = Object.keys(loginObj).map(k => encodeURIComponent(k)
-                            + '=' + encodeURIComponent(loginObj[k])).join('&')
+            + '=' + encodeURIComponent(loginObj[k])).join('&')
         })
         .catch(err => {
           throw new Error(`GET ${pdaSessionUrl} failed: ${err.message || err}`)
@@ -88,31 +112,31 @@ function login(username, password) {
     .then(res => {
       // submit form on sessionized mobile login page
       return fetch(pdaSessionUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'User-Agent': UA,
-            'Cookie': loginCookies
-          },
-          body: loginFormBody,
-          redirect: 'manual'
-        })
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'User-Agent': UA,
+          'Cookie': loginCookies
+        },
+        body: loginFormBody,
+        redirect: 'manual'
+      })
         .then(res => {
           // capture cookies
           loginCookies = res.headers.raw()['set-cookie']
-                          .map(c => c.split(';')[0]).join('; ')
+            .map(c => c.split(';')[0]).join('; ')
 
           // get Mobile-to-Desktop web-API redirect
           return get(res.headers.get('Location'), {
-              headers: {
-                'Cookie': loginCookies
-              },
-              redirect: 'manual'
-            })
+            headers: {
+              'Cookie': loginCookies
+            },
+            redirect: 'manual'
+          })
             .then(res => {
               // capture new cookies with apikey and sessionid (very important)
               loginCookies = res.headers.raw()['set-cookie']
-                              .map(c => c.split(';')[0]).join('; ')
+                .map(c => c.split(';')[0]).join('; ')
               // capture ajaxkey for future submission headers as well
               const re = /afg=([^;]+);/.exec(loginCookies)
               if (!re) throw new Error(`No afg cookie: ${loginCookies}`)
@@ -171,17 +195,23 @@ function getCurrentState(systemID, authOpts) {
       getPartition(p.id, authOpts)
     )
     const sensorIDs = rels.sensors.data.map(s => s.id)
+    const lightIDs = rels.lights.data.map(l => l.id)
+    const lockIDs = rels.locks.data.map(l => l.id)
 
     return Promise.all([
       Promise.all(partTasks),
-      getSensors(sensorIDs, authOpts)
-    ]).then(partitionsAndSensors => {
-      const [partitions, sensors] = partitionsAndSensors
+      getSensors(sensorIDs, authOpts),
+      getLights(lightIDs, authOpts),
+      getLocks(lockIDs, authOpts)
+    ]).then(systemAccessories => {
+      const [partitions, sensors, lights, locks] = systemAccessories
       return {
         id: res.data.id,
         attributes: res.data.attributes,
         partitions: partitions.map(p => p.data),
         sensors: sensors.data,
+        lights: lights.data,
+        locks: locks.data,
         relationships: rels
       }
     })
@@ -213,6 +243,72 @@ function getSensors(sensorIDs, authOpts) {
   const query = sensorIDs.map(id => `ids%5B%5D=${id}`).join('&')
   const url = `${SENSORS_URL}?${query}`
   return authenticatedGet(url, authOpts)
+}
+
+/**
+ * Get information for one or more lights.
+ * 
+ * @param {string|string[]} lightIDs Array of light ID strings.
+ * @param {Object} authOpts Authentication object returned from the `login`
+ *   method.
+ * @returns {Promise}
+ */
+function getLights(lightIDs, authOpts) {
+  if (!Array.isArray(lightIDs)) lightIDs = [lightIDs]
+  const query = lightIDs.map(id => `ids%5B%5D=${id}`).join('&')
+  const url = `${LIGHTS_URL}?${query}`
+  return authenticatedGet(url, authOpts)
+}
+
+/**
+ * Get information for one or more locks.
+ * 
+ * @param {string|string[]} lockIDs Array of lock ID strings.
+ * @param {Object} authOpts Authentication object returned from the `login`
+ *   method.
+ * @returns {Promise}
+ */
+function getLocks(lockIDs, authOpts) {
+  if (!Array.isArray(lockIDs)) lockIDs = [lockIDs]
+  const query = lockIDs.map(id => `ids%5B%5D=${id}`).join('&')
+  const url = `${LOCKS_URL}?${query}`
+  return authenticatedGet(url, authOpts)
+}
+
+/**
+ * Sets a lock to SECURED.
+ * 
+ * @param {string} lockID Lock ID string.
+ * @param {Object} authOpts Authentication object returned from the `login`
+ *   method.
+ * @returns {Promise}
+ */
+function secureLock(lockID, authOpts) {
+  const url = `${LOCKS_URL}${lockID}/lock`
+  const postOpts = Object.assign({}, authOpts, {
+    body: {
+      statePollOnly: false
+    }
+  })
+  return authenticatedPost(url, postOpts)
+}
+
+/**
+ * Sets a lock to UNSECURED.
+ * 
+ * @param {string} lockID Lock ID string.
+ * @param {Object} authOpts Authentication object returned from the `login`
+ *   method.
+ * @returns {Promise}
+ */
+function unsecureLock(lockID, authOpts) {
+  const url = `${LOCKS_URL}${lockID}/unlock`
+  const postOpts = Object.assign({}, authOpts, {
+    body: {
+      statePollOnly: false
+    }
+  })
+  return authenticatedPost(url, postOpts)
 }
 
 /**
