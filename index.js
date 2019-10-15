@@ -34,8 +34,13 @@ const SENSOR_STATES = {
 }
 
 const LOCK_STATES = {
-  UNSECURED: 2,
-  SECURED: 1
+  SECURED: 1,
+  UNSECURED: 2
+}
+
+const LIGHT_STATES = {
+  ON: 2,
+  OFF: 3
 }
 
 const REL_TYPES = {
@@ -61,9 +66,12 @@ exports.armAway = armAway
 exports.disarm = disarm
 exports.unsecureLock = unsecureLock
 exports.secureLock = secureLock
+exports.turnOnLight = turnOnLight
+exports.turnOffLight = turnOffLight
 exports.SYSTEM_STATES = SYSTEM_STATES
 exports.SENSOR_STATES = SENSOR_STATES
 exports.LOCK_STATES = LOCK_STATES
+exports.LIGHT_STATES = LIGHT_STATES
 
 // Exported methods ////////////////////////////////////////////////////////////
 
@@ -245,6 +253,8 @@ function getSensors(sensorIDs, authOpts) {
   return authenticatedGet(url, authOpts)
 }
 
+// Light methods //////////////////////////////////////////////////////////////
+
 /**
  * Get information for one or more lights.
  * 
@@ -259,6 +269,34 @@ function getLights(lightIDs, authOpts) {
   const url = `${LIGHTS_URL}?${query}`
   return authenticatedGet(url, authOpts)
 }
+
+/**
+ * Sets a light to ON and adjusts dimmer level
+ * 
+ * @param {string} lightID Light ID string.
+ * @param {number?} brightness An integer, 1-100, indicating brightness
+ * @param {Object} authOpts Authentication object returned from the `login`
+ *   method.
+ * @returns {Promise}
+ */
+function turnOnLight(lightID, brightness, authOpts) {
+  return adjustLight(lightID, 'turnOn', authOpts, brightness)
+}
+
+/**
+ * Sets a light to OFF
+ * 
+ * @param {string} lightID Light ID string.
+ * @param {number?} brightness An integer, 1-100, indicating brightness
+ * @param {Object} authOpts Authentication object returned from the `login`
+ *   method.
+ * @returns {Promise}
+ */
+function turnOffLight(lightID, brightness, authOpts) {
+  return adjustLight(lightID, 'turnOff', authOpts, brightness)
+}
+
+// Lock methods //////////////////////////////////////////////////////////////
 
 /**
  * Get information for one or more locks.
@@ -310,6 +348,8 @@ function unsecureLock(lockID, authOpts) {
   })
   return authenticatedPost(url, postOpts)
 }
+
+// Partition methods //////////////////////////////////////////////////////////////
 
 /**
  * Arm a security system panel in "stay" mode. NOTE: This call generally takes
@@ -370,6 +410,18 @@ function arm(partitionID, verb, authOpts, opts) {
     }
   })
   return authenticatedPost(url, postOpts)
+}
+
+function adjustLight(lightID, verb, authOpts, brightness) {
+  const url = `${LIGHTS_URL}${lightID}/${verb}`
+  const postOpts = Object.assign({}, authOpts, {
+    body: {
+      dimmerLevel: brightness,
+      statePollOnly: false
+    }
+  })
+  return authenticatedPost(url, postOpts)
+
 }
 
 function getValue(data, path) {
