@@ -5,7 +5,7 @@ const PLUGIN_NAME = 'Alarmdotcom'
 const MANUFACTURER = 'Alarm.com'
 const AUTH_TIMEOUT_MINS = 10 // default for session authentication refresh
 const POLL_TIMEOUT_SECS = 60 // default for device state polling
-const LOG_LEVEL = 4  // default for log entries: 0 = NONE, 1 = ERROR, 2 = WARN, 3 = NOTICE, 4 = VERBOSE
+const LOG_LEVEL = 3  // default for log entries: 0 = NONE, 1 = ERROR, 2 = WARN, 3 = NOTICE, 4 = VERBOSE
 
 let Accessory, Service, Characteristic, UUIDGen
 
