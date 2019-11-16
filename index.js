@@ -693,6 +693,7 @@ class ADCPlatform {
       name: name,
       state: light.attributes.state,
       desiredState: light.attributes.desiredState,
+      isDimmer: light.attributes.isDimmer,
       lightLevel: light.attributes.lightLevel,
       lightType: model
     }
@@ -742,11 +743,13 @@ class ADCPlatform {
       .on('get', callback => { callback(null, accessory.context.state) })
       .on('set', (value, callback) => this.changeLightState(accessory, value, accessory.context.lightLevel, callback))
 
-    service
-      .getCharacteristic(Characteristic.Brightness)
-      .on('get', callback => callback(null, accessory.context.lightLevel))
-      .on('set', (value, callback) => this.changeLightState(accessory, accessory.context.state, value, callback))
-  }
+    if (accessory.context.isDimmer) {
+        service
+          .getCharacteristic(Characteristic.Brightness)
+          .on('get', callback => callback(null, accessory.context.lightLevel))
+          .on('set', (value, callback) => this.changeLightState(accessory, accessory.context.state, value, callback))
+      }
+    }
 
   setLightState(accessory, light) {
     const id = accessory.context.accID
@@ -765,7 +768,7 @@ class ADCPlatform {
         .updateValue(state)
     }
 
-    if (brightness !== accessory.context.brightness) {
+    if (accessory.context.isDimmer && brightness !== accessory.context.brightness) {
       accessory.context.brightness = brightness
       accessory
         .getService(Service.Lightbulb)
