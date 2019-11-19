@@ -241,7 +241,7 @@ function getPartition(partitionID, authOpts) {
 /**
  * Get information for one or more sensors.
  * 
- * @param {string|string[]} sensorIDs Array of sensor ID strings.
+ * @param {string|array.strings} sensorIDs Array of sensor ID strings.
  * @param {Object} authOpts Authentication object returned from the `login`
  *   method.
  * @returns {Promise}
@@ -258,7 +258,7 @@ function getSensors(sensorIDs, authOpts) {
 /**
  * Get information for one or more lights.
  * 
- * @param {string|string[]} lightIDs Array of light ID strings.
+ * @param {string|array.strings} lightIDs Array of light ID strings.
  * @param {Object} authOpts Authentication object returned from the `login`
  *   method.
  * @returns {Promise}
@@ -271,10 +271,10 @@ function getLights(lightIDs, authOpts) {
 }
 
 /**
- * Sets a light to ON and adjusts dimmer level
+ * Sets a light to ON and adjusts brightness level (1-100) of dimmable lights.
  * 
  * @param {string} lightID Light ID string.
- * @param {number?} brightness An integer, 1-100, indicating brightness
+ * @param {number} brightness An integer, 1-100, indicating brightness.
  * @param {Object} authOpts Authentication object returned from the `login`
  *   method.
  * @returns {Promise}
@@ -284,10 +284,10 @@ function turnOnLight(lightID, brightness, authOpts) {
 }
 
 /**
- * Sets a light to OFF
+ * Sets a light to OFF. The brightness level is ignored.
  * 
  * @param {string} lightID Light ID string.
- * @param {number?} brightness An integer, 1-100, indicating brightness
+ * @param {number} brightness An integer, 1-100, indicating brightness. Ignored.
  * @param {Object} authOpts Authentication object returned from the `login`
  *   method.
  * @returns {Promise}
@@ -301,7 +301,7 @@ function turnOffLight(lightID, brightness, authOpts) {
 /**
  * Get information for one or more locks.
  * 
- * @param {string|string[]} lockIDs Array of lock ID strings.
+ * @param {string|array.strings} lockIDs Array of lock ID strings.
  * @param {Object} authOpts Authentication object returned from the `login`
  *   method.
  * @returns {Promise}
@@ -314,7 +314,7 @@ function getLocks(lockIDs, authOpts) {
 }
 
 /**
- * Sets a lock to SECURED.
+ * Sets a lock to "locked" (SECURED).
  * 
  * @param {string} lockID Lock ID string.
  * @param {Object} authOpts Authentication object returned from the `login`
@@ -332,7 +332,7 @@ function secureLock(lockID, authOpts) {
 }
 
 /**
- * Sets a lock to UNSECURED.
+ * Sets a lock to "unlocked" (UNSECURED).
  * 
  * @param {string} lockID Lock ID string.
  * @param {Object} authOpts Authentication object returned from the `login`

@@ -17,15 +17,13 @@ Supported Features
    * Disarming
  * Sensors
    * Contact states
-   * Occupancy states
+   * <del>Occupancy states</del> (this does not work due to lag in the Alarm.com webAPI itself)
    * Water Leak states
- * (Lights states/action - coming soon)
-   * on
-   * off
-   * dimmer
- * (Locks states/action - coming soon)
-   * lock
-   * unlock
+ * Lights
+   * On/Off switch
+   * Dimmer switch
+ * Locks
+   * Lock/Unlock switch
 
 Usage
 -----
@@ -79,6 +77,12 @@ Documentation
     * [~getCurrentState(systemID, authOpts)](#module_nodeADC..getCurrentState) ⇒ <code>Promise</code>
     * [~getPartition(partitionID, authOpts)](#module_nodeADC..getPartition) ⇒ <code>Promise</code>
     * [~getSensors(sensorIDs, authOpts)](#module_nodeADC..getSensors) ⇒ <code>Promise</code>
+    * [~getLights(lightIDs, authOpts)](#module_nodeADC..getLights) ⇒ <code>Promise</code>
+    * [~turnOnLight(lightID, brightness, authOpts)](#module_nodeADC..turnOnLight) ⇒ <code>Promise</code>
+    * [~turnOffLight(lightID, brightness, authOpts)](#module_nodeADC..turnOffLight) ⇒ <code>Promise</code>
+    * [~getLocks(lockIDs, authOpts)](#module_nodeADC..getLocks) ⇒ <code>Promise</code>
+    * [~secureLock(lockID, authOpts)](#module_nodeADC..secureLock) ⇒ <code>Promise</code>
+    * [~unsecureLock(lockID, authOpts)](#module_nodeADC..unsecureLock) ⇒ <code>Promise</code>
     * [~armStay(partitionID, authOpts, opts)](#module_nodeADC..armStay) ⇒ <code>Promise</code>
     * [~armAway(partitionID, authOpts, opts)](#module_nodeADC..armAway) ⇒ <code>Promise</code>
     * [~disarm(partitionID, authOpts)](#module_nodeADC..disarm) ⇒ <code>Promise</code>
@@ -104,8 +108,8 @@ Retrieve information about the current state of a security system including attr
 
 | Param | Type | Description |
 | --- | --- | --- |
-| systemID | <code>string</code> | ID of the FrontPoint system to query. The   Authentication object returned from the `login` method contains a `systems`   property which is an array of system IDs. |
-| authOpts | <code>Object</code> | Authentication object returned from the `login`   method. |
+| systemID | <code>string</code> | ID of the FrontPoint system to query. The   Authentication object returned from the `login` method contains a `systems` property which is an array of system IDs. |
+| authOpts | <code>Object</code> | Authentication object returned from the `login` method. |
 
 <a name="module_nodeADC..getPartition"></a>
 
@@ -117,7 +121,7 @@ Get information for a single security system partition.
 | Param | Type | Description |
 | --- | --- | --- |
 | partitionID | <code>string</code> | Partition ID to retrieve |
-| authOpts | <code>Object</code> | Authentication object returned from the `login`   method. |
+| authOpts | <code>Object</code> | Authentication object returned from the `login` method. |
 
 <a name="module_nodeADC..getSensors"></a>
 
@@ -129,7 +133,81 @@ Get information for one or more sensors.
 | Param | Type | Description |
 | --- | --- | --- |
 | sensorIDs | <code>string</code> \| <code>Array.&lt;string&gt;</code> | Array of sensor ID strings. |
-| authOpts | <code>Object</code> | Authentication object returned from the `login`   method. |
+| authOpts | <code>Object</code> | Authentication object returned from the `login` method. |
+
+<a name="module_nodeADC..getLights"></a>
+
+### nodeADC~getLights(lightIDs, authOpts) ⇒ <code>Promise</code>
+Get information for one or more lights.
+
+**Kind**: inner method of [<code>nodeADC</code>](#module_nodeADC)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| lightIDs | <code>string</code> \| <code>Array.&lt;string&gt;</code> | Array of light ID strings. |
+| authOpts | <code>Object</code> | Authentication object returned from the `login` method. |
+
+<a name="module_nodeADC..turnOnLight"></a>
+
+### nodeADC~turnOnLight(lightID, brightness, authOpts) ⇒ <code>Promise</code>
+Sets a light to ON and adjusts brightness level (1-100) of dimmable lights.
+
+**Kind**: inner method of [<code>nodeADC</code>](#module_nodeADC)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| lightID | <code>string</code> | Light ID string. |
+| brightness | <code>number</code> | An integer, 1-100, indicating brightness. |
+| authOpts | <code>Object</code> | Authentication object returned from the `login` method. |
+
+<a name="module_nodeADC..turnOffLight"></a>
+
+### nodeADC~turnOffLight(lightID, brightness, authOpts) ⇒ <code>Promise</code>
+Sets a light to OFF. The brightness level is ignored.
+
+**Kind**: inner method of [<code>nodeADC</code>](#module_nodeADC)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| lightID | <code>string</code> | Light ID string. |
+| brightness | <code>number</code> | <del>An integer, 1-100, indicating brightness.</del> Ignored. |
+| authOpts | <code>Object</code> | Authentication object returned from the `login` method. |
+
+<a name="module_nodeADC..getLocks"></a>
+
+### nodeADC~getLocks(lightIDs, authOpts) ⇒ <code>Promise</code>
+Get information for one or more locks.
+
+**Kind**: inner method of [<code>nodeADC</code>](#module_nodeADC)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| lockIDs | <code>string</code> \| <code>Array.&lt;string&gt;</code> | Array of lock ID strings. |
+| authOpts | <code>Object</code> | Authentication object returned from the `login` method. |
+
+<a name="module_nodeADC..secureLock"></a>
+
+### nodeADC~secureLock(lockID, authOpts) ⇒ <code>Promise</code>
+Sets a lock to "locked" (SECURED).
+
+**Kind**: inner method of [<code>nodeADC</code>](#module_nodeADC)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| lockID | <code>string</code> | Lock ID string. |
+| authOpts | <code>Object</code> | Authentication object returned from the `login` method. |
+
+<a name="module_nodeADC..unsecureLock"></a>
+
+### nodeADC~unsecureLock(lockID, authOpts) ⇒ <code>Promise</code>
+Sets a lock to "unlocked" (UNSECURED).
+
+**Kind**: inner method of [<code>nodeADC</code>](#module_nodeADC)
+
+| Param | Type | Description |
+| --- | --- | --- |
+| lockID | <code>string</code> | Lock ID string. |
+| authOpts | <code>Object</code> | Authentication object returned from the `login` method. |
 
 <a name="module_nodeADC..armStay"></a>
 
@@ -141,10 +219,10 @@ Arm a security system panel in "stay" mode. NOTE: This call may take 20-30 secon
 | Param | Type | Description |
 | --- | --- | --- |
 | partitionID | <code>string</code> | Partition ID to arm. |
-| authOpts | <code>Object</code> | Authentication object returned from the `login`   method. |
+| authOpts | <code>Object</code> | Authentication object returned from the `login` method. |
 | opts | <code>Object</code> | Optional arguments for arming the system. |
 | opts.noEntryDelay | <code>boolean</code> | Disable the 30-second entry delay. |
-| opts.silentArming | <code>boolean</code> | Disable audible beeps and double the exit   delay. |
+| opts.silentArming | <code>boolean</code> | Disable audible beeps and double the exit delay. |
 
 <a name="module_nodeADC..armAway"></a>
 
@@ -156,10 +234,10 @@ Arm a security system panel in "away" mode. NOTE: This call may take 20-30 secon
 | Param | Type | Description |
 | --- | --- | --- |
 | partitionID | <code>string</code> | Partition ID to arm. |
-| authOpts | <code>Object</code> | Authentication object returned from the `login`   method. |
+| authOpts | <code>Object</code> | Authentication object returned from the `login` method. |
 | opts | <code>Object</code> | Optional arguments for arming the system. |
 | opts.noEntryDelay | <code>boolean</code> | Disable the 30-second entry delay. |
-| opts.silentArming | <code>boolean</code> | Disable audible beeps and double the exit   delay. |
+| opts.silentArming | <code>boolean</code> | Disable audible beeps and double the exit delay. |
 
 <a name="module_nodeADC..disarm"></a>
 
@@ -171,7 +249,7 @@ Disarm a security system panel.
 | Param | Type | Description |
 | --- | --- | --- |
 | partitionID | <code>string</code> | Partition ID to disarm. |
-| authOpts | <code>Object</code> | Authentication object returned from the `login`   method. |
+| authOpts | <code>Object</code> | Authentication object returned from the `login` method. |
 
 Notes
 -----
@@ -183,5 +261,7 @@ Acknowledgements
 - **Original Code:** [https://github.com/jhurliman/node-frontpoint](https://github.com/jhurliman/node-frontpoint)
 - **Alarm.com Login Process:** [Schwark Satyavolu](https://github.com/schwark), original author of [pyalarmcom](https://github.com/schwark/pyalarmcom)
 - **Alarm.com Mobile Login Tips:** [Bryan Bartow](https://github.com/bryan-bartow), original author of [homebridge-alarm.com](https://github.com/bryan-bartow/homebridge-alarm.com)
+- **Lights/Locks Implementation:** [Chase Lau](https://github.com/chase9)
+
 
 
