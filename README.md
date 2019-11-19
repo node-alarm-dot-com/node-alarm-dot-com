@@ -22,13 +22,11 @@ Forked from John Hurliman's FrontPoint* plugin for Homebridge<small>[↗](https:
    * Contact states
    * <del>Occupancy states</del> (this does not work due to lag in the Alarm.com webAPI itself)
    * Water Leak states
- * *(Lights states/action - coming soon)*
-   * *on*
-   * *off*
-   * *dimmer*
- * *(Locks states/action - coming soon)*
-   * *lock*
-   * *unlock*
+ * Lights
+   * On/Off switch
+   * Dimmer switch
+ * Locks
+   * Lock/Unlock switch
 
 # Installation
 
@@ -73,7 +71,7 @@ Forked from John Hurliman's FrontPoint* plugin for Homebridge<small>[↗](https:
 * "name": Can be anything (required)
 * "username": Alarm.com login username, same as app (required)
 * "password": Alarm.com login password, same as app (required)
-* "armingModes": Object of objects with arming mode options of boolean choices
+* "armingModes": Object of objects with arming mode options of boolean choices (**WARNING:** the Alarm.com webAPI does not support setting silent arming to true and this feature does not work at this time)
 * "authTimeoutMinutes": Timeout to Re-Authenticate session (**WARNING:** choosing a time less than 10 minutes could possibly ban/disable your account from Alarm.com)
 * "pollTimeoutSeconds": Device polling interval (**WARNING:** choosing a time less than 60 seconds could possibly ban/disable your account from Alarm.com)
 * <details><summary>"logLevel": Adjust what gets reported in the logs <strong>(click to expand)</strong></summary><ul><li>0 = NO LOG ENTRIES</li><li>1 = ONLY ERRORS</li><li>2 = ONLY WARNINGS and ERRORS</li><li><strong>3 = GENERAL NOTICES, ERRORS and WARNINGS (default)</strong></li><li>4 = VERBOSE (everything including development output)</li></ul></details>
