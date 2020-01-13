@@ -100,12 +100,9 @@ function login(username, password) {
             '__EVENTTARGET': null,
             '__EVENTARGUMENT': null,
             '__VIEWSTATEENCRYPTED': null,
-            '__EVENTVALIDATION':
-              res.body.match(/name="__EVENTVALIDATION".*?value="([^"]*)"/)[1],
-            '__VIEWSTATE':
-              res.body.match(/name="__VIEWSTATE".*?value="([^"]*)"/)[1],
-            '__VIEWSTATEGENERATOR':
-              res.body.match(/name="__VIEWSTATEGENERATOR".*?value="([^"]*)"/)[1],
+            '__EVENTVALIDATION': res.body.match(/name="__EVENTVALIDATION".*?value="([^"]*)"/)[1],
+            '__VIEWSTATE': res.body.match(/name="__VIEWSTATE".*?value="([^"]*)"/)[1],
+            '__VIEWSTATEGENERATOR': res.body.match(/name="__VIEWSTATEGENERATOR".*?value="([^"]*)"/)[1],
             'ctl00$ContentPlaceHolder1$txtLogin': username,
             'ctl00$ContentPlaceHolder1$txtPassword': password,
             'ctl00$ContentPlaceHolder1$btnLogin': 'Login'
@@ -120,15 +117,15 @@ function login(username, password) {
     .then(res => {
       // submit form on sessionized mobile login page
       return fetch(pdaSessionUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'User-Agent': UA,
-          'Cookie': loginCookies
-        },
-        body: loginFormBody,
-        redirect: 'manual'
-      })
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'User-Agent': UA,
+            'Cookie': loginCookies
+          },
+          body: loginFormBody,
+          redirect: 'manual'
+        })
         .then(res => {
           // capture cookies
           loginCookies = res.headers.raw()['set-cookie']
@@ -136,11 +133,11 @@ function login(username, password) {
 
           // get Mobile-to-Desktop web-API redirect
           return get(res.headers.get('Location'), {
-            headers: {
-              'Cookie': loginCookies
-            },
-            redirect: 'manual'
-          })
+              headers: {
+                'Cookie': loginCookies
+              },
+              redirect: 'manual'
+            })
             .then(res => {
               // capture new cookies with apikey and sessionid (very important)
               loginCookies = res.headers.raw()['set-cookie']
@@ -198,31 +195,44 @@ function login(username, password) {
  */
 function getCurrentState(systemID, authOpts) {
   return authenticatedGet(SYSTEM_URL + systemID, authOpts).then(res => {
+
     const rels = res.data.relationships
     const partTasks = rels.partitions.data.map(p =>
       getPartition(p.id, authOpts)
     )
-    const sensorIDs = rels.sensors.data.map(s => s.id)
-    const lightIDs = rels.lights.data.map(l => l.id)
-    const lockIDs = rels.locks.data.map(l => l.id)
 
-    return Promise.all([
-      Promise.all(partTasks),
-      getSensors(sensorIDs, authOpts),
-      getLights(lightIDs, authOpts),
-      getLocks(lockIDs, authOpts)
-    ]).then(systemAccessories => {
+    const accessoryGetMethods = [
+      Promise.all(partTasks)
+    ]
+
+    const sensorIDs = rels.sensors.data.map(s => s.id)
+    if (typeof sensorIDs[0] != 'undefined') {
+      accessoryGetMethods.push(getSensors(sensorIDs, authOpts))
+    }
+
+    const lightIDs = rels.lights.data.map(l => l.id)
+    if (typeof lightIDs[0] != 'undefined') {
+      accessoryGetMethods.push(getLights(lightIDs, authOpts))
+    }
+
+    const lockIDs = rels.locks.data.map(l => l.id)
+    if (typeof lockIDs[0] != 'undefined') {
+      accessoryGetMethods.push(getLocks(lockIDs, authOpts))
+    }
+
+    return Promise.all(accessoryGetMethods).then(systemAccessories => {
       const [partitions, sensors, lights, locks] = systemAccessories
       return {
         id: res.data.id,
         attributes: res.data.attributes,
         partitions: partitions.map(p => p.data),
-        sensors: sensors.data,
-        lights: lights.data,
-        locks: locks.data,
+        sensors: typeof sensors != 'undefined' ? sensors.data : [],
+        lights: typeof lights != 'undefined' ? lights.data : [],
+        locks: typeof locks != 'undefined' ? locks.data : [],
         relationships: rels
       }
     })
+
   })
 }
 
@@ -463,10 +473,10 @@ function get(url, opts) {
   let resHeaders
 
   return fetch(url, {
-    method: 'GET',
-    redirect: 'manual',
-    headers: opts.headers
-  })
+      method: 'GET',
+      redirect: 'manual',
+      headers: opts.headers
+    })
     .then(res => {
       status = res.status
       resHeaders = res.headers
@@ -476,7 +486,10 @@ function get(url, opts) {
     })
     .then(body => {
       if (status >= 400) throw new Error(body.Message || body || status)
-      return { headers: resHeaders, body: body }
+      return {
+        headers: resHeaders,
+        body: body
+      }
     })
     .catch(err => {
       throw new Error(`GET ${url} failed: ${err.message || err}`)
@@ -490,11 +503,11 @@ function post(url, opts) {
   let resHeaders
 
   return fetch(url, {
-    method: 'POST',
-    redirect: 'manual',
-    body: opts.body ? JSON.stringify(opts.body) : undefined,
-    headers: opts.headers
-  })
+      method: 'POST',
+      redirect: 'manual',
+      body: opts.body ? JSON.stringify(opts.body) : undefined,
+      headers: opts.headers
+    })
     .then(res => {
       status = res.status
       resHeaders = res.headers
@@ -502,7 +515,10 @@ function post(url, opts) {
     })
     .then(json => {
       if (status !== 200) throw new Error(json.Message || status)
-      return { headers: resHeaders, body: json }
+      return {
+        headers: resHeaders,
+        body: json
+      }
     })
     .catch(err => {
       throw new Error(`POST ${url} failed: ${err.message || err}`)
