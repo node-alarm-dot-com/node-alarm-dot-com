@@ -8,7 +8,7 @@ const ADCLOGIN_URL = 'https://www.alarm.com/pda/Default.aspx'
 const IDENTITIES_URL = 'https://www.alarm.com/web/api/identities'
 const HOME_URL = 'https://www.alarm.com/web/system/home'
 const SYSTEM_URL = 'https://www.alarm.com/web/api/systems/systems/'
-const PARTITION_URL = 'https://www.alarm.com/web/api/devices/partitions/'
+const PARTITIONS_URL = 'https://www.alarm.com/web/api/devices/partitions/'
 const SENSORS_URL = 'https://www.alarm.com/web/api/devices/sensors'
 const LIGHTS_URL = 'https://www.alarm.com/web/api/devices/lights/'
 const LOCKS_URL = 'https://www.alarm.com/web/api/devices/locks/'
@@ -59,15 +59,15 @@ const REL_TYPES = {
 
 exports.login = login
 exports.getCurrentState = getCurrentState
-exports.getPartition = getPartition
-exports.getSensors = getSensors
+
 exports.armStay = armStay
 exports.armAway = armAway
 exports.disarm = disarm
-exports.unsecureLock = unsecureLock
-exports.secureLock = secureLock
-exports.turnOnLight = turnOnLight
-exports.turnOffLight = turnOffLight
+exports.setLockSecure = setLockSecure
+exports.setLockUnsecure = setLockUnsecure
+exports.setLightOn = setLightOn
+exports.setLightOff = setLightOff
+
 exports.SYSTEM_STATES = SYSTEM_STATES
 exports.SENSOR_STATES = SENSOR_STATES
 exports.LOCK_STATES = LOCK_STATES
@@ -184,48 +184,47 @@ function login(username, password) {
 
 /**
  * Retrieve information about the current state of a security system including
- * attributes, partitions, sensors, and relationships.
+ * attributes, partitions, accessory components and relationships.
  * 
  * @param {string} systemID ID of the system to query. The Authentication object
  *   returned from the `login` method contains a `systems` property which is an
  *   array of system IDs.
- * @param {Object} authOpts Authentication object returned from the `login`
- *   method.
+ * @param {Object} authOpts Authentication object returned from the login.
  * @returns {Promise}
  */
 function getCurrentState(systemID, authOpts) {
   return authenticatedGet(SYSTEM_URL + systemID, authOpts).then(res => {
 
     const rels = res.data.relationships
-    const partTasks = rels.partitions.data.map(p =>
-      getPartition(p.id, authOpts)
-    )
+    const resultingComponentsContainer = []
 
-    const accessoryGetMethods = [
-      Promise.all(partTasks)
-    ]
+    // push the results of getComponents into the resultingComponentsContainer
 
+    const partitionIDs = rels.partitions.data.map(p => p.id)
+    if (typeof partitionIDs[0] != 'undefined') {
+      resultingComponentsContainer.push(getComponents(PARTITIONS_URL, partitionIDs, authOpts))
+    }
     const sensorIDs = rels.sensors.data.map(s => s.id)
     if (typeof sensorIDs[0] != 'undefined') {
-      accessoryGetMethods.push(getSensors(sensorIDs, authOpts))
+      resultingComponentsContainer.push(getComponents(SENSORS_URL, sensorIDs, authOpts))
     }
-
     const lightIDs = rels.lights.data.map(l => l.id)
     if (typeof lightIDs[0] != 'undefined') {
-      accessoryGetMethods.push(getLights(lightIDs, authOpts))
+      resultingComponentsContainer.push(getComponents(LIGHTS_URL, lightIDs, authOpts))
     }
-
     const lockIDs = rels.locks.data.map(l => l.id)
     if (typeof lockIDs[0] != 'undefined') {
-      accessoryGetMethods.push(getLocks(lockIDs, authOpts))
+      resultingComponentsContainer.push(getComponents(LOCKS_URL, lockIDs, authOpts))
     }
 
-    return Promise.all(accessoryGetMethods).then(systemAccessories => {
-      const [partitions, sensors, lights, locks] = systemAccessories
+    return Promise.all(resultingComponentsContainer)
+    .then(resultingSystemComponents => {
+      // destructured assignment
+      const [partitions, sensors, lights, locks] = resultingSystemComponents
       return {
         id: res.data.id,
         attributes: res.data.attributes,
-        partitions: partitions.map(p => p.data),
+        partitions: typeof partitions != 'undefined' ? partitions.data : [],
         sensors: typeof sensors != 'undefined' ? sensors.data : [],
         lights: typeof lights != 'undefined' ? lights.data : [],
         locks: typeof locks != 'undefined' ? locks.data : [],
@@ -237,104 +236,34 @@ function getCurrentState(systemID, authOpts) {
 }
 
 /**
- * Get information for a single security system partition.
- * 
- * @param {string} partitionID Partition ID to retrieve
- * @param {Object} authOpts Authentication object returned from the `login`
- *   method.
+ * Get information about groups of components e.g., sensors, lights, locks, etc.
+ *
+ * @param {string} url Base request url
+ * @param {string} componentIDs Array of ID to retrieve
+ * @param {Object} authOpts Authentication object returned from the login.
  * @returns {Promise}
  */
-function getPartition(partitionID, authOpts) {
-  return authenticatedGet(PARTITION_URL + partitionID, authOpts)
+function getComponents(url, componentIDs, authOpts) {
+  const IDs = Array.isArray(componentIDs) ? componentIDs : [componentIDs];
+  return authenticatedGet(`${url}?${IDs.map(id => `ids%5B%5D=${id}`).join('&')}`, authOpts);
 }
 
-/**
- * Get information for one or more sensors.
- * 
- * @param {string|array.strings} sensorIDs Array of sensor ID strings.
- * @param {Object} authOpts Authentication object returned from the `login`
- *   method.
- * @returns {Promise}
- */
-function getSensors(sensorIDs, authOpts) {
-  if (!Array.isArray(sensorIDs)) sensorIDs = [sensorIDs]
-  const query = sensorIDs.map(id => `ids%5B%5D=${id}`).join('&')
-  const url = `${SENSORS_URL}?${query}`
-  return authenticatedGet(url, authOpts)
-}
-
-// Light methods //////////////////////////////////////////////////////////////
+// Partition methods ///////////////////////////////////////////////////////////
 
 /**
- * Get information for one or more lights.
- * 
- * @param {string|array.strings} lightIDs Array of light ID strings.
- * @param {Object} authOpts Authentication object returned from the `login`
- *   method.
- * @returns {Promise}
+ * Perform partition actions, e.g., armAway, armStay, disarm.
+ *
+ * @param {string} partitionID Partition ID to perform action on.
+ * @param {string} action Action (verb) to perform on partition.
+ * @param {Object} authOpts Authentication object returned from the login.
+ * @param {Object} opts Additional options for the action.
  */
-function getLights(lightIDs, authOpts) {
-  if (!Array.isArray(lightIDs)) lightIDs = [lightIDs]
-  const query = lightIDs.map(id => `ids%5B%5D=${id}`).join('&')
-  const url = `${LIGHTS_URL}?${query}`
-  return authenticatedGet(url, authOpts)
-}
-
-/**
- * Sets a light to ON and adjusts brightness level (1-100) of dimmable lights.
- * 
- * @param {string} lightID Light ID string.
- * @param {number} brightness An integer, 1-100, indicating brightness.
- * @param {Object} authOpts Authentication object returned from the `login`
- *   method.
- * @returns {Promise}
- */
-function turnOnLight(lightID, brightness, authOpts) {
-  return adjustLight(lightID, 'turnOn', authOpts, brightness)
-}
-
-/**
- * Sets a light to OFF. The brightness level is ignored.
- * 
- * @param {string} lightID Light ID string.
- * @param {number} brightness An integer, 1-100, indicating brightness. Ignored.
- * @param {Object} authOpts Authentication object returned from the `login`
- *   method.
- * @returns {Promise}
- */
-function turnOffLight(lightID, brightness, authOpts) {
-  return adjustLight(lightID, 'turnOff', authOpts, brightness)
-}
-
-// Lock methods //////////////////////////////////////////////////////////////
-
-/**
- * Get information for one or more locks.
- * 
- * @param {string|array.strings} lockIDs Array of lock ID strings.
- * @param {Object} authOpts Authentication object returned from the `login`
- *   method.
- * @returns {Promise}
- */
-function getLocks(lockIDs, authOpts) {
-  if (!Array.isArray(lockIDs)) lockIDs = [lockIDs]
-  const query = lockIDs.map(id => `ids%5B%5D=${id}`).join('&')
-  const url = `${LOCKS_URL}?${query}`
-  return authenticatedGet(url, authOpts)
-}
-
-/**
- * Sets a lock to "locked" (SECURED).
- * 
- * @param {string} lockID Lock ID string.
- * @param {Object} authOpts Authentication object returned from the `login`
- *   method.
- * @returns {Promise}
- */
-function secureLock(lockID, authOpts) {
-  const url = `${LOCKS_URL}${lockID}/lock`
+function partitionAction(partitionID, action, authOpts, opts) {
+  const url = `${PARTITIONS_URL}${partitionID}/${action}`
   const postOpts = Object.assign({}, authOpts, {
     body: {
+      noEntryDelay: action === 'disarm' ? undefined : Boolean(opts.noEntryDelay),
+      silentArming: action === 'disarm' ? undefined : Boolean(opts.silentArming),
       statePollOnly: false
     }
   })
@@ -342,32 +271,12 @@ function secureLock(lockID, authOpts) {
 }
 
 /**
- * Sets a lock to "unlocked" (UNSECURED).
- * 
- * @param {string} lockID Lock ID string.
- * @param {Object} authOpts Authentication object returned from the `login`
- *   method.
- * @returns {Promise}
- */
-function unsecureLock(lockID, authOpts) {
-  const url = `${LOCKS_URL}${lockID}/unlock`
-  const postOpts = Object.assign({}, authOpts, {
-    body: {
-      statePollOnly: false
-    }
-  })
-  return authenticatedPost(url, postOpts)
-}
-
-// Partition methods //////////////////////////////////////////////////////////////
-
-/**
+ * Convenience Method:
  * Arm a security system panel in "stay" mode. NOTE: This call generally takes
  * 20-30 seconds to complete.
  * 
  * @param {string} partitionID Partition ID to arm.
- * @param {Object} authOpts Authentication object returned from the `login`
- *   method.
+ * @param {Object} authOpts Authentication object returned from the login.
  * @param {Object} opts Optional arguments for arming the system.
  * @param {boolean} opts.noEntryDelay Disable the 30-second entry delay.
  * @param {boolean} opts.silentArming Disable audible beeps and double the exit
@@ -375,16 +284,16 @@ function unsecureLock(lockID, authOpts) {
  * @returns {Promise}
  */
 function armStay(partitionID, authOpts, opts) {
-  return arm(partitionID, 'armStay', authOpts, opts)
+  return partitionAction(partitionID, 'armStay', authOpts, opts)
 }
 
 /**
+ * Convenience Method:
  * Arm a security system panel in "away" mode. NOTE: This call generally takes
  * 20-30 seconds to complete.
  * 
  * @param {string} partitionID Partition ID to arm.
- * @param {Object} authOpts Authentication object returned from the `login`
- *   method.
+ * @param {Object} authOpts Authentication object returned from the login.
  * @param {Object} opts Optional arguments for arming the system.
  * @param {boolean} opts.noEntryDelay Disable the 30-second entry delay.
  * @param {boolean} opts.silentArming Disable audible beeps and double the exit
@@ -392,38 +301,39 @@ function armStay(partitionID, authOpts, opts) {
  * @returns {Promise}
  */
 function armAway(partitionID, authOpts, opts) {
-  return arm(partitionID, 'armAway', authOpts, opts)
+  return partitionAction(partitionID, 'armAway', authOpts, opts)
 }
 
 /**
+ * Convenience Method:
  * Disarm a security system panel. NOTE: This call generally takes 20-30 seconds
  * to complete.
  * 
  * @param {string} partitionID Partition ID to disarm.
- * @param {Object} authOpts Authentication object returned from the `login`
- *   method.
+ * @param {Object} authOpts Authentication object returned from the login.
  * @returns {Promise}
  */
 function disarm(partitionID, authOpts) {
-  return arm(partitionID, 'disarm', authOpts)
+  return partitionAction(partitionID, 'disarm', authOpts)
 }
 
-// Helper methods //////////////////////////////////////////////////////////////
+// Sensor methods //////////////////////////////////////////////////////////////
 
-function arm(partitionID, verb, authOpts, opts) {
-  const url = `${PARTITION_URL}${partitionID}/${verb}`
-  const postOpts = Object.assign({}, authOpts, {
-    body: {
-      noEntryDelay: verb === 'disarm' ? undefined : Boolean(opts.noEntryDelay),
-      silentArming: verb === 'disarm' ? undefined : Boolean(opts.silentArming),
-      statePollOnly: false
-    }
-  })
-  return authenticatedPost(url, postOpts)
-}
+// Sensors don't do anything, but they report state when we get information
+// about any of the components, sensors included.
 
-function adjustLight(lightID, verb, authOpts, brightness) {
-  const url = `${LIGHTS_URL}${lightID}/${verb}`
+// Light methods ///////////////////////////////////////////////////////////////
+
+/**
+ * Perform light actions, e.g., turn on, turn off, change brightness level.
+ *
+ * @param {string} lightID Light ID string.
+ * @param {string} action Action (verb) to perform on the light.
+ * @param {Object} authOpts Authentication object returned from the login.
+ * @param {number} brightness brightness An integer, 1-100, indicating brightness. Ignored.
+ */
+function lightAction(lightID, authOpts, brightness, action) {
+  const url = `${LIGHTS_URL}${lightID}/${action}`
   const postOpts = Object.assign({}, authOpts, {
     body: {
       dimmerLevel: brightness,
@@ -431,8 +341,78 @@ function adjustLight(lightID, verb, authOpts, brightness) {
     }
   })
   return authenticatedPost(url, postOpts)
-
 }
+
+/**
+ * Convenience Method:
+ * Sets a light to ON and adjusts brightness level (1-100) of dimmable lights.
+ * 
+ * @param {string} lightID Light ID string.
+ * @param {number} brightness An integer, 1-100, indicating brightness.
+ * @param {Object} authOpts Authentication object returned from the login.
+ * @returns {Promise}
+ */
+function setLightOn(lightID, authOpts, brightness) {
+  return lightAction(lightID, authOpts, brightness, 'turnOn')
+}
+
+/**
+ * Convenience Method:
+ * Sets a light to OFF. The brightness level is ignored.
+ * 
+ * @param {string} lightID Light ID string.
+ * @param {number} brightness An integer, 1-100, indicating brightness. Ignored.
+ * @param {Object} authOpts Authentication object returned from the login.
+ * @returns {Promise}
+ */
+function setLightOff(lightID, authOpts, brightness) {
+  return lightAction(lightID, authOpts, brightness, 'turnOff')
+}
+
+// Lock methods ////////////////////////////////////////////////////////////////
+
+/**
+ * Perform lock actions, e.g., lock, unlock.
+ *
+ * @param {string} lockID Lock ID string.
+ * @param {string} action Action (verb) to perform on the lock.
+ * @param {Object} authOpts Authentication object returned from the login.
+ */
+function lockAction(lockID, authOpts, action) {
+  const url = `${LOCKS_URL}${lockID}/${action}`
+  const postOpts = Object.assign({}, authOpts, {
+    body: {
+      statePollOnly: false
+    }
+  })
+  return authenticatedPost(url, postOpts)
+}
+
+/**
+ * Convenience Method:
+ * Sets a lock to "locked" (SECURED).
+ * 
+ * @param {string} lockID Lock ID string.
+ * @param {Object} authOpts Authentication object returned from the login.
+ * @returns {Promise}
+ */
+function setLockSecure(lockID, authOpts) {
+  return lockAction(lockID, authOpts, 'lock')
+}
+
+/**
+ * Convenience Method:
+ * Sets a lock to "unlocked" (UNSECURED).
+ * 
+ * @param {string} lockID Lock ID string.
+ * @param {Object} authOpts Authentication object returned from the login.
+ * @returns {Promise}
+ */
+function setLockUnsecure(lockID, authOpts) {
+  return lockAction(lockID, authOpts, 'unlock')
+}
+
+// Helper methods //////////////////////////////////////////////////////////////
 
 function getValue(data, path) {
   if (typeof path === 'string') path = path.split('.')
