@@ -22,7 +22,7 @@ const SYSTEM_STATES = {
   ARMED_AWAY: 3,
   ARMED_NIGHT: 4
 }
-
+}
 const SENSOR_STATES = {
   UNKNOWN: 0,
   CLOSED: 1,
