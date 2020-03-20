@@ -41,6 +41,6 @@
     "node-fetch": "^2.0.0"
   },
   "devDependencies": {
-    "yargs": "^10.0.3"
+    "yargs": "^15.3.1"
   }
 }
