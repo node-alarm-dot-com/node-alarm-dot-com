@@ -449,7 +449,7 @@ function get(url, opts) {
       resHeaders = res.headers
 
       const type = res.headers.get('content-type') || ''
-      return type.indexOf('json') !== -1 ? res.json() : res.text()
+      return type.indexOf('json') !== -1 ? (res.status === 204 ? {} : res.json()) : res.text();
     })
     .then(body => {
       if (status >= 400) throw new Error(body.Message || body || status)
@@ -478,7 +478,7 @@ function post(url, opts) {
     .then(res => {
       status = res.status
       resHeaders = res.headers
-      return res.json()
+      return (res.status === 204 ? {} : res.json());
     })
     .then(json => {
       if (status !== 200) throw new Error(json.Message || status)
