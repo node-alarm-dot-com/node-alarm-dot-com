@@ -4,7 +4,8 @@
 
 const fetch = require('node-fetch')
 
-const ADCLOGIN_URL = 'https://www.alarm.com/pda/Default.aspx'
+const ADCLOGIN_URL = 'https://www.alarm.com/login'
+const ADCFORMLOGIN_URL = 'https://www.alarm.com/web/Default.aspx'
 const IDENTITIES_URL = 'https://www.alarm.com/web/api/identities'
 const HOME_URL = 'https://www.alarm.com/web/system/home'
 const SYSTEM_URL = 'https://www.alarm.com/web/api/systems/systems/'
@@ -84,102 +85,88 @@ exports.LIGHT_STATES = LIGHT_STATES
  * @returns {Promise}
  */
 function login(username, password) {
-  let loginCookies, ajaxKey, loginFormBody, pdaSessionUrl
 
-  // load initial mobile page
+  let loginCookies, ajaxKey, loginFormBody, identities, systems
+
+  // load initial alarm.com page to gather required hidden form fields
   return get(ADCLOGIN_URL)
-    .then(res => {
-      // capture and store sessionized redirect url to mobile login page
-      pdaSessionUrl = res.headers.get('Location')
+    .catch(err => {
+      throw new Error(`GET ${ADCLOGIN_URL} failed: ${err.message || err}`)
     })
     .then(res => {
-      // get sessionized mobile login page
-      return get(pdaSessionUrl)
-        .then(res => {
-          const loginObj = {
-            '__EVENTTARGET': null,
-            '__EVENTARGUMENT': null,
-            '__VIEWSTATEENCRYPTED': null,
-            '__EVENTVALIDATION': res.body.match(/name="__EVENTVALIDATION".*?value="([^"]*)"/)[1],
-            '__VIEWSTATE': res.body.match(/name="__VIEWSTATE".*?value="([^"]*)"/)[1],
-            '__VIEWSTATEGENERATOR': res.body.match(/name="__VIEWSTATEGENERATOR".*?value="([^"]*)"/)[1],
-            'ctl00$ContentPlaceHolder1$txtLogin': username,
-            'ctl00$ContentPlaceHolder1$txtPassword': password,
-            'ctl00$ContentPlaceHolder1$btnLogin': 'Login'
-          }
-          loginFormBody = Object.keys(loginObj).map(k => encodeURIComponent(k)
-            + '=' + encodeURIComponent(loginObj[k])).join('&')
-        })
-        .catch(err => {
-          throw new Error(`GET ${pdaSessionUrl} failed: ${err.message || err}`)
-        })
-    })
-    .then(res => {
-      // submit form on sessionized mobile login page
-      return fetch(pdaSessionUrl, {
+
+      // build login form body
+      const loginObj = {
+        '__EVENTTARGET': null,
+        '__EVENTARGUMENT': null,
+        '__VIEWSTATEENCRYPTED': null,
+        '__EVENTVALIDATION': res.body.match(/name="__EVENTVALIDATION".*?value="([^"]*)"/)[1],
+        '__VIEWSTATE': res.body.match(/name="__VIEWSTATE".*?value="([^"]*)"/)[1],
+        '__VIEWSTATEGENERATOR': res.body.match(/name="__VIEWSTATEGENERATOR".*?value="([^"]*)"/)[1],
+        '__PREVIOUSPAGE': res.body.match(/name="__PREVIOUSPAGE".*?value="([^"]*)"/)[1],
+        'IsFromNewSite': "1",
+        'ctl00$ContentPlaceHolder1$loginform$txtUserName': username,
+        'txtPassword': password
+      }
+      loginFormBody = Object.keys(loginObj).map(k => encodeURIComponent(k) + '=' + encodeURIComponent(loginObj[k])).join('&')
+
+      // submit login form and gather cookies/keys for session
+      return fetch(ADCFORMLOGIN_URL, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
-            'User-Agent': UA,
-            'Cookie': loginCookies
+            'User-Agent': UA
           },
           body: loginFormBody,
           redirect: 'manual'
         })
+        .catch(err => {
+          throw new Error(`POST ${ADCFORMLOGIN_URL} failed: ${err.message || err}`)
+        })
         .then(res => {
-          // capture cookies
-          loginCookies = res.headers.raw()['set-cookie']
-            .map(c => c.split(';')[0]).join('; ')
 
-          // get Mobile-to-Desktop web-API redirect
-          return get(res.headers.get('Location'), {
+          // gather cookies for session
+          loginCookies = res.headers.raw()['set-cookie'].map(c => c.split(';')[0]).join('; ')
+
+          // gather ajaxkey for session headers
+          const re = /afg=([^;]+);/.exec(loginCookies)
+          if (!re)
+            throw new Error(`No afg cookie: ${loginCookies}`)
+          ajaxKey = re[1]
+
+          // request identities and systems for account
+          return get(IDENTITIES_URL, {
               headers: {
-                'Cookie': loginCookies
-              },
-              redirect: 'manual'
-            })
-            .then(res => {
-              // capture new cookies with apikey and sessionid (very important)
-              loginCookies = res.headers.raw()['set-cookie']
-                .map(c => c.split(';')[0]).join('; ')
-              // capture ajaxkey for future submission headers as well
-              const re = /afg=([^;]+);/.exec(loginCookies)
-              if (!re) throw new Error(`No afg cookie: ${loginCookies}`)
-              ajaxKey = re[1]
+                'Accept': 'application/vnd.api+json',
+                'Cookie': loginCookies,
+                'ajaxrequestuniquekey': ajaxKey,
+                'Referer': 'https://www.alarm.com/web/system/home',
+                'User-Agent': UA
+              }
             })
             .catch(err => {
-              throw new Error(`GET ${res.headers.get('Location')} failed:
-                              ${err.message || err}`)
+              throw new Error(`GET ${IDENTITIES_URL} failed: ${err.message || err}`)
+            })
+            .then(res => {
+
+              // gather identities and systems
+              identities = res.body
+              systems = (identities.data || []).map(d =>
+                getValue(d, 'relationships.selectedSystem.data.id')
+              )
+
+              // finally return session/account object for polling and manipulation
+              return {
+                cookie: loginCookies,
+                ajaxKey: ajaxKey,
+                systems: systems,
+                identities: identities
+              }
+
             })
         })
-        .catch(err => {
-          throw new Error(`POST ${pdaSessionUrl} failed: ${err.message || err}`)
-        })
     })
-    .then(() =>
-      get(IDENTITIES_URL, {
-        headers: {
-          Accept: 'application/vnd.api+json',
-          Cookie: loginCookies,
-          AjaxRequestUniqueKey: ajaxKey,
-          Referer: 'https://www.alarm.com/web/system/home',
-          'User-Agent': UA
-        }
-      })
-    )
-    .then(res => {
-      const identities = res.body
-      const systems = (identities.data || []).map(d =>
-        getValue(d, 'relationships.selectedSystem.data.id')
-      )
-
-      return {
-        cookie: loginCookies,
-        ajaxKey: ajaxKey,
-        systems: systems,
-        identities: identities
-      }
-    })
+    
 }
 
 /**
@@ -218,19 +205,19 @@ function getCurrentState(systemID, authOpts) {
     }
 
     return Promise.all(resultingComponentsContainer)
-    .then(resultingSystemComponents => {
-      // destructured assignment
-      const [partitions, sensors, lights, locks] = resultingSystemComponents
-      return {
-        id: res.data.id,
-        attributes: res.data.attributes,
-        partitions: typeof partitions != 'undefined' ? partitions.data : [],
-        sensors: typeof sensors != 'undefined' ? sensors.data : [],
-        lights: typeof lights != 'undefined' ? lights.data : [],
-        locks: typeof locks != 'undefined' ? locks.data : [],
-        relationships: rels
-      }
-    })
+      .then(resultingSystemComponents => {
+        // destructured assignment
+        const [partitions, sensors, lights, locks] = resultingSystemComponents
+        return {
+          id: res.data.id,
+          attributes: res.data.attributes,
+          partitions: typeof partitions != 'undefined' ? partitions.data : [],
+          sensors: typeof sensors != 'undefined' ? sensors.data : [],
+          lights: typeof lights != 'undefined' ? lights.data : [],
+          locks: typeof locks != 'undefined' ? locks.data : [],
+          relationships: rels
+        }
+      })
 
   })
 }
@@ -425,7 +412,7 @@ function authenticatedGet(url, opts) {
   opts = opts || {}
   opts.headers = opts.headers || {}
   opts.headers.Accept = 'application/vnd.api+json'
-  opts.headers.AjaxRequestUniqueKey = opts.ajaxKey
+  opts.headers.ajaxrequestuniquekey = opts.ajaxKey
   opts.headers.Cookie = opts.cookie
   opts.headers.Referer = HOME_URL
   opts.headers['User-Agent'] = UA
@@ -437,7 +424,7 @@ function authenticatedPost(url, opts) {
   opts = opts || {}
   opts.headers = opts.headers || {}
   opts.headers.Accept = 'application/vnd.api+json'
-  opts.headers.AjaxRequestUniqueKey = opts.ajaxKey
+  opts.headers.ajaxrequestuniquekey = opts.ajaxKey
   opts.headers.Cookie = opts.cookie
   opts.headers.Referer = HOME_URL
   opts.headers['User-Agent'] = UA
