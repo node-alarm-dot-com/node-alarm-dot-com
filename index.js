@@ -32,17 +32,17 @@ const SENSOR_STATES = {
   DRY: 5,
   WET: 6
 }
-
+}
 const LOCK_STATES = {
   SECURED: 1,
   UNSECURED: 2
 }
-
+}
 const LIGHT_STATES = {
   ON: 2,
   OFF: 3
 }
-
+}
 const REL_TYPES = {
   PARTITION: 'devices/partition',
   LOCK: 'devices/lock',
@@ -56,7 +56,7 @@ const REL_TYPES = {
   GEO_FENCE: 'geolocation/fence',
   CONFIGURATION: 'systems/configuration'
 }
-
+}
 exports.login = login
 exports.getCurrentState = getCurrentState
 
@@ -74,7 +74,7 @@ exports.LOCK_STATES = LOCK_STATES
 exports.LIGHT_STATES = LIGHT_STATES
 
 // Exported methods ////////////////////////////////////////////////////////////
-
+// 
 /**
  * Authenticate with alarm.com.
  * Returns an authentication object that can be passed to other methods.
@@ -84,104 +84,80 @@ exports.LIGHT_STATES = LIGHT_STATES
  * @returns {Promise}
  */
 function login(username, password) {
-  let loginCookies, ajaxKey, loginFormBody, pdaSessionUrl
+       let loginCookies, ajaxKey, loginFormBody, pdaSessionUrl
 
-  // load initial mobile page
-  return get(ADCLOGIN_URL)
-    .then(res => {
-      // capture and store sessionized redirect url to mobile login page
-      pdaSessionUrl = res.headers.get('Location')
-    })
-    .then(res => {
-      // get sessionized mobile login page
-      return get(pdaSessionUrl)
-        .then(res => {
-          const loginObj = {
-            '__EVENTTARGET': null,
-            '__EVENTARGUMENT': null,
-            '__VIEWSTATEENCRYPTED': null,
-            '__EVENTVALIDATION': res.body.match(/name="__EVENTVALIDATION".*?value="([^"]*)"/)[1],
-            '__VIEWSTATE': res.body.match(/name="__VIEWSTATE".*?value="([^"]*)"/)[1],
-            '__VIEWSTATEGENERATOR': res.body.match(/name="__VIEWSTATEGENERATOR".*?value="([^"]*)"/)[1],
-            'ctl00$ContentPlaceHolder1$txtLogin': username,
-            'ctl00$ContentPlaceHolder1$txtPassword': password,
-            'ctl00$ContentPlaceHolder1$btnLogin': 'Login'
-          }
-          loginFormBody = Object.keys(loginObj).map(k => encodeURIComponent(k)
-            + '=' + encodeURIComponent(loginObj[k])).join('&')
-        })
-        .catch(err => {
-          throw new Error(`GET ${pdaSessionUrl} failed: ${err.message || err}`)
-        })
-    })
-    .then(res => {
-      // submit form on sessionized mobile login page
-      return fetch(pdaSessionUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'User-Agent': UA,
-            'Cookie': loginCookies
-          },
-          body: loginFormBody,
-          redirect: 'manual'
-        })
-        .then(res => {
-          // capture cookies
-          loginCookies = res.headers.raw()['set-cookie']
-            .map(c => c.split(';')[0]).join('; ')
 
-          // get Mobile-to-Desktop web-API redirect
-          return get(res.headers.get('Location'), {
-              headers: {
-                'Cookie': loginCookies
-              },
-              redirect: 'manual'
-            })
-            .then(res => {
-              // capture new cookies with apikey and sessionid (very important)
-              loginCookies = res.headers.raw()['set-cookie']
-                .map(c => c.split(';')[0]).join('; ')
-              // capture ajaxkey for future submission headers as well
-              const re = /afg=([^;]+);/.exec(loginCookies)
-              if (!re) throw new Error(`No afg cookie: ${loginCookies}`)
-              ajaxKey = re[1]
-            })
-            .catch(err => {
-              throw new Error(`GET ${res.headers.get('Location')} failed:
-                              ${err.message || err}`)
-            })
-        })
-        .catch(err => {
-          throw new Error(`POST ${pdaSessionUrl} failed: ${err.message || err}`)
-        })
-    })
-    .then(() =>
-      get(IDENTITIES_URL, {
-        headers: {
-          Accept: 'application/vnd.api+json',
-          Cookie: loginCookies,
-          AjaxRequestUniqueKey: ajaxKey,
-          Referer: 'https://www.alarm.com/web/system/home',
-          'User-Agent': UA
-        }
-      })
-    )
-    .then(res => {
-      const identities = res.body
-      const systems = (identities.data || []).map(d =>
-        getValue(d, 'relationships.selectedSystem.data.id')
-      )
+       pdaSessionUrl = 'https://www.alarm.com/web/Default.aspx'
 
-      return {
-        cookie: loginCookies,
-        ajaxKey: ajaxKey,
-        systems: systems,
-        identities: identities
-      }
-    })
-}
+       const loginObj = {
+           '__EVENTTARGET': null,
+           '__EVENTARGUMENT': null,
+           '__VIEWSTATEENCRYPTED': null,
+           '__EVENTVALIDATION': null,
+           '__VIEWSTATE': null,
+           '__VIEWSTATEGENERATOR': null,
+           '__PREVIOUSPAGE': null,
+           'ctl00$top_navi3$curPage': null,
+           'ctl00$top_navi3$TBSearch': null,
+           'loginFolder': null,
+           'IsFromNewSite': 1,
+           'JavaScriptTest': 1,
+           'ctl00$ContentPlaceHolder1$loginform$txtUserName': username,
+           'txtPassword': password,
+           'ctl00$ContentPlaceHolder1$loginform$signInButton': 'Login',
+           'ctl00$bottom_footer3$ucCLS_ZIP$txtZip': 'Zip Code'
+       }
 
+       loginFormBody = Object.keys(loginObj).map(k => encodeURIComponent(k)
+           + '=' + encodeURIComponent(loginObj[k])).join('&')
+
+ 
+       return fetch(pdaSessionUrl, {
+           method: 'POST',
+           headers: {
+               'Content-Type': 'application/x-www-form-urlencoded',
+               'User-Agent': UA,
+               'Cookie': loginCookies
+           },
+           body: loginFormBody,
+           redirect: 'manual'
+       })
+       .then(res => {
+           // capture cookies
+           loginCookies = res.headers.raw()['set-cookie'].map(c => c.split(';')[0]).join('; ')
+
+           // capture ajaxkey for future submission headers as well
+           const re = /afg=([^;]+);/.exec(loginCookies)
+           if (!re) throw new Error(`No afg cookie: ${loginCookies}`)
+           ajaxKey = re[1]
+       }).catch(err => {
+           throw new Error(`POST ${pdaSessionUrl} failed: ${err.message || err}`)
+       }).then(() =>
+           get(IDENTITIES_URL, {
+               headers: {
+                   Accept: 'application/vnd.api+json',
+                   Cookie: loginCookies,
+                   AjaxRequestUniqueKey: ajaxKey,
+                   Referer: 'https://www.alarm.com/web/system/home',
+                   'User-Agent': UA
+               }
+           })
+       ).then(res => {
+           const identities = res.body
+           const systems = (identities.data || []).map(d =>
+               getValue(d, 'relationships.selectedSystem.data.id')
+           )
+
+           return {
+               cookie: loginCookies,
+
+               ajaxKey: ajaxKey,
+               systems: systems,
+               identities: identities
+           }
+       })
+   } 
+   
 /**
  * Retrieve information about the current state of a security system including
  * attributes, partitions, accessory components and relationships.
@@ -199,7 +175,7 @@ function getCurrentState(systemID, authOpts) {
     const resultingComponentsContainer = []
 
     // push the results of getComponents into the resultingComponentsContainer
-
+    // 
     const partitionIDs = rels.partitions.data.map(p => p.id)
     if (typeof partitionIDs[0] != 'undefined') {
       resultingComponentsContainer.push(getComponents(PARTITIONS_URL, partitionIDs, authOpts))
@@ -216,7 +192,7 @@ function getCurrentState(systemID, authOpts) {
     if (typeof lockIDs[0] != 'undefined') {
       resultingComponentsContainer.push(getComponents(LOCKS_URL, lockIDs, authOpts))
     }
-
+    }
     return Promise.all(resultingComponentsContainer)
     .then(resultingSystemComponents => {
       // destructured assignment
@@ -231,10 +207,10 @@ function getCurrentState(systemID, authOpts) {
         relationships: rels
       }
     })
-
+    }
   })
-}
-
+  }}
+  }}
 /**
  * Get information about groups of components e.g., sensors, lights, locks, etc.
  *
@@ -247,9 +223,9 @@ function getComponents(url, componentIDs, authOpts) {
   const IDs = Array.isArray(componentIDs) ? componentIDs : [componentIDs];
   return authenticatedGet(`${url}?${IDs.map(id => `ids%5B%5D=${id}`).join('&')}`, authOpts);
 }
-
+}
 // Partition methods ///////////////////////////////////////////////////////////
-
+// 
 /**
  * Perform partition actions, e.g., armAway, armStay, disarm.
  *
@@ -269,7 +245,7 @@ function partitionAction(partitionID, action, authOpts, opts) {
   })
   return authenticatedPost(url, postOpts)
 }
-
+}
 /**
  * Convenience Method:
  * Arm a security system panel in "stay" mode. NOTE: This call generally takes
@@ -286,7 +262,7 @@ function partitionAction(partitionID, action, authOpts, opts) {
 function armStay(partitionID, authOpts, opts) {
   return partitionAction(partitionID, 'armStay', authOpts, opts)
 }
-
+}
 /**
  * Convenience Method:
  * Arm a security system panel in "away" mode. NOTE: This call generally takes
@@ -303,7 +279,7 @@ function armStay(partitionID, authOpts, opts) {
 function armAway(partitionID, authOpts, opts) {
   return partitionAction(partitionID, 'armAway', authOpts, opts)
 }
-
+}
 /**
  * Convenience Method:
  * Disarm a security system panel. NOTE: This call generally takes 20-30 seconds
@@ -316,14 +292,14 @@ function armAway(partitionID, authOpts, opts) {
 function disarm(partitionID, authOpts) {
   return partitionAction(partitionID, 'disarm', authOpts)
 }
-
+}
 // Sensor methods //////////////////////////////////////////////////////////////
-
+// 
 // Sensors don't do anything, but they report state when we get information
 // about any of the components, sensors included.
-
+// 
 // Light methods ///////////////////////////////////////////////////////////////
-
+// 
 /**
  * Perform light actions, e.g., turn on, turn off, change brightness level.
  *
@@ -342,7 +318,7 @@ function lightAction(lightID, authOpts, brightness, action) {
   })
   return authenticatedPost(url, postOpts)
 }
-
+}
 /**
  * Convenience Method:
  * Sets a light to ON and adjusts brightness level (1-100) of dimmable lights.
@@ -355,7 +331,7 @@ function lightAction(lightID, authOpts, brightness, action) {
 function setLightOn(lightID, authOpts, brightness) {
   return lightAction(lightID, authOpts, brightness, 'turnOn')
 }
-
+}
 /**
  * Convenience Method:
  * Sets a light to OFF. The brightness level is ignored.
@@ -368,9 +344,9 @@ function setLightOn(lightID, authOpts, brightness) {
 function setLightOff(lightID, authOpts, brightness) {
   return lightAction(lightID, authOpts, brightness, 'turnOff')
 }
-
+}
 // Lock methods ////////////////////////////////////////////////////////////////
-
+// 
 /**
  * Perform lock actions, e.g., lock, unlock.
  *
@@ -387,7 +363,7 @@ function lockAction(lockID, authOpts, action) {
   })
   return authenticatedPost(url, postOpts)
 }
-
+}
 /**
  * Convenience Method:
  * Sets a lock to "locked" (SECURED).
@@ -399,7 +375,7 @@ function lockAction(lockID, authOpts, action) {
 function setLockSecure(lockID, authOpts) {
   return lockAction(lockID, authOpts, 'lock')
 }
-
+}
 /**
  * Convenience Method:
  * Sets a lock to "unlocked" (UNSECURED).
@@ -411,16 +387,16 @@ function setLockSecure(lockID, authOpts) {
 function setLockUnsecure(lockID, authOpts) {
   return lockAction(lockID, authOpts, 'unlock')
 }
-
+}
 // Helper methods //////////////////////////////////////////////////////////////
-
+// 
 function getValue(data, path) {
   if (typeof path === 'string') path = path.split('.')
   for (let i = 0; typeof data === 'object' && i < path.length; i++)
     data = data[path[i]]
   return data
 }
-
+}
 function authenticatedGet(url, opts) {
   opts = opts || {}
   opts.headers = opts.headers || {}
@@ -432,7 +408,7 @@ function authenticatedGet(url, opts) {
 
   return get(url, opts).then(res => res.body)
 }
-
+}
 function authenticatedPost(url, opts) {
   opts = opts || {}
   opts.headers = opts.headers || {}
@@ -445,7 +421,7 @@ function authenticatedPost(url, opts) {
 
   return post(url, opts).then(res => res.body)
 }
-
+}
 function get(url, opts) {
   opts = opts || {}
 
@@ -474,8 +450,8 @@ function get(url, opts) {
     .catch(err => {
       throw new Error(`GET ${url} failed: ${err.message || err}`)
     })
-}
-
+    }}
+    }}
 function post(url, opts) {
   opts = opts || {}
 
@@ -503,4 +479,4 @@ function post(url, opts) {
     .catch(err => {
       throw new Error(`POST ${url} failed: ${err.message || err}`)
     })
-}
+    }}
