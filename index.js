@@ -80,8 +80,8 @@ exports.LIGHT_STATES = LIGHT_STATES
  * Authenticate with alarm.com.
  * Returns an authentication object that can be passed to other methods.
  * 
- * @param {string} username Alarm.com username.
- * @param {string} password Alarm.com password.
+ * @param {string} username  Alarm.com username.
+ * @param {string} password  Alarm.com password.
  * @returns {Promise}
  */
 function login(username, password) {
@@ -173,10 +173,10 @@ function login(username, password) {
  * Retrieve information about the current state of a security system including
  * attributes, partitions, accessory components and relationships.
  * 
- * @param {string} systemID ID of the system to query. The Authentication object
- *   returned from the `login` method contains a `systems` property which is an
- *   array of system IDs.
- * @param {Object} authOpts Authentication object returned from the login.
+ * @param {string} systemID  ID of the system to query. The Authentication
+ *   object returned from the `login` method contains a `systems` property which
+ *   is an array of system IDs.
+ * @param {Object} authOpts  Authentication object returned from the login.
  * @returns {Promise}
  */
 function getCurrentState(systemID, authOpts) {
@@ -225,9 +225,9 @@ function getCurrentState(systemID, authOpts) {
 /**
  * Get information about groups of components e.g., sensors, lights, locks, etc.
  *
- * @param {string} url Base request url
- * @param {string} componentIDs Array of ID to retrieve
- * @param {Object} authOpts Authentication object returned from the login.
+ * @param {string} url  Base request url.
+ * @param {string} componentIDs  Array of ID to retrieve.
+ * @param {Object} authOpts  Authentication object returned from the login.
  * @returns {Promise}
  */
 function getComponents(url, componentIDs, authOpts) {
@@ -240,10 +240,10 @@ function getComponents(url, componentIDs, authOpts) {
 /**
  * Perform partition actions, e.g., armAway, armStay, disarm.
  *
- * @param {string} partitionID Partition ID to perform action on.
- * @param {string} action Action (verb) to perform on partition.
- * @param {Object} authOpts Authentication object returned from the login.
- * @param {Object} opts Additional options for the action.
+ * @param {string} partitionID  Partition ID to perform action on.
+ * @param {string} action  Action (verb) to perform on partition.
+ * @param {Object} authOpts  Authentication object returned from the login.
+ * @param {Object} opts  Additional options for the action.
  */
 function partitionAction(partitionID, action, authOpts, opts) {
   const url = `${PARTITIONS_URL}${partitionID}/${action}`
@@ -262,11 +262,11 @@ function partitionAction(partitionID, action, authOpts, opts) {
  * Arm a security system panel in "stay" mode. NOTE: This call generally takes
  * 20-30 seconds to complete.
  * 
- * @param {string} partitionID Partition ID to arm.
- * @param {Object} authOpts Authentication object returned from the login.
- * @param {Object} opts Optional arguments for arming the system.
- * @param {boolean} opts.noEntryDelay Disable the 30-second entry delay.
- * @param {boolean} opts.silentArming Disable audible beeps and double the exit
+ * @param {string} partitionID  Partition ID to arm.
+ * @param {Object} authOpts  Authentication object returned from the login.
+ * @param {Object} opts  Optional arguments for arming the system.
+ * @param {boolean} opts.noEntryDelay  Disable the 30-second entry delay.
+ * @param {boolean} opts.silentArming  Disable audible beeps and double the exit
  *   delay.
  * @returns {Promise}
  */
@@ -279,11 +279,11 @@ function armStay(partitionID, authOpts, opts) {
  * Arm a security system panel in "away" mode. NOTE: This call generally takes
  * 20-30 seconds to complete.
  * 
- * @param {string} partitionID Partition ID to arm.
- * @param {Object} authOpts Authentication object returned from the login.
- * @param {Object} opts Optional arguments for arming the system.
- * @param {boolean} opts.noEntryDelay Disable the 30-second entry delay.
- * @param {boolean} opts.silentArming Disable audible beeps and double the exit
+ * @param {string} partitionID  Partition ID to arm.
+ * @param {Object} authOpts  Authentication object returned from the login.
+ * @param {Object} opts  Optional arguments for arming the system.
+ * @param {boolean} opts.noEntryDelay  Disable the 30-second entry delay.
+ * @param {boolean} opts.silentArming  Disable audible beeps and double the exit
  *   delay.
  * @returns {Promise}
  */
@@ -296,8 +296,8 @@ function armAway(partitionID, authOpts, opts) {
  * Disarm a security system panel. NOTE: This call generally takes 20-30 seconds
  * to complete.
  * 
- * @param {string} partitionID Partition ID to disarm.
- * @param {Object} authOpts Authentication object returned from the login.
+ * @param {string} partitionID  Partition ID to disarm.
+ * @param {Object} authOpts  Authentication object returned from the login.
  * @returns {Promise}
  */
 function disarm(partitionID, authOpts) {
@@ -314,10 +314,10 @@ function disarm(partitionID, authOpts) {
 /**
  * Perform light actions, e.g., turn on, turn off, change brightness level.
  *
- * @param {string} lightID Light ID string.
- * @param {string} action Action (verb) to perform on the light.
- * @param {Object} authOpts Authentication object returned from the login.
- * @param {number} brightness brightness An integer, 1-100, indicating brightness. Ignored.
+ * @param {string} lightID  Light ID string.
+ * @param {string} action  Action (verb) to perform on the light.
+ * @param {Object} authOpts  Authentication object returned from the login.
+ * @param {number} brightness  An integer, 1-100, indicating brightness.
  */
 function lightAction(lightID, authOpts, brightness, action) {
   const url = `${LIGHTS_URL}${lightID}/${action}`
@@ -334,9 +334,9 @@ function lightAction(lightID, authOpts, brightness, action) {
  * Convenience Method:
  * Sets a light to ON and adjusts brightness level (1-100) of dimmable lights.
  * 
- * @param {string} lightID Light ID string.
- * @param {number} brightness An integer, 1-100, indicating brightness.
- * @param {Object} authOpts Authentication object returned from the login.
+ * @param {string} lightID  Light ID string.
+ * @param {number} brightness  An integer, 1-100, indicating brightness.
+ * @param {Object} authOpts  Authentication object returned from the login.
  * @returns {Promise}
  */
 function setLightOn(lightID, authOpts, brightness) {
@@ -347,9 +347,9 @@ function setLightOn(lightID, authOpts, brightness) {
  * Convenience Method:
  * Sets a light to OFF. The brightness level is ignored.
  * 
- * @param {string} lightID Light ID string.
- * @param {number} brightness An integer, 1-100, indicating brightness. Ignored.
- * @param {Object} authOpts Authentication object returned from the login.
+ * @param {string} lightID  Light ID string.
+ * @param {number} brightness  An integer, 1-100, indicating brightness. Ignored.
+ * @param {Object} authOpts  Authentication object returned from the login.
  * @returns {Promise}
  */
 function setLightOff(lightID, authOpts, brightness) {
@@ -361,9 +361,9 @@ function setLightOff(lightID, authOpts, brightness) {
 /**
  * Perform lock actions, e.g., lock, unlock.
  *
- * @param {string} lockID Lock ID string.
- * @param {string} action Action (verb) to perform on the lock.
- * @param {Object} authOpts Authentication object returned from the login.
+ * @param {string} lockID  Lock ID string.
+ * @param {string} action  Action (verb) to perform on the lock.
+ * @param {Object} authOpts  Authentication object returned from the login.
  */
 function lockAction(lockID, authOpts, action) {
   const url = `${LOCKS_URL}${lockID}/${action}`
@@ -379,8 +379,8 @@ function lockAction(lockID, authOpts, action) {
  * Convenience Method:
  * Sets a lock to "locked" (SECURED).
  * 
- * @param {string} lockID Lock ID string.
- * @param {Object} authOpts Authentication object returned from the login.
+ * @param {string} lockID  Lock ID string.
+ * @param {Object} authOpts  Authentication object returned from the login.
  * @returns {Promise}
  */
 function setLockSecure(lockID, authOpts) {
@@ -391,8 +391,8 @@ function setLockSecure(lockID, authOpts) {
  * Convenience Method:
  * Sets a lock to "unlocked" (UNSECURED).
  * 
- * @param {string} lockID Lock ID string.
- * @param {Object} authOpts Authentication object returned from the login.
+ * @param {string} lockID  Lock ID string.
+ * @param {Object} authOpts  Authentication object returned from the login.
  * @returns {Promise}
  */
 function setLockUnsecure(lockID, authOpts) {
