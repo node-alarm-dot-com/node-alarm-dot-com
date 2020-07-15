@@ -3,6 +3,7 @@
  */
 
 const fetch = require('node-fetch')
+const fs = require('fs')
 
 const ADCLOGIN_URL = 'https://www.alarm.com/login'
 const ADCFORMLOGIN_URL = 'https://www.alarm.com/web/Default.aspx'
@@ -34,28 +35,28 @@ const SENSOR_STATES = {
   WET: 6
 }
 
-const LOCK_STATES = {
-  SECURED: 1,
-  UNSECURED: 2
-}
-
 const LIGHT_STATES = {
   ON: 2,
   OFF: 3
 }
 
+const LOCK_STATES = {
+  SECURED: 1,
+  UNSECURED: 2
+}
+
 const REL_TYPES = {
+  CONFIGURATION: 'systems/configuration',
   PARTITION: 'devices/partition',
-  LOCK: 'devices/lock',
-  CAMERA: 'video/camera',
-  GARAGE_DOOR: 'devices/garage-door',
-  SCENE: 'automation/scene',
   SENSOR: 'devices/sensor',
   LIGHT: 'devices/light',
+  LOCK: 'devices/lock',
+  GARAGE_DOOR: 'devices/garage-door',
+  CAMERA: 'video/camera',
   THERMOSTAT: 'devices/thermostat',
   GEO_DEVICE: 'geolocation/geo-device',
   GEO_FENCE: 'geolocation/fence',
-  CONFIGURATION: 'systems/configuration'
+  SCENE: 'automation/scene'
 }
 
 exports.login = login
@@ -64,15 +65,18 @@ exports.getCurrentState = getCurrentState
 exports.armStay = armStay
 exports.armAway = armAway
 exports.disarm = disarm
-exports.setLockSecure = setLockSecure
-exports.setLockUnsecure = setLockUnsecure
+
 exports.setLightOn = setLightOn
 exports.setLightOff = setLightOff
 
+exports.setLockSecure = setLockSecure
+exports.setLockUnsecure = setLockUnsecure
+
 exports.SYSTEM_STATES = SYSTEM_STATES
 exports.SENSOR_STATES = SENSOR_STATES
-exports.LOCK_STATES = LOCK_STATES
 exports.LIGHT_STATES = LIGHT_STATES
+exports.LOCK_STATES = LOCK_STATES
+
 
 // Exported methods ////////////////////////////////////////////////////////////
 
@@ -156,17 +160,19 @@ function login(username, password) {
               )
 
               // finally return session/account object for polling and manipulation
-              return {
+              session_object = {
                 cookie: loginCookies,
                 ajaxKey: ajaxKey,
                 systems: systems,
                 identities: identities
               }
 
+              return session_object
+
             })
         })
     })
-    
+
 }
 
 /**
@@ -231,9 +237,11 @@ function getCurrentState(systemID, authOpts) {
  * @returns {Promise}
  */
 function getComponents(url, componentIDs, authOpts) {
-  const IDs = Array.isArray(componentIDs) ? componentIDs : [componentIDs];
-  return authenticatedGet(`${url}?${IDs.map(id => `ids%5B%5D=${id}`).join('&')}`, authOpts);
+  const IDs = Array.isArray(componentIDs) ? componentIDs : [componentIDs]
+  res = authenticatedGet(`${url}?${IDs.map(id => `ids%5B%5D=${id}`).join('&')}`, authOpts)
+  return res
 }
+
 
 // Partition methods ///////////////////////////////////////////////////////////
 
@@ -254,7 +262,8 @@ function partitionAction(partitionID, action, authOpts, opts) {
       statePollOnly: false
     }
   })
-  return authenticatedPost(url, postOpts)
+  res = authenticatedPost(url, postOpts)
+  return res
 }
 
 /**
@@ -304,10 +313,12 @@ function disarm(partitionID, authOpts) {
   return partitionAction(partitionID, 'disarm', authOpts)
 }
 
+
 // Sensor methods //////////////////////////////////////////////////////////////
 
 // Sensors don't do anything, but they report state when we get information
 // about any of the components, sensors included.
+
 
 // Light methods ///////////////////////////////////////////////////////////////
 
@@ -327,7 +338,8 @@ function lightAction(lightID, authOpts, brightness, action) {
       statePollOnly: false
     }
   })
-  return authenticatedPost(url, postOpts)
+  res = authenticatedPost(url, postOpts)
+  return res
 }
 
 /**
@@ -356,6 +368,7 @@ function setLightOff(lightID, authOpts, brightness) {
   return lightAction(lightID, authOpts, brightness, 'turnOff')
 }
 
+
 // Lock methods ////////////////////////////////////////////////////////////////
 
 /**
@@ -372,7 +385,8 @@ function lockAction(lockID, authOpts, action) {
       statePollOnly: false
     }
   })
-  return authenticatedPost(url, postOpts)
+  res = authenticatedPost(url, postOpts)
+  return res
 }
 
 /**
@@ -398,6 +412,7 @@ function setLockSecure(lockID, authOpts) {
 function setLockUnsecure(lockID, authOpts) {
   return lockAction(lockID, authOpts, 'unlock')
 }
+
 
 // Helper methods //////////////////////////////////////////////////////////////
 
