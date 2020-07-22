@@ -21,7 +21,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git://github.com/mkormendy/node-alarm-dot-com.git"
+    "url": "git://github.com/ngori/node-alarm-dot-com.git"
   },
   "homepage": "https://github.com/mkormendy/node-alarm-dot-com#readme",
   "bugs": {
