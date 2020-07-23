@@ -47,7 +47,7 @@ const LOCK_STATES = {
 }
 
 const GARAGE_STATES = {
-  UNKNOWN: 0,  //double check
+  //UNKNOWN: 0,  //double check
   OPEN: 1,   //double check
   CLOSED: 2  //double check
 }
