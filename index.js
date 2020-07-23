@@ -236,7 +236,8 @@ function getCurrentState(systemID, authOpts) {
           sensors: typeof sensors != 'undefined' ? sensors.data : [],
           lights: typeof lights != 'undefined' ? lights.data : [],
           locks: typeof locks != 'undefined' ? locks.data : [],
-          garages: typeof garages != 'undefined' ? garageDoors.data : [],
+          garages: garageDoors.data : [],
+          //garages: typeof garages != 'undefined' ? garageDoors.data : [],
           relationships: rels
         }
       })
