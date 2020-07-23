@@ -47,7 +47,7 @@ const LOCK_STATES = {
 }
 
 const GARAGE_STATES = {
-  UNKNOWN: 0,  //double check
+  //UNKNOWN: 0,  //double check
   OPEN: 1,   //double check
   CLOSED: 2  //double check
 }
@@ -221,7 +221,7 @@ function getCurrentState(systemID, authOpts) {
       resultingComponentsContainer.push(getComponents(LOCKS_URL, lockIDs, authOpts))
     }
     const gargeIDs = rels.garages.data.map(l => l.id)
-    if (typeof garageIDs[0] != 'undefined') {
+    if (typeof garage-doorIDs[0] != 'undefined') {
       resultingComponentsContainer.push(getComponents(GARAGE_URL, garageIDs, authOpts))
     }
 
@@ -236,7 +236,7 @@ function getCurrentState(systemID, authOpts) {
           sensors: typeof sensors != 'undefined' ? sensors.data : [],
           lights: typeof lights != 'undefined' ? lights.data : [],
           locks: typeof locks != 'undefined' ? locks.data : [],
-          garages: typeof garage-door != 'undefined' ? garages.data : [],
+          garages: typeof garage-doors != 'undefined' ? garages.data : [],
           relationships: rels
         }
       })
