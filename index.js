@@ -221,7 +221,7 @@ function getCurrentState(systemID, authOpts) {
       resultingComponentsContainer.push(getComponents(LOCKS_URL, lockIDs, authOpts))
     }
     const gargeIDs = rels.garages.data.map(l => l.id)
-    if (typeof garage-doorIDs[0] != 'undefined') {
+    if (typeof garageIDs[0] != 'undefined') {
       resultingComponentsContainer.push(getComponents(GARAGE_URL, garageIDs, authOpts))
     }
 
