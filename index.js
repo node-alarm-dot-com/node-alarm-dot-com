@@ -220,8 +220,8 @@ function getCurrentState(systemID, authOpts) {
     if (typeof lockIDs[0] != 'undefined') {
       resultingComponentsContainer.push(getComponents(LOCKS_URL, lockIDs, authOpts))
     }
-    const garageIDs = rels.garagedoors.data.map(l => l.id)
-    if (typeof garageIDs[0] != 'undefined') {
+    const garagedoorIDs = rels.garagedoors.data.map(g => g.id)
+    if (typeof garagedoorIDs[0] != 'undefined') {
       resultingComponentsContainer.push(getComponents(GARAGE_URL, garageIDs, authOpts))
     }
 
