@@ -220,7 +220,7 @@ function getCurrentState(systemID, authOpts) {
     if (typeof lockIDs[0] != 'undefined') {
       resultingComponentsContainer.push(getComponents(LOCKS_URL, lockIDs, authOpts))
     }
-    const garageIDs = rels.garages.data.map(l => l.id)
+    const garageIDs = rels.garagedoors.data.map(l => l.id)
     if (typeof garageIDs[0] != 'undefined') {
       resultingComponentsContainer.push(getComponents(GARAGE_URL, garageIDs, authOpts))
     }
@@ -236,7 +236,7 @@ function getCurrentState(systemID, authOpts) {
           sensors: typeof sensors != 'undefined' ? sensors.data : [],
           lights: typeof lights != 'undefined' ? lights.data : [],
           locks: typeof locks != 'undefined' ? locks.data : [],
-          garages: typeof garages != 'undefined' ? garages.data : [],
+          garagedoors: typeof garagedoors != 'undefined' ? garagedoors.data : [],
           relationships: rels
         }
       })
