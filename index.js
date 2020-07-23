@@ -220,15 +220,15 @@ function getCurrentState(systemID, authOpts) {
     if (typeof lockIDs[0] != 'undefined') {
       resultingComponentsContainer.push(getComponents(LOCKS_URL, lockIDs, authOpts))
     }
-    const garagedoorIDs = rels.garagedoors.data.map(g => g.id)
-    if (typeof garagedoorIDs[0] != 'undefined') {
+    const garageIDs = rels.garageDoors.data.map(l => l.id)
+    if (typeof garageIDs[0] != 'undefined') {
       resultingComponentsContainer.push(getComponents(GARAGE_URL, garageIDs, authOpts))
     }
 
     return Promise.all(resultingComponentsContainer)
       .then(resultingSystemComponents => {
         // destructured assignment
-        const [partitions, sensors, lights, locks, garages] = resultingSystemComponents
+        const [partitions, sensors, lights, locks, garageDoors] = resultingSystemComponents
         return {
           id: res.data.id,
           attributes: res.data.attributes,
@@ -236,7 +236,7 @@ function getCurrentState(systemID, authOpts) {
           sensors: typeof sensors != 'undefined' ? sensors.data : [],
           lights: typeof lights != 'undefined' ? lights.data : [],
           locks: typeof locks != 'undefined' ? locks.data : [],
-          garagedoors: typeof garagedoors != 'undefined' ? garagedoors.data : [],
+          garages: typeof garages != 'undefined' ? garageDoors.data : [],
           relationships: rels
         }
       })
