@@ -13,6 +13,7 @@ const SYSTEM_URL = 'https://www.alarm.com/web/api/systems/systems/'
 const PARTITIONS_URL = 'https://www.alarm.com/web/api/devices/partitions/'
 const SENSORS_URL = 'https://www.alarm.com/web/api/devices/sensors'
 const LIGHTS_URL = 'https://www.alarm.com/web/api/devices/lights/'
+const GARAGE_URL = 'https://www.alarm.com/web/api/devices/garageDoors/'
 const LOCKS_URL = 'https://www.alarm.com/web/api/devices/locks/'
 const CT_JSON = 'application/json;charset=UTF-8'
 const UA = `node-alarm-dot-com/${require('./package').version}`
@@ -45,6 +46,12 @@ const LOCK_STATES = {
   UNSECURED: 2
 }
 
+const GARAGE_STATES = {
+  //UNKNOWN: 0,  //ADC does not have an unkown state. ADC returns temp popup
+  OPEN: 1,   //double check
+  CLOSED: 2  //double check
+}
+
 const REL_TYPES = {
   CONFIGURATION: 'systems/configuration',
   PARTITION: 'devices/partition',
@@ -72,10 +79,14 @@ exports.setLightOff = setLightOff
 exports.setLockSecure = setLockSecure
 exports.setLockUnsecure = setLockUnsecure
 
+exports.openGarage = openGarage
+exports.closeGarage = closeGarage
+
 exports.SYSTEM_STATES = SYSTEM_STATES
 exports.SENSOR_STATES = SENSOR_STATES
 exports.LIGHT_STATES = LIGHT_STATES
 exports.LOCK_STATES = LOCK_STATES
+exports.GARAGE_STATES = GARAGE_STATES
 
 
 // Exported methods ////////////////////////////////////////////////////////////
@@ -83,7 +94,7 @@ exports.LOCK_STATES = LOCK_STATES
 /**
  * Authenticate with alarm.com.
  * Returns an authentication object that can be passed to other methods.
- * 
+ *
  * @param {string} username  Alarm.com username.
  * @param {string} password  Alarm.com password.
  * @returns {Promise}
@@ -178,7 +189,7 @@ function login(username, password) {
 /**
  * Retrieve information about the current state of a security system including
  * attributes, partitions, accessory components and relationships.
- * 
+ *
  * @param {string} systemID  ID of the system to query. The Authentication
  *   object returned from the `login` method contains a `systems` property which
  *   is an array of system IDs.
@@ -209,11 +220,15 @@ function getCurrentState(systemID, authOpts) {
     if (typeof lockIDs[0] != 'undefined') {
       resultingComponentsContainer.push(getComponents(LOCKS_URL, lockIDs, authOpts))
     }
+    const garageIDs = rels.garageDoors.data.map(l => l.id)
+    if (typeof garageIDs[0] != 'undefined') {
+      resultingComponentsContainer.push(getComponents(GARAGE_URL, garageIDs, authOpts))
+    }
 
     return Promise.all(resultingComponentsContainer)
       .then(resultingSystemComponents => {
         // destructured assignment
-        const [partitions, sensors, lights, locks] = resultingSystemComponents
+        const [partitions, sensors, lights, locks, garageDoors] = resultingSystemComponents
         return {
           id: res.data.id,
           attributes: res.data.attributes,
@@ -221,6 +236,8 @@ function getCurrentState(systemID, authOpts) {
           sensors: typeof sensors != 'undefined' ? sensors.data : [],
           lights: typeof lights != 'undefined' ? lights.data : [],
           locks: typeof locks != 'undefined' ? locks.data : [],
+          garages: garageDoors.data,
+          //garages: typeof garages != 'undefined' ? garageDoors.data : [],
           relationships: rels
         }
       })
@@ -229,7 +246,7 @@ function getCurrentState(systemID, authOpts) {
 }
 
 /**
- * Get information about groups of components e.g., sensors, lights, locks, etc.
+ * Get information about groups of components e.g., sensors, lights, locks, garages, etc.
  *
  * @param {string} url  Base request url.
  * @param {string} componentIDs  Array of ID to retrieve.
@@ -270,7 +287,7 @@ function partitionAction(partitionID, action, authOpts, opts) {
  * Convenience Method:
  * Arm a security system panel in "stay" mode. NOTE: This call generally takes
  * 20-30 seconds to complete.
- * 
+ *
  * @param {string} partitionID  Partition ID to arm.
  * @param {Object} authOpts  Authentication object returned from the login.
  * @param {Object} opts  Optional arguments for arming the system.
@@ -287,7 +304,7 @@ function armStay(partitionID, authOpts, opts) {
  * Convenience Method:
  * Arm a security system panel in "away" mode. NOTE: This call generally takes
  * 20-30 seconds to complete.
- * 
+ *
  * @param {string} partitionID  Partition ID to arm.
  * @param {Object} authOpts  Authentication object returned from the login.
  * @param {Object} opts  Optional arguments for arming the system.
@@ -304,7 +321,7 @@ function armAway(partitionID, authOpts, opts) {
  * Convenience Method:
  * Disarm a security system panel. NOTE: This call generally takes 20-30 seconds
  * to complete.
- * 
+ *
  * @param {string} partitionID  Partition ID to disarm.
  * @param {Object} authOpts  Authentication object returned from the login.
  * @returns {Promise}
@@ -345,7 +362,7 @@ function lightAction(lightID, authOpts, brightness, action) {
 /**
  * Convenience Method:
  * Sets a light to ON and adjusts brightness level (1-100) of dimmable lights.
- * 
+ *
  * @param {string} lightID  Light ID string.
  * @param {number} brightness  An integer, 1-100, indicating brightness.
  * @param {Object} authOpts  Authentication object returned from the login.
@@ -358,7 +375,7 @@ function setLightOn(lightID, authOpts, brightness) {
 /**
  * Convenience Method:
  * Sets a light to OFF. The brightness level is ignored.
- * 
+ *
  * @param {string} lightID  Light ID string.
  * @param {number} brightness  An integer, 1-100, indicating brightness. Ignored.
  * @param {Object} authOpts  Authentication object returned from the login.
@@ -392,7 +409,7 @@ function lockAction(lockID, authOpts, action) {
 /**
  * Convenience Method:
  * Sets a lock to "locked" (SECURED).
- * 
+ *
  * @param {string} lockID  Lock ID string.
  * @param {Object} authOpts  Authentication object returned from the login.
  * @returns {Promise}
@@ -404,7 +421,7 @@ function setLockSecure(lockID, authOpts) {
 /**
  * Convenience Method:
  * Sets a lock to "unlocked" (UNSECURED).
- * 
+ *
  * @param {string} lockID  Lock ID string.
  * @param {Object} authOpts  Authentication object returned from the login.
  * @returns {Promise}
@@ -413,6 +430,57 @@ function setLockUnsecure(lockID, authOpts) {
   return lockAction(lockID, authOpts, 'unlock')
 }
 
+// Garage methods ////////////////////////////////////////////////////////////////
+/**
+ * Get information for one or more garages.
+ *
+ * @param {string|string[]} GarageIDs Array of Gagage ID strings.
+ * @param {Object} authOpts Authentication object returned from the `login`
+ *   method.
+ * @returns {Promise}
+ */
+function getGarages(garageIDs, authOpts) {
+  if (!Array.isArray(garageIDs)) garageIDs = [garageIDs]
+  const query = garageIDs.map(id => `ids%5B%5D=${id}`).join('&')
+  const url = `${GARAGE_URL}?${query}`
+  return authenticatedGet(url, authOpts)
+}
+
+/**
+ * Sets a garage to CLOSED.
+ *
+ * @param {string} garageID Lock ID string.
+ * @param {Object} authOpts Authentication object returned from the `login`
+ *   method.
+ * @returns {Promise}
+ */
+function  closeGarage(garageID, authOpts) {
+  const url = `${GARAGE_URL}${garageID}/close`
+  const postOpts = Object.assign({}, authOpts, {
+    body: {
+      statePollOnly: false
+    }
+  })
+  return authenticatedPost(url, postOpts)
+}
+
+/**
+ * Sets a garage to OPEN.
+ *
+ * @param {string} garageID Lock ID string.
+ * @param {Object} authOpts Authentication object returned from the `login`
+ *   method.
+ * @returns {Promise}
+ */
+function openGarage(garageID, authOpts) {
+  const url = `${GARAGE_URL}${garageID}/open`
+  const postOpts = Object.assign({}, authOpts, {
+    body: {
+      statePollOnly: false
+    }
+  })
+  return authenticatedPost(url, postOpts)
+}
 
 // Helper methods //////////////////////////////////////////////////////////////
 
