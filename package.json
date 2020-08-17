@@ -27,20 +27,33 @@
   "bugs": {
     "url": "https://github.com/mkormendy/node-alarm-dot-com/issues"
   },
-  "main": "index.js",
+  "main": "lib/index.js",
+  "types": "index.d.ts",
+  "files": [
+    "lib"
+  ],
   "bin": {
-    "nodeADC": "./index.js"
+    "nodeADC": "src/index.ts"
   },
   "scripts": {
+    "clean": "rimraf ./lib",
+    "build": "rimraf ./lib && tsc",
+    "prepublishOnly": "npm run build",
+    "postpublish": "npm run clean",
+    "start": "ts-node src/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "engines": {
     "node": ">=0.12.0"
   },
   "dependencies": {
+    "@types/node-fetch": "^2.5.7",
     "node-fetch": "^2.0.0"
   },
   "devDependencies": {
-    "yargs": "^15.4.1"
+    "yargs": "^15.4.1",
+    "typescript": "^3.9.7",
+    "rimraf": "^3.0.2",
+    "ts-node": "^8.10.2"
   }
 }
