@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    /* Visit https://aka.ms/tsconfig.json to read more about this file */
+    "module": "commonjs",
+    "target": "ES2018",
+    "declaration": true,
+    "outDir": "./dist",
+    "esModuleInterop": true,
+    "strict": false,
+    "lib": [
+      "ES2015",
+      "ES2016",
+      "ES2017",
+      "ES2018", "dom"
+    ],
+    "noImplicitReturns": true,
+    "forceConsistentCasingInFileNames": true
+  }
+}
