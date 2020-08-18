@@ -27,17 +27,15 @@
   "bugs": {
     "url": "https://github.com/mkormendy/node-alarm-dot-com/issues"
   },
-  "main": "lib/index.js",
-  "types": "index.d.ts",
-  "files": [
-    "lib"
-  ],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": ["dist"],
   "bin": {
-    "nodeADC": "src/index.ts"
+    "nodeADC": "dist/index.js"
   },
   "scripts": {
-    "clean": "rimraf ./lib",
-    "build": "rimraf ./lib && tsc",
+    "clean": "rimraf ./dist",
+    "build": "rimraf ./dist && tsc",
     "prepublishOnly": "npm run build",
     "postpublish": "npm run clean",
     "start": "ts-node src/index.ts",
