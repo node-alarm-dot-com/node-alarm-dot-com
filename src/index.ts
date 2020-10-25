@@ -4,10 +4,11 @@
 
 import fetch, { Headers, Response } from 'node-fetch';
 import { AuthOpts } from './_models/AuthOpts';
+import { DeviceState, GarageState } from './_models/DeviceStates';
 import { IdentityResponse } from './_models/IdentityResponse';
 import { PartitionActionOptions } from './_models/PartitionActionOptions';
 import { RequestOptions } from './_models/requestOptions';
-import { Relationships } from './_models/systemState';
+import { FlattenedSystemState, Relationships, SystemState } from './_models/systemState';
 
 const ADCLOGIN_URL = 'https://www.alarm.com/login';
 const ADCFORMLOGIN_URL = 'https://www.alarm.com/web/Default.aspx';
@@ -126,14 +127,15 @@ export function login(username: string, password: string): Promise<AuthOpts> {
  * @param {Object} authOpts  Authentication object returned from the login.
  * @returns {Promise}
  */
-export function getCurrentState(systemID: string, authOpts: any) {
-  return authenticatedGet(SYSTEM_URL + systemID, authOpts).then(res => {
+export function getCurrentState(systemID: string, authOpts: any): Promise<FlattenedSystemState> {
+  // This call to the systems endpoint retrieves an overview of all devices in a system
+  return authenticatedGet(SYSTEM_URL + systemID, authOpts).then((res: SystemState) => {
 
     const rels: Relationships = res.data.relationships;
     const resultingComponentsContainer = [];
 
     // push the results of getComponents into the resultingComponentsContainer
-
+    // Now we go through and get detailed information about all devices
     const partitionIDs = rels.partitions.data.map(p => p.id);
     if (typeof partitionIDs[0] != 'undefined') {
       resultingComponentsContainer.push(getComponents(PARTITIONS_URL, partitionIDs, authOpts));
@@ -158,6 +160,7 @@ export function getCurrentState(systemID: string, authOpts: any) {
     return Promise.all(resultingComponentsContainer)
       .then(resultingSystemComponents => {
         // destructured assignment
+        // Create an object with status of all system devices
         const [partitions, sensors, lights, locks, garageDoors] = resultingSystemComponents;
         return {
           id: res.data.id,
@@ -182,7 +185,7 @@ export function getCurrentState(systemID: string, authOpts: any) {
  * @param {Object} authOpts  Authentication object returned from the login.
  * @returns {Promise}
  */
-export function getComponents(url: string, componentIDs: string[], authOpts: AuthOpts) {
+export function getComponents(url: string, componentIDs: string[], authOpts: AuthOpts): Promise<DeviceState> {
   const IDs = Array.isArray(componentIDs) ? componentIDs : [componentIDs];
   let getUrl = `${url}?${IDs.map(id => `ids%5B%5D=${id}`).join('&')}`;
   return authenticatedGet(getUrl, authOpts);
@@ -369,7 +372,7 @@ export function setLockUnsecure(lockID: string, authOpts: AuthOpts) {
  *   method.
  * @returns {Promise}
  */
-function getGarages(garageIDs: string[], authOpts: AuthOpts) {
+function getGarages(garageIDs: string[], authOpts: AuthOpts): Promise<GarageState> {
   if (!Array.isArray(garageIDs)) garageIDs = [garageIDs];
   const query = garageIDs.map(id => `ids%5B%5D=${id}`).join('&');
   const url = `${GARAGE_URL}?${query}`;
@@ -378,6 +381,7 @@ function getGarages(garageIDs: string[], authOpts: AuthOpts) {
 
 /**
  * Sets a garage to CLOSED.
+ *
  *
  * @param {string} garageID Lock ID string.
  * @param {Object} authOpts Authentication object returned from the `login`
@@ -477,7 +481,7 @@ function get(url: string, opts?: any): Promise<{ headers: Headers; body: any }> 
 }
 
 function post(url: string, opts: RequestOptions) {
-  opts = opts || {};
+  opts = opts || {} as RequestOptions;
 
   let status: number;
   let resHeaders: Headers;
@@ -504,7 +508,3 @@ function post(url: string, opts: RequestOptions) {
       throw new Error(`POST ${url} failed: ${err.message || err}`);
     });
 }
-
-login('chase9', 'A97eRB*#RHPBw^zu').then(x => {
-  console.log(x.identities)
-})
