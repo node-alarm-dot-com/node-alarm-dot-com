@@ -7,7 +7,6 @@ import { AuthOpts } from './_models/AuthOpts';
 import { IdentityResponse } from './_models/IdentityResponse';
 import { PartitionActionOptions } from './_models/PartitionActionOptions';
 import { RequestOptions } from './_models/requestOptions';
-import { GARAGE_STATES, LIGHT_STATES, LOCK_STATES, SENSOR_STATES, SYSTEM_STATES } from './_models/states';
 import { Relationships } from './_models/systemState';
 
 const ADCLOGIN_URL = 'https://www.alarm.com/login';
@@ -22,29 +21,6 @@ const GARAGE_URL = 'https://www.alarm.com/web/api/devices/garageDoors/';
 const LOCKS_URL = 'https://www.alarm.com/web/api/devices/locks/';
 const CT_JSON = 'application/json;charset=UTF-8';
 const UA = `node-alarm-dot-com/${require('../package.json').version}`;
-
-exports.login = login;
-exports.getCurrentState = getCurrentState;
-
-exports.armStay = armStay;
-exports.armAway = armAway;
-exports.disarm = disarm;
-
-exports.setLightOn = setLightOn;
-exports.setLightOff = setLightOff;
-
-exports.setLockSecure = setLockSecure;
-exports.setLockUnsecure = setLockUnsecure;
-
-exports.openGarage = openGarage;
-exports.closeGarage = closeGarage;
-
-exports.SYSTEM_STATES = SYSTEM_STATES;
-exports.SENSOR_STATES = SENSOR_STATES;
-exports.LIGHT_STATES = LIGHT_STATES;
-exports.LOCK_STATES = LOCK_STATES;
-exports.GARAGE_STATES = GARAGE_STATES;
-
 
 // Exported methods ////////////////////////////////////////////////////////////
 
@@ -252,7 +228,7 @@ function partitionAction(partitionID: string, action: string, authOpts: AuthOpts
  *   delay.
  * @returns {Promise}
  */
-function armStay(partitionID: string, authOpts: AuthOpts, opts: PartitionActionOptions) {
+export function armStay(partitionID: string, authOpts: AuthOpts, opts: PartitionActionOptions) {
   return partitionAction(partitionID, 'armStay', authOpts, opts);
 }
 
@@ -269,7 +245,7 @@ function armStay(partitionID: string, authOpts: AuthOpts, opts: PartitionActionO
  *   delay.
  * @returns {Promise}
  */
-function armAway(partitionID: string, authOpts: AuthOpts, opts: any) {
+export function armAway(partitionID: string, authOpts: AuthOpts, opts: any) {
   return partitionAction(partitionID, 'armAway', authOpts, opts);
 }
 
@@ -282,7 +258,7 @@ function armAway(partitionID: string, authOpts: AuthOpts, opts: any) {
  * @param {Object} authOpts  Authentication object returned from the login.
  * @returns {Promise}
  */
-function disarm(partitionID: string, authOpts: AuthOpts) {
+export function disarm(partitionID: string, authOpts: AuthOpts) {
   return partitionAction(partitionID, 'disarm', authOpts);
 }
 
@@ -323,7 +299,7 @@ function lightAction(lightID: string, authOpts: AuthOpts, brightness: number, ac
  * @param {Object} authOpts  Authentication object returned from the login.
  * @returns {Promise}
  */
-function setLightOn(lightID: string, authOpts: AuthOpts, brightness: number) {
+export function setLightOn(lightID: string, authOpts: AuthOpts, brightness: number) {
   return lightAction(lightID, authOpts, brightness, 'turnOn');
 }
 
@@ -336,7 +312,7 @@ function setLightOn(lightID: string, authOpts: AuthOpts, brightness: number) {
  * @param {Object} authOpts  Authentication object returned from the login.
  * @returns {Promise}
  */
-function setLightOff(lightID: string, authOpts: AuthOpts, brightness: number) {
+export function setLightOff(lightID: string, authOpts: AuthOpts, brightness: number) {
   return lightAction(lightID, authOpts, brightness, 'turnOff');
 }
 
@@ -368,7 +344,7 @@ function lockAction(lockID: string, authOpts: AuthOpts, action: string) {
  * @param {Object} authOpts  Authentication object returned from the login.
  * @returns {Promise}
  */
-function setLockSecure(lockID: string, authOpts: AuthOpts) {
+export function setLockSecure(lockID: string, authOpts: AuthOpts) {
   return lockAction(lockID, authOpts, 'lock');
 }
 
@@ -380,7 +356,7 @@ function setLockSecure(lockID: string, authOpts: AuthOpts) {
  * @param {Object} authOpts  Authentication object returned from the login.
  * @returns {Promise}
  */
-function setLockUnsecure(lockID: string, authOpts: AuthOpts) {
+export function setLockUnsecure(lockID: string, authOpts: AuthOpts) {
   return lockAction(lockID, authOpts, 'unlock');
 }
 
@@ -408,7 +384,7 @@ function getGarages(garageIDs: string[], authOpts: AuthOpts) {
  *   method.
  * @returns {Promise}
  */
-function closeGarage(garageID: string, authOpts: AuthOpts) {
+export function closeGarage(garageID: string, authOpts: AuthOpts) {
   const url = `${GARAGE_URL}${garageID}/close`;
   const postOpts = Object.assign({}, authOpts, {
     body: {
@@ -426,7 +402,7 @@ function closeGarage(garageID: string, authOpts: AuthOpts) {
  *   method.
  * @returns {Promise}
  */
-function openGarage(garageID: string, authOpts: AuthOpts) {
+export function openGarage(garageID: string, authOpts: AuthOpts) {
   const url = `${GARAGE_URL}${garageID}/open`;
   const postOpts = Object.assign({}, authOpts, {
     body: {
