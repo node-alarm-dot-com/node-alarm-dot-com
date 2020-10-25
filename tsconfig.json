@@ -6,7 +6,7 @@
     "declaration": true,
     "outDir": "./dist",
     "esModuleInterop": true,
-    "strict": true,
+    "strict": false,
     "lib": [
       "ES2015",
       "ES2016",
