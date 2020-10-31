@@ -571,6 +571,199 @@ export interface SensorState extends DeviceState {
   }
 }
 
+export interface ApiCameraState extends ApiDeviceState {
+  data: {
+    id: string,
+    type: RelationshipType.Camera,
+    attributes: {
+      supportsSnapShot: boolean,
+      isRecordingToContinuousCloud: boolean,
+      canTakeSnapshot: boolean,
+      canRequestRecording: boolean,
+      hasSvrSchedule: boolean,
+      excludedFromVisualVerification: boolean,
+      liveViewHdToggleEnabled: boolean,
+      canPanTilt: boolean,
+      canZoom: boolean,
+      panTiltPresets: [],
+      preferredPanTiltPreset?: [],
+      isUnreachable: boolean,
+      lastSuccessfulSupervision: Date,
+      canStreamToPanel: boolean,
+      canChangeStreamToPanel: boolean,
+      canStreamToPanelBeEnabled: boolean,
+      isStreamToPanelEnabled: boolean,
+      doorbellChimeType: number,
+      supportsVmdSchedules: boolean,
+      deviceImagePath: string,
+      deviceModel: string,
+      macAddress: string,
+      firmwareVersion: string,
+      publicIp: string,
+      privateIp: string,
+      port: number,
+      httpsPort: number,
+      shouldUseEntireImageForSnapshot: boolean,
+      hasDdnsed: boolean,
+      usageProtocolMapping: {},
+      isVirtualCamera: boolean,
+      supportsLiveView: boolean,
+      forcedAspectRatio: null,
+      canBeSaved: boolean,
+      canChangeDescription: boolean,
+      description: string,
+      deviceModelId: number,
+      canConfirmStateChange: boolean,
+      remoteCommandsEnabled: boolean,
+      hasPermissionToChangeState: boolean,
+      deviceIcon: {
+        icon: number
+      },
+      batteryLevelNull?: null,
+      lowBattery: boolean,
+      criticalBattery: boolean
+    },
+    relationships: {
+      videoEvents: {
+        data: [],
+        meta: {
+          count: number
+        }
+      },
+      videoSource: {
+        data: {
+          id: string,
+          type: 'video/liveVideoSource'
+        }
+      },
+      videoSourceHd: {
+        data: {
+          id: string,
+          type: 'video/liveVideoHighestResSource'
+        }
+      },
+      svrVideoSource: {
+        data: {
+          id: string,
+          type: 'video/videoSources/svrVideoSource'
+        }
+      },
+      snapshot: {
+        data: {
+          id: string,
+          type: 'video/snapshot'
+        }
+      },
+      system: {
+        data: {
+          id: string,
+          type: 'systems/system'
+        }
+      },
+      stateInfo: {
+        data: null
+      }
+    }
+  },
+  included: [],
+  meta: {
+    transformer_version: '1.1'
+  }
+}
+
+export interface CameraState extends DeviceState {
+  type: RelationshipType.Camera,
+  attributes: {
+    supportsSnapShot: boolean,
+    isRecordingToContinuousCloud: boolean,
+    canTakeSnapshot: boolean,
+    canRequestRecording: boolean,
+    hasSvrSchedule: boolean,
+    excludedFromVisualVerification: boolean,
+    liveViewHdToggleEnabled: boolean,
+    canPanTilt: boolean,
+    canZoom: boolean,
+    panTiltPresets: [],
+    preferredPanTiltPreset?: [],
+    isUnreachable: boolean,
+    lastSuccessfulSupervision: Date,
+    canStreamToPanel: boolean,
+    canChangeStreamToPanel: boolean,
+    canStreamToPanelBeEnabled: boolean,
+    isStreamToPanelEnabled: boolean,
+    doorbellChimeType: number,
+    supportsVmdSchedules: boolean,
+    deviceImagePath: string,
+    deviceModel: string,
+    macAddress: string,
+    firmwareVersion: string,
+    publicIp: string,
+    privateIp: string,
+    port: number,
+    httpsPort: number,
+    shouldUseEntireImageForSnapshot: boolean,
+    hasDdnsed: boolean,
+    usageProtocolMapping: {},
+    isVirtualCamera: boolean,
+    supportsLiveView: boolean,
+    forcedAspectRatio: null,
+    canBeSaved: boolean,
+    canChangeDescription: boolean,
+    description: string,
+    deviceModelId: number,
+    canConfirmStateChange: boolean,
+    remoteCommandsEnabled: boolean,
+    hasPermissionToChangeState: boolean,
+    deviceIcon: {
+      icon: number
+    },
+    batteryLevelNull?: null,
+    lowBattery: boolean,
+    criticalBattery: boolean
+  },
+  relationships: {
+    videoEvents: {
+      data: [],
+      meta: {
+        count: number
+      }
+    },
+    videoSource: {
+      data: {
+        id: string,
+        type: 'video/liveVideoSource'
+      }
+    },
+    videoSourceHd: {
+      data: {
+        id: string,
+        type: 'video/liveVideoHighestResSource'
+      }
+    },
+    svrVideoSource: {
+      data: {
+        id: string,
+        type: 'video/videoSources/svrVideoSource'
+      }
+    },
+    snapshot: {
+      data: {
+        id: string,
+        type: 'video/snapshot'
+      }
+    },
+    system: {
+      data: {
+        id: string,
+        type: 'systems/system'
+      }
+    },
+    stateInfo: {
+      data: null
+    }
+  }
+}
+
 export interface ApiDeviceState {
   data: {
     id: string,
