@@ -1,6 +1,6 @@
 import { Relationship } from './IdentityResponse';
-import { RelationshipType } from './systemState';
-import { GARAGE_STATES, LIGHT_STATES, LOCK_STATES, SENSOR_STATES, SYSTEM_STATES } from './states';
+import { RelationshipType } from './SystemState';
+import { GARAGE_STATES, LIGHT_STATES, LOCK_STATES, SENSOR_STATES, SYSTEM_STATES } from './States';
 
 export interface ApiLightState extends ApiDeviceState {
   data: {

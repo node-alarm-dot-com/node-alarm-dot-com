@@ -7,8 +7,8 @@ import { AuthOpts } from './_models/AuthOpts';
 import { DeviceState, GarageState } from './_models/DeviceStates';
 import { IdentityResponse } from './_models/IdentityResponse';
 import { PartitionActionOptions } from './_models/PartitionActionOptions';
-import { RequestOptions } from './_models/requestOptions';
-import { FlattenedSystemState, Relationships, SystemState } from './_models/systemState';
+import { RequestOptions } from './_models/RequestOptions';
+import { FlattenedSystemState, Relationships, SystemState } from './_models/SystemState';
 
 const ADCLOGIN_URL = 'https://www.alarm.com/login';
 const ADCFORMLOGIN_URL = 'https://www.alarm.com/web/Default.aspx';
