@@ -10,6 +10,13 @@ import { PartitionActionOptions } from './_models/PartitionActionOptions';
 import { RequestOptions } from './_models/RequestOptions';
 import { FlattenedSystemState, Relationships, SystemState } from './_models/SystemState';
 
+export * from './_models/AuthOpts';
+export * from './_models/DeviceStates';
+export * from './_models/IdentityResponse';
+export * from './_models/PartitionActionOptions';
+export * from './_models/RequestOptions';
+export * from './_models/SystemState';
+
 const ADCLOGIN_URL = 'https://www.alarm.com/login';
 const ADCFORMLOGIN_URL = 'https://www.alarm.com/web/Default.aspx';
 const IDENTITIES_URL = 'https://www.alarm.com/web/api/identities';
