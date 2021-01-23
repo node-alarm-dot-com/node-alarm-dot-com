@@ -70,6 +70,7 @@ exports.login = login
 exports.getCurrentState = getCurrentState
 
 exports.armStay = armStay
+exports.armNightStay = armNightStay
 exports.armAway = armAway
 exports.disarm = disarm
 
@@ -273,6 +274,7 @@ function partitionAction(partitionID, action, authOpts, opts) {
   const url = `${PARTITIONS_URL}${partitionID}/${action}`
   const postOpts = Object.assign({}, authOpts, {
     body: {
+      nightArming: action === 'armStay' ? Boolean(opts.nightArming) : undefined,
       noEntryDelay: action === 'disarm' ? undefined : Boolean(opts.noEntryDelay),
       silentArming: action === 'disarm' ? undefined : Boolean(opts.silentArming),
       statePollOnly: false
@@ -297,6 +299,10 @@ function partitionAction(partitionID, action, authOpts, opts) {
  */
 function armStay(partitionID, authOpts, opts) {
   return partitionAction(partitionID, 'armStay', authOpts, opts)
+}
+function armNightStay(partitionID, authOpts, opts) {
+  opts.nightArming = true;
+  return partitionAction(partitionID, 'armStay', authOpts, opts);
 }
 
 /**
