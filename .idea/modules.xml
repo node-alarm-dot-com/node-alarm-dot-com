@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/../homebridge-node-alarm-dot-com/.idea/homebridge-node-alarm-dot-com.iml" filepath="$PROJECT_DIR$/../homebridge-node-alarm-dot-com/.idea/homebridge-node-alarm-dot-com.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/node-alarm-dot-com.iml" filepath="$PROJECT_DIR$/.idea/node-alarm-dot-com.iml" />
+    </modules>
+  </component>
+</project>

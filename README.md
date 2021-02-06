@@ -3,11 +3,11 @@ Node.js Alarm.com Interface
 
 Unofficial interface module written in Node.js to access and operate [Alarm.com](https://www.alarm.com/) security systems.
 
-This interface works best with the fork: [https://github.com/mkormendy/homebridge-node-alarm-dot-com](https://github.com/mkormendy/homebridge-node-alarm-dot-com), based off of John Hurliman's FrontPoint* plugin for Homebridge<small>[↗](https://github.com/jhurliman/homebridge-frontpoint)</small>. This variation <del>adds</del> changes the default login authentication <del>for</del> to Alarm.com. <del>with a switch to use the FrontPoint login authentication process if desired.</del>
+This interface works best with the fork: [https://github.com/node-alarm-dot-com/homebridge-node-alarm-dot-com](https://github.com/node-alarm-dot-com/homebridge-node-alarm-dot-com), based off of John Hurliman's FrontPoint* plugin for Homebridge<small>[↗](https://github.com/jhurliman/homebridge-frontpoint)</small>. This variation <del>adds</del> changes the default login authentication <del>for</del> to Alarm.com. <del>with a switch to use the FrontPoint login authentication process if desired.</del>
 
 <small>*FrontPoint is simply a rebranded service provider for Alarm.com.</small>
 
-Originally intended for use with the fork: [https://github.com/mkormendy/homebridge-alarm.com](https://github.com/mkormendy/homebridge-alarm.com), originally created by Bryan Bartow for his Alarm.com plugin for Homebridge<small>[↗](https://github.com/bryan-bartow/homebridge-alarm.com)</small>.
+Originally intended for use with the fork: [https://github.com/node-alarm-dot-com/homebridge-node-alarm-dot-com](https://github.com/node-alarm-dot-com/homebridge-node-alarm-dot-com), originally created by Bryan Bartow for his Alarm.com plugin for Homebridge<small>[↗](https://github.com/bryan-bartow/homebridge-alarm.com)</small>.
 
 Supported Features
 ------------------
