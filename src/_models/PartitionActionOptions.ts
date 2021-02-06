@@ -1,4 +1,5 @@
 export interface PartitionActionOptions {
-  noEntryDelay: any;
-  silentArming: any;
+  noEntryDelay: boolean;
+  silentArming: boolean;
+  nightArming: boolean;
 }

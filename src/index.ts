@@ -211,7 +211,8 @@ export function getComponents(url: string, componentIDs: string[], authOpts: Aut
 function partitionAction(partitionID: string, action: string, authOpts: AuthOpts, opts?: PartitionActionOptions) {
   opts = opts || {
     noEntryDelay: false,
-    silentArming: false
+    silentArming: false,
+    nightArming: false
   };
   const url = `${PARTITIONS_URL}${partitionID}/${action}`;
   const postOpts = Object.assign({}, authOpts, {
