@@ -216,6 +216,7 @@ function partitionAction(partitionID: string, action: string, authOpts: AuthOpts
   const url = `${PARTITIONS_URL}${partitionID}/${action}`;
   const postOpts = Object.assign({}, authOpts, {
     body: {
+      nightArming: action === 'armStay' ? Boolean(opts.nightArming) : undefined,
       noEntryDelay: action === 'disarm' ? undefined : Boolean(opts.noEntryDelay),
       silentArming: action === 'disarm' ? undefined : Boolean(opts.silentArming),
       statePollOnly: false
@@ -238,6 +239,11 @@ function partitionAction(partitionID: string, action: string, authOpts: AuthOpts
  * @returns {Promise}
  */
 export function armStay(partitionID: string, authOpts: AuthOpts, opts: PartitionActionOptions) {
+  return partitionAction(partitionID, 'armStay', authOpts, opts);
+}
+
+export function armNightStay(partitionID, authOpts, opts) {
+  opts.nightArming = true;
   return partitionAction(partitionID, 'armStay', authOpts, opts);
 }
 
