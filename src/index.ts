@@ -150,10 +150,6 @@ export function getCurrentState(systemID: string, authOpts: any): Promise<Flatte
     if (typeof sensorIDs[0] != 'undefined') {
       resultingComponentsContainer.push(getComponents(SENSORS_URL, sensorIDs, authOpts));
     }
-    const lightIDs = rels.lights.data.map(l => l.id);
-    if (typeof lightIDs[0] != 'undefined') {
-      resultingComponentsContainer.push(getComponents(LIGHTS_URL, lightIDs, authOpts));
-    }
     const lockIDs = rels.locks.data.map(l => l.id);
     if (typeof lockIDs[0] != 'undefined') {
       resultingComponentsContainer.push(getComponents(LOCKS_URL, lockIDs, authOpts));
@@ -162,20 +158,24 @@ export function getCurrentState(systemID: string, authOpts: any): Promise<Flatte
     if (typeof garageIDs[0] != 'undefined') {
       resultingComponentsContainer.push(getComponents(GARAGE_URL, garageIDs, authOpts));
     }
+    const lightIDs = rels.lights.data.map(l => l.id);
+    if (typeof lightIDs[0] != 'undefined') {
+      resultingComponentsContainer.push(getComponents(LIGHTS_URL, lightIDs, authOpts));
+    }
 
     return Promise.all(resultingComponentsContainer)
       .then(resultingSystemComponents => {
         // destructured assignment
         // Create an object with status of all system devices
-        const [partitions, sensors, lights, locks, garageDoors] = resultingSystemComponents;
+        const [partitions, sensors, locks, garageDoors, lights] = resultingSystemComponents;
         return {
           id: res.data.id,
           attributes: res.data.attributes,
           partitions: typeof partitions != 'undefined' ? partitions.data : [],
           sensors: typeof sensors != 'undefined' ? sensors.data : [],
-          lights: typeof lights != 'undefined' ? lights.data : [],
           locks: typeof locks != 'undefined' ? locks.data : [],
           garages: typeof garageDoors != 'undefined' ? garageDoors.data : [],
+          lights: typeof lights != 'undefined' ? lights.data : [],
           relationships: rels
         };
       });
