@@ -1,7 +1,7 @@
 {
   "name": "node-alarm-dot-com",
   "version": "1.11.0",
-  "betaVersion": "1.11.0-beta.0",
+  "betaVersion": "1.11.0-beta.2",
   "description": "An interface module written in node.js to arm and disarm Alarm.com security systems.",
   "author": {
     "name": "Mike Kormendy",
