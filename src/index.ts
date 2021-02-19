@@ -38,10 +38,10 @@ const UA = `node-alarm-dot-com/${require('../package.json').version}`;
  *
  * @param {string} username  Alarm.com username.
  * @param {string} password  Alarm.com password.
+ * @param {string} existingMfaToken MFA token from browser used to bypass MFA.
  * @returns {Promise}
  */
-export function login(username: string, password: string): Promise<AuthOpts> {
-
+export function login(username: string, password: string, existingMfaToken?: string): Promise<AuthOpts> {
   let loginCookies: string;
   let ajaxKey: string;
   let loginFormBody, identities, systems;
@@ -73,7 +73,8 @@ export function login(username: string, password: string): Promise<AuthOpts> {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
-          'User-Agent': UA
+          'User-Agent': UA,
+          'Cookie': `twoFactorAuthenticationId=${existingMfaToken};`
         },
         body: loginFormBody,
         redirect: 'manual'
