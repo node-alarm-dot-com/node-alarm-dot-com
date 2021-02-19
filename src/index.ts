@@ -483,6 +483,10 @@ function get(url: string, opts?: any): Promise<{ headers: Headers; body: any }> 
       return type.indexOf('json') !== -1 ? (res.status === 204 ? {} : res.json()) : res.text();
     })
     .then((body: any) => {
+      if (status === 409) {
+        throw new Error('Two factor is enabled on this account but not setup in the plugin.' +
+          ' See the wiki for details');
+      }
       if (status >= 400) throw new Error(body.Message || body || status);
       return {
         headers: resHeaders,
