@@ -4,7 +4,7 @@
 
 import fetch, { Headers, Response } from 'node-fetch';
 import { AuthOpts } from './_models/AuthOpts';
-import { DeviceState, GarageState } from './_models/DeviceStates';
+import { ApiDeviceState, GarageState } from './_models/DeviceStates';
 import { IdentityResponse } from './_models/IdentityResponse';
 import { PartitionActionOptions } from './_models/PartitionActionOptions';
 import { RequestOptions } from './_models/RequestOptions';
@@ -136,51 +136,44 @@ export function login(username: string, password: string, existingMfaToken?: str
  */
 export function getCurrentState(systemID: string, authOpts: any): Promise<FlattenedSystemState> {
   // This call to the systems endpoint retrieves an overview of all devices in a system
-  return authenticatedGet(SYSTEM_URL + systemID, authOpts).then((res: SystemState) => {
+  return authenticatedGet(SYSTEM_URL + systemID, authOpts).then(async (res: SystemState) => {
 
     const rels: Relationships = res.data.relationships;
-    const resultingComponentsContainer = [];
+    const resultingComponentsContainer = new Map<string, ApiDeviceState>();
 
     // push the results of getComponents into the resultingComponentsContainer
     // Now we go through and get detailed information about all devices
     const partitionIDs = rels.partitions.data.map(p => p.id);
     if (typeof partitionIDs[0] != 'undefined') {
-      resultingComponentsContainer.push(getComponents(PARTITIONS_URL, partitionIDs, authOpts));
+      resultingComponentsContainer.set('partitions', await getComponents(PARTITIONS_URL, partitionIDs, authOpts));
     }
     const sensorIDs = rels.sensors.data.map(s => s.id);
     if (typeof sensorIDs[0] != 'undefined') {
-      resultingComponentsContainer.push(getComponents(SENSORS_URL, sensorIDs, authOpts));
+      resultingComponentsContainer.set('sensors', await getComponents(SENSORS_URL, sensorIDs, authOpts));
     }
     const lightIDs = rels.lights.data.map(l => l.id);
     if (typeof lightIDs[0] != 'undefined') {
-      resultingComponentsContainer.push(getComponents(LIGHTS_URL, lightIDs, authOpts));
+      resultingComponentsContainer.set('lights', await getComponents(LIGHTS_URL, lightIDs, authOpts));
     }
     const lockIDs = rels.locks.data.map(l => l.id);
     if (typeof lockIDs[0] != 'undefined') {
-      resultingComponentsContainer.push(getComponents(LOCKS_URL, lockIDs, authOpts));
+      resultingComponentsContainer.set('locks', await getComponents(LOCKS_URL, lockIDs, authOpts));
     }
-    const garageIDs = rels.garageDoors.data.map(l => l.id);
+    const garageIDs = rels.garageDoors.data.map(g => g.id);
     if (typeof garageIDs[0] != 'undefined') {
-      resultingComponentsContainer.push(getComponents(GARAGE_URL, garageIDs, authOpts));
+      resultingComponentsContainer.set('garages', await getComponents(GARAGE_URL, garageIDs, authOpts));
     }
 
-    return Promise.all(resultingComponentsContainer)
-      .then(resultingSystemComponents => {
-        // destructured assignment
-        // Create an object with status of all system devices
-        const [partitions, sensors, lights, locks, garageDoors] = resultingSystemComponents;
-        return {
-          id: res.data.id,
-          attributes: res.data.attributes,
-          partitions: typeof partitions != 'undefined' ? partitions.data : [],
-          sensors: typeof sensors != 'undefined' ? sensors.data : [],
-          lights: typeof lights != 'undefined' ? lights.data : [],
-          locks: typeof locks != 'undefined' ? locks.data : [],
-          garages: typeof garageDoors != 'undefined' ? garageDoors.data : [],
-          relationships: rels
-        };
-      });
-
+    return {
+      id: res.data.id,
+      attributes: res.data.attributes,
+      partitions: resultingComponentsContainer.get('partitions').data ?? [],
+      sensors: resultingComponentsContainer.get('sensors').data ?? [],
+      lights: resultingComponentsContainer.get('lights').data ?? [],
+      locks: resultingComponentsContainer.get('locks').data ?? [],
+      garages: resultingComponentsContainer.get('garages').data ?? [],
+      relationships: rels
+    } as FlattenedSystemState;
   });
 }
 
@@ -192,7 +185,7 @@ export function getCurrentState(systemID: string, authOpts: any): Promise<Flatte
  * @param {Object} authOpts  Authentication object returned from the login.
  * @returns {Promise}
  */
-export function getComponents(url: string, componentIDs: string[], authOpts: AuthOpts): Promise<DeviceState> {
+export function getComponents(url: string, componentIDs: string[], authOpts: AuthOpts): Promise<ApiDeviceState> {
   const IDs = Array.isArray(componentIDs) ? componentIDs : [componentIDs];
   let getUrl = `${url}?${IDs.map(id => `ids%5B%5D=${id}`).join('&')}`;
   return authenticatedGet(getUrl, authOpts);
