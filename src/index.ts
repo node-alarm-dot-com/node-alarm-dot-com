@@ -139,39 +139,39 @@ export function getCurrentState(systemID: string, authOpts: any): Promise<Flatte
   return authenticatedGet(SYSTEM_URL + systemID, authOpts).then(async (res: SystemState) => {
 
     const rels: Relationships = res.data.relationships;
-    const resultingComponentsContainer = new Map<string, ApiDeviceState>();
+    const components = new Map<string, ApiDeviceState>();
 
-    // push the results of getComponents into the resultingComponentsContainer
+    // push the results of getComponents into the components
     // Now we go through and get detailed information about all devices
     const partitionIDs = rels.partitions.data.map(p => p.id);
     if (typeof partitionIDs[0] != 'undefined') {
-      resultingComponentsContainer.set('partitions', await getComponents(PARTITIONS_URL, partitionIDs, authOpts));
+      components.set('partitions', await getComponents(PARTITIONS_URL, partitionIDs, authOpts));
     }
     const sensorIDs = rels.sensors.data.map(s => s.id);
     if (typeof sensorIDs[0] != 'undefined') {
-      resultingComponentsContainer.set('sensors', await getComponents(SENSORS_URL, sensorIDs, authOpts));
+      components.set('sensors', await getComponents(SENSORS_URL, sensorIDs, authOpts));
     }
     const lightIDs = rels.lights.data.map(l => l.id);
     if (typeof lightIDs[0] != 'undefined') {
-      resultingComponentsContainer.set('lights', await getComponents(LIGHTS_URL, lightIDs, authOpts));
+      components.set('lights', await getComponents(LIGHTS_URL, lightIDs, authOpts));
     }
     const lockIDs = rels.locks.data.map(l => l.id);
     if (typeof lockIDs[0] != 'undefined') {
-      resultingComponentsContainer.set('locks', await getComponents(LOCKS_URL, lockIDs, authOpts));
+      components.set('locks', await getComponents(LOCKS_URL, lockIDs, authOpts));
     }
     const garageIDs = rels.garageDoors.data.map(g => g.id);
     if (typeof garageIDs[0] != 'undefined') {
-      resultingComponentsContainer.set('garages', await getComponents(GARAGE_URL, garageIDs, authOpts));
+      components.set('garages', await getComponents(GARAGE_URL, garageIDs, authOpts));
     }
 
     return {
       id: res.data.id,
       attributes: res.data.attributes,
-      partitions: resultingComponentsContainer.get('partitions').data ?? [],
-      sensors: resultingComponentsContainer.get('sensors').data ?? [],
-      lights: resultingComponentsContainer.get('lights').data ?? [],
-      locks: resultingComponentsContainer.get('locks').data ?? [],
-      garages: resultingComponentsContainer.get('garages').data ?? [],
+      partitions: components.has('partitions') ? components.get('partitions').data : [],
+      sensors: components.has('sensors') ? components.get('sensors').data : [],
+      lights: components.has('lights') ? components.get('lights').data : [],
+      locks: components.has('locks') ? components.get('locks').data : [],
+      garages: components.has('garages') ? components.get('garages').data : [],
       relationships: rels
     } as FlattenedSystemState;
   });
