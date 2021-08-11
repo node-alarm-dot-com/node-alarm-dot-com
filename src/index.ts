@@ -2,13 +2,13 @@
  * @module node-alarm-dot-com
  */
 
-import fetch, { Headers, Response } from 'node-fetch';
+import fetch, { Headers } from 'node-fetch';
 import { AuthOpts } from './_models/AuthOpts';
 import { ApiDeviceState, GarageState } from './_models/DeviceStates';
 import { IdentityResponse } from './_models/IdentityResponse';
 import { PartitionActionOptions } from './_models/PartitionActionOptions';
 import { RequestOptions } from './_models/RequestOptions';
-import { FlattenedSystemState, Relationships, SystemState } from './_models/SystemState';
+import { FlattenedSystemState, Relationships } from './_models/SystemState';
 
 export * from './_models/AuthOpts';
 export * from './_models/DeviceStates';
