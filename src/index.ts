@@ -2,13 +2,13 @@
  * @module node-alarm-dot-com
  */
 
-import fetch, { Headers, Response } from 'node-fetch';
+import fetch, { Headers } from 'node-fetch';
 import { AuthOpts } from './_models/AuthOpts';
-import { DeviceState, GarageState } from './_models/DeviceStates';
+import { ApiDeviceState, GarageState } from './_models/DeviceStates';
 import { IdentityResponse } from './_models/IdentityResponse';
 import { PartitionActionOptions } from './_models/PartitionActionOptions';
 import { RequestOptions } from './_models/RequestOptions';
-import { FlattenedSystemState, Relationships, SystemState } from './_models/SystemState';
+import { FlattenedSystemState, Relationships } from './_models/SystemState';
 
 export * from './_models/AuthOpts';
 export * from './_models/DeviceStates';
@@ -38,22 +38,17 @@ const UA = `node-alarm-dot-com/${require('../package.json').version}`;
  *
  * @param {string} username  Alarm.com username.
  * @param {string} password  Alarm.com password.
+ * @param {string} existingMfaToken MFA token from browser used to bypass MFA.
  * @returns {Promise}
  */
-export function login(username: string, password: string): Promise<AuthOpts> {
-
+export async function login(username: string, password: string, existingMfaToken?: string): Promise<AuthOpts> {
   let loginCookies: string;
   let ajaxKey: string;
-  let loginFormBody, identities, systems;
+  let loginFormBody: string, identities: { data: any; }, systems: any;
 
   // load initial alarm.com page to gather required hidden form fields
-  return get(ADCLOGIN_URL)
-    .catch(err => {
-      throw new Error(`GET ${ADCLOGIN_URL} failed: ${err.message || err}`);
-    })
+  await get(ADCLOGIN_URL)
     .then(res => {
-
-      // build login form body
       const loginObj: any = {
         '__EVENTTARGET': null,
         '__EVENTARGUMENT': null,
@@ -66,62 +61,63 @@ export function login(username: string, password: string): Promise<AuthOpts> {
         'ctl00$ContentPlaceHolder1$loginform$txtUserName': username,
         'txtPassword': password
       };
+      // build login form body
       loginFormBody = Object.keys(loginObj).map(k => encodeURIComponent(k) + '=' + encodeURIComponent(loginObj[k])).join('&');
-
-      // submit login form and gather cookies/keys for session
-      return fetch(ADCFORMLOGIN_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'User-Agent': UA
-        },
-        body: loginFormBody,
-        redirect: 'manual'
-      })
-        .catch((err) => {
-          throw new Error(`POST ${ADCFORMLOGIN_URL} failed: ${err.message || err}`);
-        })
-        .then((res: Response) => {
-
-          // gather cookies for session
-          loginCookies = res.headers.raw()['set-cookie'].map(c => c.split(';')[0]).join('; ');
-
-          // gather ajaxkey for session headers
-          const re = /afg=([^;]+);/.exec(loginCookies);
-          if (!re) throw new Error(`No afg cookie: ${loginCookies}`);
-          ajaxKey = re[1];
-
-          // request identities and systems for account
-          return get(IDENTITIES_URL, {
-            headers: {
-              'Accept': 'application/vnd.api+json',
-              'Cookie': loginCookies,
-              'ajaxrequestuniquekey': ajaxKey,
-              'Referer': 'https://www.alarm.com/web/system/home',
-              'User-Agent': UA
-            }
-          })
-            .catch(err => {
-              throw new Error(`GET ${IDENTITIES_URL} failed: ${err.message || err}`);
-            })
-            .then(res => {
-
-              // gather identities and systems
-              identities = res.body;
-              systems = (identities.data || []).map((d: IdentityResponse) => getValue(d, 'relationships.selectedSystem.data.id'));
-
-              // finally return session/account object for polling and manipulation
-              return {
-                cookie: loginCookies,
-                ajaxKey: ajaxKey,
-                systems: systems,
-                identities: identities
-              } as AuthOpts;
-            });
-        });
+    })
+    .catch(err => {
+      throw new Error(`GET ${ADCLOGIN_URL} failed: ${err.message || err}`);
     });
 
+  await fetch(ADCFORMLOGIN_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'User-Agent': UA,
+      'Cookie': `twoFactorAuthenticationId=${existingMfaToken};`
+    },
+    body: loginFormBody,
+    redirect: 'manual'
+  })
+    .then(res => {
+      loginCookies = res.headers.raw()['set-cookie'].map(c => c.split(';')[0]).join('; ');
+      // gather ajaxkey for session headers
+      const re = /afg=([^;]+);/.exec(loginCookies);
+      if (!re) {
+        throw new Error(`No afg cookie: ${loginCookies}`);
+      }
+      ajaxKey = re[1];
+    })
+    .catch((err) => {
+      throw new Error(`POST ${ADCFORMLOGIN_URL} failed: ${err.message || err}`);
+    });
+
+  await get(IDENTITIES_URL, {
+    headers: {
+      'Accept': 'application/vnd.api+json',
+      'Cookie': loginCookies,
+      'ajaxrequestuniquekey': ajaxKey,
+      'Referer': 'https://www.alarm.com/web/system/home',
+      'User-Agent': UA
+    }
+  })
+    .then(res => {
+      // gather identities and systems
+      identities = res.body;
+      systems = (identities.data || []).map((d: IdentityResponse) => getValue(d, 'relationships.selectedSystem.data.id'));
+    })
+    .catch(err => {
+      throw new Error(`GET ${IDENTITIES_URL} failed: ${err.message || err}`);
+    });
+
+  return {
+    cookie: loginCookies,
+    ajaxKey: ajaxKey,
+    systems: systems,
+    identities: identities
+  } as AuthOpts;
+
 }
+
 
 /**
  * Retrieve information about the current state of a security system including
@@ -133,54 +129,44 @@ export function login(username: string, password: string): Promise<AuthOpts> {
  * @param {Object} authOpts  Authentication object returned from the login.
  * @returns {Promise}
  */
-export function getCurrentState(systemID: string, authOpts: any): Promise<FlattenedSystemState> {
+export async function getCurrentState(systemID: string, authOpts: AuthOpts): Promise<FlattenedSystemState> {
   // This call to the systems endpoint retrieves an overview of all devices in a system
-  return authenticatedGet(SYSTEM_URL + systemID, authOpts).then((res: SystemState) => {
+  const res = await authenticatedGet(SYSTEM_URL + systemID, authOpts);
+  const rels: Relationships = res.data.relationships;
+  const components = new Map<string, ApiDeviceState>();
+  // push the results of getComponents into the components
+  // Now we go through and get detailed information about all devices
+  const partitionIDs = rels.partitions.data.map(partition => partition.id);
+  if (typeof partitionIDs[0] !== 'undefined') {
+    components.set('partitions', await getComponents(PARTITIONS_URL, partitionIDs, authOpts));
+  }
+  const sensorIDs = rels.sensors.data.map(sensor => sensor.id);
+  if (typeof sensorIDs[0] !== 'undefined') {
+    components.set('sensors', await getComponents(SENSORS_URL, sensorIDs, authOpts));
+  }
+  const lightIDs = rels.lights.data.map(light => light.id);
+  if (typeof lightIDs[0] !== 'undefined') {
+    components.set('lights', await getComponents(LIGHTS_URL, lightIDs, authOpts));
+  }
+  const lockIDs = rels.locks.data.map(lock => lock.id);
+  if (typeof lockIDs[0] !== 'undefined') {
+    components.set('locks', await getComponents(LOCKS_URL, lockIDs, authOpts));
+  }
+  const garageIDs = rels.garageDoors.data.map(garage => garage.id);
+  if (typeof garageIDs[0] !== 'undefined') {
+    components.set('garages', await getComponents(GARAGE_URL, garageIDs, authOpts));
+  }
 
-    const rels: Relationships = res.data.relationships;
-    const resultingComponentsContainer = [];
-
-    // push the results of getComponents into the resultingComponentsContainer
-    // Now we go through and get detailed information about all devices
-    const partitionIDs = rels.partitions.data.map(p => p.id);
-    if (typeof partitionIDs[0] != 'undefined') {
-      resultingComponentsContainer.push(getComponents(PARTITIONS_URL, partitionIDs, authOpts));
-    }
-    const sensorIDs = rels.sensors.data.map(s => s.id);
-    if (typeof sensorIDs[0] != 'undefined') {
-      resultingComponentsContainer.push(getComponents(SENSORS_URL, sensorIDs, authOpts));
-    }
-    const lightIDs = rels.lights.data.map(l => l.id);
-    if (typeof lightIDs[0] != 'undefined') {
-      resultingComponentsContainer.push(getComponents(LIGHTS_URL, lightIDs, authOpts));
-    }
-    const lockIDs = rels.locks.data.map(l => l.id);
-    if (typeof lockIDs[0] != 'undefined') {
-      resultingComponentsContainer.push(getComponents(LOCKS_URL, lockIDs, authOpts));
-    }
-    const garageIDs = rels.garageDoors.data.map(l => l.id);
-    if (typeof garageIDs[0] != 'undefined') {
-      resultingComponentsContainer.push(getComponents(GARAGE_URL, garageIDs, authOpts));
-    }
-
-    return Promise.all(resultingComponentsContainer)
-      .then(resultingSystemComponents => {
-        // destructured assignment
-        // Create an object with status of all system devices
-        const [partitions, sensors, lights, locks, garageDoors] = resultingSystemComponents;
-        return {
-          id: res.data.id,
-          attributes: res.data.attributes,
-          partitions: typeof partitions != 'undefined' ? partitions.data : [],
-          sensors: typeof sensors != 'undefined' ? sensors.data : [],
-          lights: typeof lights != 'undefined' ? lights.data : [],
-          locks: typeof locks != 'undefined' ? locks.data : [],
-          garages: typeof garageDoors != 'undefined' ? garageDoors.data : [],
-          relationships: rels
-        };
-      });
-
-  });
+  return ({
+    id: res.data.id,
+    attributes: res.data.attributes,
+    partitions: components.has('partitions') ? components.get('partitions').data : [],
+    sensors: components.has('sensors') ? components.get('sensors').data : [],
+    lights: components.has('lights') ? components.get('lights').data : [],
+    locks: components.has('locks') ? components.get('locks').data : [],
+    garages: components.has('garages') ? components.get('garages').data : [],
+    relationships: rels
+  }) as FlattenedSystemState;
 }
 
 /**
@@ -191,7 +177,7 @@ export function getCurrentState(systemID: string, authOpts: any): Promise<Flatte
  * @param {Object} authOpts  Authentication object returned from the login.
  * @returns {Promise}
  */
-export function getComponents(url: string, componentIDs: string[], authOpts: AuthOpts): Promise<DeviceState> {
+export function getComponents(url: string, componentIDs: string[], authOpts: AuthOpts): Promise<ApiDeviceState> {
   const IDs = Array.isArray(componentIDs) ? componentIDs : [componentIDs];
   let getUrl = `${url}?${IDs.map(id => `ids%5B%5D=${id}`).join('&')}`;
   return authenticatedGet(getUrl, authOpts);
@@ -215,14 +201,18 @@ function partitionAction(partitionID: string, action: string, authOpts: AuthOpts
     nightArming: false
   };
   const url = `${PARTITIONS_URL}${partitionID}/${action}`;
-  const postOpts = Object.assign({}, authOpts, {
-    body: {
-      nightArming: action === 'armStay' ? Boolean(opts.nightArming) : undefined,
-      noEntryDelay: action === 'disarm' ? undefined : Boolean(opts.noEntryDelay),
-      silentArming: action === 'disarm' ? undefined : Boolean(opts.silentArming),
-      statePollOnly: false
-    }
-  });
+  const body = {
+    noEntryDelay: action === 'disarm' ? undefined : Boolean(opts.noEntryDelay),
+    silentArming: action === 'disarm' ? undefined : Boolean(opts.silentArming),
+    statePollOnly: false
+  };
+  // We only want to set nightArming when told to do so
+  //This is because calling nightArm when not supported will break the action
+  if (opts.nightArming) {
+    body['nightArming'] = true;
+  }
+
+  const postOpts = Object.assign({}, authOpts, { body });
   return authenticatedPost(url, postOpts);
 }
 
@@ -240,11 +230,6 @@ function partitionAction(partitionID: string, action: string, authOpts: AuthOpts
  * @returns {Promise}
  */
 export function armStay(partitionID: string, authOpts: AuthOpts, opts: PartitionActionOptions) {
-  return partitionAction(partitionID, 'armStay', authOpts, opts);
-}
-
-export function armNightStay(partitionID, authOpts, opts) {
-  opts.nightArming = true;
   return partitionAction(partitionID, 'armStay', authOpts, opts);
 }
 
@@ -386,7 +371,9 @@ export function setLockUnsecure(lockID: string, authOpts: AuthOpts) {
  * @returns {Promise}
  */
 function getGarages(garageIDs: string[], authOpts: AuthOpts): Promise<GarageState> {
-  if (!Array.isArray(garageIDs)) garageIDs = [garageIDs];
+  if (!Array.isArray(garageIDs)) {
+    garageIDs = [garageIDs];
+  }
   const query = garageIDs.map(id => `ids%5B%5D=${id}`).join('&');
   const url = `${GARAGE_URL}?${query}`;
   return authenticatedGet(url, authOpts);
@@ -432,12 +419,16 @@ export function openGarage(garageID: string, authOpts: AuthOpts) {
 // Helper methods //////////////////////////////////////////////////////////////
 
 function getValue(data: any, path: string | any[]) {
-  if (typeof path === 'string') path = path.split('.');
-  for (let i = 0; typeof data === 'object' && i < path.length; i++) data = data[path[i]];
+  if (typeof path === 'string') {
+    path = path.split('.');
+  }
+  for (let i = 0; typeof data === 'object' && i < path.length; i++) {
+    data = data[path[i]];
+  }
   return data;
 }
 
-function authenticatedGet(url: string, opts: any) {
+async function authenticatedGet(url: string, opts: any) {
   opts = opts || {};
   opts.headers = opts.headers || {} as Headers;
   opts.headers.Accept = 'application/vnd.api+json';
@@ -446,10 +437,11 @@ function authenticatedGet(url: string, opts: any) {
   opts.headers.Referer = HOME_URL;
   opts.headers['User-Agent'] = UA;
 
-  return get(url, opts).then(res => res.body);
+  const res = await get(url, opts);
+  return res.body;
 }
 
-function authenticatedPost(url: string, opts: any) {
+async function authenticatedPost(url: string, opts: any) {
   opts = opts || {};
   opts.headers = opts.headers || {};
   opts.headers.Accept = 'application/vnd.api+json';
@@ -459,65 +451,69 @@ function authenticatedPost(url: string, opts: any) {
   opts.headers['User-Agent'] = UA;
   opts.headers['Content-Type'] = 'application/json; charset=UTF-8';
 
-  return post(url, opts).then(res => res.body);
+  const res = await post(url, opts);
+  return res.body;
 }
 
-function get(url: string, opts?: any): Promise<{ headers: Headers; body: any }> {
+async function get(url: string, opts?: any): Promise<{ headers: Headers; body: any }> {
   opts = opts || {} as RequestOptions;
 
   let status: number;
   let resHeaders: Headers;
 
-  return fetch(url, {
-    method: 'GET',
-    redirect: 'manual',
-    headers: opts.headers
-  })
-    .then(res => {
-      status = res.status;
-      resHeaders = res.headers;
-
-      const type = res.headers.get('content-type') || '';
-      // If response is type JSON,
-      return type.indexOf('json') !== -1 ? (res.status === 204 ? {} : res.json()) : res.text();
-    })
-    .then((body: any) => {
-      if (status >= 400) throw new Error(body.Message || body || status);
-      return {
-        headers: resHeaders,
-        body: body
-      };
-    })
-    .catch(err => {
-      throw new Error(`GET ${url} failed: ${err.message || err}`);
+  try {
+    const res = await fetch(url, {
+      method: 'GET',
+      redirect: 'manual',
+      headers: opts.headers
     });
+
+    status = res.status;
+    resHeaders = res.headers;
+
+    const type = res.headers.get('content-type') || '';
+    const body: any = await (type.indexOf('json') !== -1 ? (res.status === 204 ? {} : res.json()) : res.text());
+
+    if (status === 409) {
+      throw new Error('Two factor is enabled on this account but not setup in the plugin.' +
+        ' See the wiki for details');
+    }
+    if (status >= 400) {
+      throw new Error(body.Message || body || status);
+    }
+    return {
+      headers: resHeaders,
+      body: body
+    };
+  } catch (err) {
+    throw new Error(`GET ${url} failed: ${err.message || err}`);
+  }
 }
 
-function post(url: string, opts: RequestOptions) {
+async function post(url: string, opts: RequestOptions) {
   opts = opts || {} as RequestOptions;
 
   let status: number;
   let resHeaders: Headers;
 
-  return fetch(url, {
-    method: 'POST',
-    redirect: 'manual',
-    body: opts.body ? JSON.stringify(opts.body) : undefined,
-    headers: opts.headers
-  })
-    .then(res => {
-      status = res.status;
-      resHeaders = res.headers;
-      return (res.status === 204 ? {} : res.json());
-    })
-    .then((json: any) => {
-      if (status !== 200) throw new Error(json.Message || status);
-      return {
-        headers: resHeaders,
-        body: json
-      };
-    })
-    .catch(err => {
-      throw new Error(`POST ${url} failed: ${err.message || err}`);
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      redirect: 'manual',
+      body: opts.body ? JSON.stringify(opts.body) : undefined,
+      headers: opts.headers
     });
+    status = res.status;
+    resHeaders = res.headers;
+    const json: any = await (res.status === 204 ? {} : res.json());
+    if (status !== 200) {
+      throw new Error(json.Message || status);
+    }
+    return {
+      headers: resHeaders,
+      body: json
+    };
+  } catch (err) {
+    throw new Error(`POST ${url} failed: ${err.message || err}`);
+  }
 }
