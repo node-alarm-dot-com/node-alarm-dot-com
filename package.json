@@ -1,6 +1,6 @@
 {
   "name": "node-alarm-dot-com",
-  "version": "1.10.0",
+  "version": "1.11.0",
   "description": "An interface module written in node.js to arm and disarm Alarm.com security systems.",
   "author": {
     "name": "Mike Kormendy",
@@ -47,14 +47,14 @@
     "node": ">=0.12.0"
   },
   "dependencies": {
-    "@types/node-fetch": "^2.5.7",
+    "@types/node-fetch": "^2.5.12",
     "node-fetch": "^2.6.1",
-    "semver": "^7.3.4"
+    "semver": "^7.3.5"
   },
   "devDependencies": {
-    "yargs": "^15.4.1",
-    "typescript": "^3.9.7",
     "rimraf": "^3.0.2",
-    "ts-node": "^8.10.2"
+    "ts-node": "^10.2.0",
+    "typescript": "^4.3.5",
+    "yargs": "^17.1.0"
   }
 }
