@@ -2,7 +2,7 @@ name: Node-CI Beta
 
 on:
   push:
-    branches: beta
+    branches: [beta]
 
 jobs:
   build:
@@ -38,9 +38,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
+      - uses: actions/setup-node@v2
         with:
-          node-version: 10 # use the minimum required version
+          node-version: 12 # use the minimum required version
           registry-url: https://registry.npmjs.org/
       - run: npm ci
       - run: node .github/workflows/prerelease.js
