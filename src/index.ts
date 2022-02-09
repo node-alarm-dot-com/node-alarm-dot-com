@@ -273,14 +273,31 @@ export function disarm(partitionID: string, authOpts: AuthOpts) {
 // Light methods ///////////////////////////////////////////////////////////////
 
 /**
- * Perform light actions, e.g., turn on, turn off, change brightness level.
+ * Perform non-dimmable light actions, i.e. turn on, turn off
+ *
+ * @param {string} lightID  Light ID string.
+ * @param {string} action  Action (verb) to perform on the light.
+ * @param {Object} authOpts  Authentication object returned from the login.
+ */
+function lightAction(lightID: string, authOpts: AuthOpts, action: string) {
+  const url = `${LIGHTS_URL}${lightID}/${action}`;
+  const postOpts = Object.assign({}, authOpts, {
+    body: {
+      statePollOnly: false
+    }
+  });
+  return authenticatedPost(url, postOpts);
+}
+
+/**
+ * Perform dimmable light actions, e.g., turn on, turn off, change brightness level.
  *
  * @param {string} lightID  Light ID string.
  * @param {string} action  Action (verb) to perform on the light.
  * @param {Object} authOpts  Authentication object returned from the login.
  * @param {number} brightness  An integer, 1-100, indicating brightness.
  */
-function lightAction(lightID: string, authOpts: AuthOpts, brightness: number, action: string) {
+ function dimmerAction(lightID: string, authOpts: AuthOpts, brightness: number, action: string) {
   const url = `${LIGHTS_URL}${lightID}/${action}`;
   const postOpts = Object.assign({}, authOpts, {
     body: {
@@ -298,10 +315,15 @@ function lightAction(lightID: string, authOpts: AuthOpts, brightness: number, ac
  * @param {string} lightID  Light ID string.
  * @param {number} brightness  An integer, 1-100, indicating brightness.
  * @param {Object} authOpts  Authentication object returned from the login.
+ * @param {boolean} isDimmer  Indicates whether or not light is dimmable.
  * @returns {Promise}
  */
-export function setLightOn(lightID: string, authOpts: AuthOpts, brightness: number) {
-  return lightAction(lightID, authOpts, brightness, 'turnOn');
+export function setLightOn(lightID: string, authOpts: AuthOpts, brightness: number, isDimmer: boolean) {
+  if (isDimmer) {
+    return dimmerAction(lightID, authOpts, brightness, 'turnOn');
+  } else {
+    return lightAction(lightID, authOpts, 'turnOn');
+  }
 }
 
 /**
@@ -311,10 +333,15 @@ export function setLightOn(lightID: string, authOpts: AuthOpts, brightness: numb
  * @param {string} lightID  Light ID string.
  * @param {number} brightness  An integer, 1-100, indicating brightness. Ignored.
  * @param {Object} authOpts  Authentication object returned from the login.
+ * @param {boolean} isDimmer  Indicates whether or not light is dimmable.
  * @returns {Promise}
  */
-export function setLightOff(lightID: string, authOpts: AuthOpts, brightness: number) {
-  return lightAction(lightID, authOpts, brightness, 'turnOff');
+export function setLightOff(lightID: string, authOpts: AuthOpts, brightness: number, isDimmer: boolean) {
+  if (isDimmer) {
+    return dimmerAction(lightID, authOpts, brightness, 'turnOff');
+  } else {
+    return lightAction(lightID, authOpts, 'turnOff');
+  }
 }
 
 
