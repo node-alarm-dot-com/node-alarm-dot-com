@@ -1,6 +1,7 @@
 import { Relationship } from './IdentityResponse';
 import { RelationshipType } from './SystemState';
 import { GARAGE_STATES, LIGHT_STATES, LOCK_STATES, SENSOR_STATES, SYSTEM_STATES } from './States';
+import { SensorType } from './SensorType';
 
 export interface ApiLightState extends ApiDeviceState {
   data: {
@@ -523,7 +524,7 @@ export interface SensorState extends DeviceState {
   id: string,
   type: RelationshipType.Sensor,
   attributes: {
-    deviceType: number,
+    deviceType: SensorType,
     openClosedStatus: number,
     state: SENSOR_STATES,
     stateText: string,

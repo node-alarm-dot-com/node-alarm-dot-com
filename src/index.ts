@@ -16,6 +16,7 @@ export * from './_models/IdentityResponse';
 export * from './_models/PartitionActionOptions';
 export * from './_models/RequestOptions';
 export * from './_models/SystemState';
+export * from './_models/SensorType'
 
 const ADCLOGIN_URL = 'https://www.alarm.com/login';
 const ADCFORMLOGIN_URL = 'https://www.alarm.com/web/Default.aspx';
