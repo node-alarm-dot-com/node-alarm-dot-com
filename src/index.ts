@@ -27,6 +27,7 @@ const SENSORS_URL = 'https://www.alarm.com/web/api/devices/sensors';
 const LIGHTS_URL = 'https://www.alarm.com/web/api/devices/lights/';
 const GARAGE_URL = 'https://www.alarm.com/web/api/devices/garageDoors/';
 const LOCKS_URL = 'https://www.alarm.com/web/api/devices/locks/';
+const SHADES_URL = 'https://www.alarm.com/web/api/devices/shades/';
 const CT_JSON = 'application/json;charset=UTF-8';
 const UA = `node-alarm-dot-com/${require('../package.json').version}`;
 
@@ -156,6 +157,10 @@ export async function getCurrentState(systemID: string, authOpts: AuthOpts): Pro
   if (typeof garageIDs[0] !== 'undefined') {
     components.set('garages', await getComponents(GARAGE_URL, garageIDs, authOpts));
   }
+  const shadeIDs = rels.shades.data.map(shade => shade.id);
+  if (typeof shadeIDs[0] !== 'undefined') {
+    components.set('shades', await getComponents(SHADES_URL, shadeIDs, authOpts));
+  }
 
   return ({
     id: res.data.id,
@@ -165,12 +170,13 @@ export async function getCurrentState(systemID: string, authOpts: AuthOpts): Pro
     lights: components.has('lights') ? components.get('lights').data : [],
     locks: components.has('locks') ? components.get('locks').data : [],
     garages: components.has('garages') ? components.get('garages').data : [],
+    shades: components.has('shades') ? components.get('shades').data : [],
     relationships: rels
   }) as FlattenedSystemState;
 }
 
 /**
- * Get information about groups of components e.g., sensors, lights, locks, garages, etc.
+ * Get information about groups of components e.g., sensors, lights, locks, garages, shades, etc.
  *
  * @param {string} url  Base request url.
  * @param {string} componentIDs  Array of ID to retrieve.
@@ -414,6 +420,53 @@ export function openGarage(garageID: string, authOpts: AuthOpts) {
     }
   });
   return authenticatedPost(url, postOpts);
+}
+
+// Shade methods ///////////////////////////////////////////////////////////////
+
+/**
+ * Perform shade actions, e.g., up, down, set % open/closed.
+ *
+ * @param {string} shadeID  Shade ID string.
+ * @param {string} action  Action (verb) to perform on the shade.
+ * @param {Object} authOpts  Authentication object returned from the login.
+ * @param {number} shadelevel  An integer, 1-100, indicating % opened closed in relation to shades
+ */
+function shadeAction(shadeID: string, authOpts: AuthOpts, shadelevel: number, action: string) {
+  const url = `${SHADES_URL}${shadeID}/${action}`;
+  const postOpts = Object.assign({}, authOpts, {
+    body: {
+      dimmerLevel: shadelevel,
+      statePollOnly: false
+    }
+  });
+  return authenticatedPost(url, postOpts);
+}
+
+/**
+ * Convenience Method:
+ * Sets a shade to OPEN and adjusts shade level  (1-100) of shades.
+ *
+ * @param {string} shadeID  Shade ID string.
+ * @param {number} shadelevel  An integer, 1-100, indicating openness.
+ * @param {Object} authOpts  Authentication object returned from the login.
+ * @returns {Promise}
+ */
+export function setShadeOpen(shadeID: string, authOpts: AuthOpts, shadelevel: number) {
+  return shadeAction(shadeID, authOpts, shadelevel, 'open');
+}
+
+/**
+ * Convenience Method:
+ * Sets a shade to ClOSED. The shade level is ignored.
+ *
+ * @param {string} shadeID  Shade ID string.
+ * @param {number} shadelevel  An integer, 1-100, indicating openess.
+ * @param {Object} authOpts  Authentication object returned from the login.
+ * @returns {Promise}
+ */
+export function setShadeClosed(shadeID: string, authOpts: AuthOpts, shadelevel: number) {
+  return shadeAction(shadeID, authOpts, shadelevel, 'close');
 }
 
 // Helper methods //////////////////////////////////////////////////////////////

@@ -102,7 +102,7 @@ export interface IdentityResponse {
 
 export interface Relationship {
   id: string,
-  type: 'devices/partition' | 'devices/lock' | 'video/camera' | 'devices/garage-door' | 'automation/scene' |
+  type: 'devices/partition' | 'devices/lock' | 'video/camera' | 'devices/garage-door' | 'devices/shade' | 'automation/scene' |
     'devices/sensor' | 'devices/light' | 'devices/thermostat' | 'geolocation/geo-device' | 'geolocation/fence' |
     'systems/configuration' | 'navigation/route-item' | 'dealers/dealer' | 'ui/color' | 'profile/profile' | 'accountInformation/account-information'
 }

@@ -1,6 +1,6 @@
 // Response information from
 // api/systems/systems/{id}
-import { GarageState, LightState, LockState, PartitionState, SensorState } from './DeviceStates';
+import { GarageState, LightState, LockState, ShadeState, PartitionState, SensorState } from './DeviceStates';
 
 export interface SystemState {
   data: {
@@ -32,6 +32,7 @@ export interface FlattenedSystemState {
   lights: LightState[],
   locks: LockState[],
   garages: GarageState[],
+  shades: ShadeState[],
   relationships: Relationships
 }
 
@@ -202,6 +203,7 @@ export enum RelationshipType {
   Sensor = 'devices/sensor',
   Light = 'devices/light',
   Thermostat = 'devices/thermostat',
+  Shade = 'devices/shade',
   GeoDevice = 'geolocation/geo-device',
   GeoFence = 'geolocation/fence',
   SystemConfig = 'systems/configuration',

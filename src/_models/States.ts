@@ -28,8 +28,13 @@ export enum LOCK_STATES {
 
 export enum GARAGE_STATES {
   //UNKNOWN: 0,  //ADC does not have an unknown state. ADC returns temp popup
-  OPEN = 1,   //double check
-  CLOSED = 2  //double check
+  OPEN = 1,
+  CLOSED = 2
+}
+
+export enum SHADE_STATES {
+  OPEN = 2,
+  CLOSED = 1  //needs testing  
 }
 
 export enum REL_TYPES {
@@ -39,6 +44,7 @@ export enum REL_TYPES {
   LIGHT = 'devices/light',
   LOCK = 'devices/lock',
   GARAGE_DOOR = 'devices/garage-door',
+  SHADE = 'devices/shade',
   CAMERA = 'video/camera',
   THERMOSTAT = 'devices/thermostat',
   GEO_DEVICE = 'geolocation/geo-device',

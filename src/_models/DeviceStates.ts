@@ -1,6 +1,176 @@
 import { Relationship } from './IdentityResponse';
 import { RelationshipType } from './SystemState';
-import { GARAGE_STATES, LIGHT_STATES, LOCK_STATES, SENSOR_STATES, SYSTEM_STATES } from './States';
+import { SHADE_STATES, GARAGE_STATES, LIGHT_STATES, LOCK_STATES, SENSOR_STATES, SYSTEM_STATES } from './States';
+
+export interface ApiShadeState extends ApiDeviceState { //NCG FIX fields
+  data: {
+    id: string,
+    type: RelationshipType.Shade,
+    attributes: {
+      state: SHADE_STATES,
+      desiredState: SHADE_STATES,
+      isDimmer: boolean,
+      shadeLevel: number,
+      canEnableRemoteCommands: boolean,
+      canEnableStateTracking: boolean,
+      managedDeviceType: number,
+      canAccessWebSettings: boolean,
+      webSettings: number,
+      hasState: boolean,
+      canBeRenamed: boolean,
+      canBeDeleted: boolean,
+      canAccessAppSettings: boolean,
+      macAddress: string,
+      manufacturer: string,
+      isOAuth: boolean,
+      isZWave: boolean,
+      canBeSaved: boolean,
+      canChangeDescription: boolean,
+      description: string,
+      deviceModelId: number,
+      canConfirmStateChange: boolean,
+      remoteCommandsEnabled: boolean,
+      hasPermissionToChangeState: boolean,
+      deviceIcon: {
+        icon: number
+      },
+      batteryLevelNull: null,
+      lowBattery: boolean,
+      criticalBattery: boolean
+    },
+    relationships: {
+      system: {
+        data: {
+          id: string,
+          type: RelationshipType.System
+        }
+      },
+      stateInfo: {
+        data: {
+          id: string,
+          type: RelationshipType.State
+        }
+      }
+    }
+  }
+}
+
+export interface ShadeState extends DeviceState {
+  type: RelationshipType.Shade,
+  attributes: {
+    state: SHADE_STATES,
+    desiredState: SHADE_STATES,
+    isDimmer: boolean,
+    isFavorite: boolean,
+    shadeLevel: number,
+    stateTrackingEnabled: boolean,
+    shouldShowFavoritesToggle: boolean,
+    canEnableRemoteCommands: boolean,
+    canEnableStateTracking: boolean,
+    supportsWhiteLightColorControl: boolean,
+    shouldUpdateMultiLevelState: boolean,
+    managedDeviceIcon: string,
+    managedDeviceType: number,
+    canAccessWebSettings: boolean,
+    webSettings: number,
+    hasState: boolean,
+    managedDeviceState: number,
+    canBeRenamed: boolean,
+    canBeDeleted: boolean,
+    canAccessAppSettings: boolean,
+    macAddress: string,
+    manufacturer: string,
+    isOAuth: boolean,
+    isZWave: boolean,
+    canBeSaved: boolean,
+    canChangeDescription: boolean,
+    description: string,
+    deviceModelId: number,
+    canConfirmStateChange: boolean,
+    remoteCommandsEnabled: boolean,
+    hasPermissionToChangeState: boolean,
+    deviceIcon: {
+      icon: number
+    },
+    batteryLevelNull: null,
+    lowBattery: boolean,
+    criticalBattery: boolean
+  },
+  relationships: {
+    system: {
+      data: {
+        id: string,
+        type: RelationshipType.System
+      }
+    },
+    stateInfo: {
+      data: {
+        id: string,
+        type: RelationshipType.State
+      }
+    }
+  }
+}
+
+export interface ApiLockState extends ApiDeviceState {
+  data: {
+    id: string,
+    type: RelationshipType.Lock,
+    attributes: {
+      state: SHADE_STATES,
+      desiredState: SHADE_STATES,
+      isDimmer: boolean,
+      isFavorite: boolean,
+      shadeLevel: number,
+      stateTrackingEnabled: boolean,
+      shouldShowFavoritesToggle: boolean,
+      canEnableRemoteCommands: boolean,
+      canEnableStateTracking: boolean,
+      supportsWhiteLightColorControl: boolean,
+      shouldUpdateMultiLevelState: boolean,
+      managedDeviceIcon: string,
+      managedDeviceType: number,
+      canAccessWebSettings: boolean,
+      webSettings: number,
+      hasState: boolean,
+      managedDeviceState: number,
+      canBeRenamed: boolean,
+      canBeDeleted: boolean,
+      canAccessAppSettings: boolean,
+      macAddress: string,
+      manufacturer: string,
+      isOAuth: boolean,
+      isZWave: boolean,
+      canBeSaved: boolean,
+      canChangeDescription: boolean,
+      description: string,
+      deviceModelId: number,
+      canConfirmStateChange: boolean,
+      remoteCommandsEnabled: boolean,
+      hasPermissionToChangeState: boolean,
+      deviceIcon: {
+        icon: number
+      },
+      batteryLevelNull: null,
+      lowBattery: boolean,
+      criticalBattery: boolean
+    },
+    relationships: {
+      system: {
+        data: {
+          id: string,
+          type: RelationshipType.System
+        }
+      },
+      stateInfo: {
+        data: {
+          id: string,
+          type: RelationshipType.State
+        }
+      }
+    },
+  }
+}
 
 export interface ApiLightState extends ApiDeviceState {
   data: {
