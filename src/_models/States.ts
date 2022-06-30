@@ -1,3 +1,6 @@
+/***
+ * State of the partition as defined by Alarm.com
+ */
 export enum SYSTEM_STATES {
   UNKNOWN = 0,
   DISARMED = 1,
@@ -6,6 +9,9 @@ export enum SYSTEM_STATES {
   ARMED_NIGHT = 4
 }
 
+/***
+ * State of the sensor as defined by Alarm.com
+ */
 export enum SENSOR_STATES {
   UNKNOWN = 0,
   CLOSED = 1,
@@ -16,22 +22,35 @@ export enum SENSOR_STATES {
   WET = 6
 }
 
+/***
+ * State of the light as defined by Alarm.com
+ */
 export enum LIGHT_STATES {
   ON = 2,
   OFF = 3
 }
 
+/***
+ * State of the lock as defined by Alarm.com
+ */
 export enum LOCK_STATES {
   SECURED = 1,
   UNSECURED = 2
 }
 
+/***
+ * State of the garage as defined by Alarm.com
+ */
 export enum GARAGE_STATES {
   //UNKNOWN: 0,  //ADC does not have an unknown state. ADC returns temp popup
   OPEN = 1,   //double check
   CLOSED = 2  //double check
 }
 
+/***
+ * Relation types as defined by Alarm.com.
+ * Relationship types tell you what object is being sent from the API.
+ */
 export enum REL_TYPES {
   CONFIGURATION = 'systems/configuration',
   PARTITION = 'devices/partition',

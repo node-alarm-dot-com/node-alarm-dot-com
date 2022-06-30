@@ -765,6 +765,10 @@ export interface CameraState extends DeviceState {
   }
 }
 
+/**
+ * Base interface for retrieving device state from Alarm.com's API
+ * All devices retrieved contain these properties.
+ */
 export interface ApiDeviceState {
   data: {
     id: string,

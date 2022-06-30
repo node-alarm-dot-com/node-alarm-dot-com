@@ -1,3 +1,6 @@
+/**
+ * Number indicating the type of sensor according to the Alarm.com API
+ */
 export enum SensorType {
   Contact_Sensor = 1,
   Motion_Sensor = 2,

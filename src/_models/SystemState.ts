@@ -1,7 +1,9 @@
-// Response information from
-// api/systems/systems/{id}
 import { GarageState, LightState, LockState, PartitionState, SensorState } from './DeviceStates';
 
+/**
+ * Response information from
+ * api/systems/systems/{id}
+ */
 export interface SystemState {
   data: {
     id: number,
