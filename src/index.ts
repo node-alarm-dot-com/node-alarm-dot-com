@@ -298,7 +298,7 @@ function lightAction(lightID: string, authOpts: AuthOpts, action: string) {
  * @param {Object} authOpts  Authentication object returned from the login.
  * @param {number} brightness  An integer, 1-100, indicating brightness.
  */
- function dimmerAction(lightID: string, authOpts: AuthOpts, brightness: number, action: string) {
+function dimmerAction(lightID: string, authOpts: AuthOpts, brightness: number, action: string) {
   const url = `${LIGHTS_URL}${lightID}/${action}`;
   const postOpts = Object.assign({}, authOpts, {
     body: {

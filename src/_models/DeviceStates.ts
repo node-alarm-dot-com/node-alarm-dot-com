@@ -770,17 +770,7 @@ export interface CameraState extends DeviceState {
  * All devices retrieved contain these properties.
  */
 export interface ApiDeviceState {
-  data: {
-    id: string,
-    type: RelationshipType,
-    attributes: any,
-    relationships: any,
-  } | Array<{
-    id: string,
-    type: RelationshipType,
-    attributes: any,
-    relationships: any,
-  }>,
+  data: DeviceState[] | DeviceState,
   included: [],
   meta: {
     transformer_version: '1.1' | string
