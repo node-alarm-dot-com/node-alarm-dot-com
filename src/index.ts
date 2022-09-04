@@ -4,7 +4,7 @@
 
 import fetch, { Headers } from 'node-fetch';
 import { AuthOpts } from './_models/AuthOpts';
-import { ApiDeviceState, GarageState } from './_models/DeviceStates';
+import { ApiDeviceState, DeviceState, GarageState } from './_models/DeviceStates';
 import { IdentityResponse } from './_models/IdentityResponse';
 import { PartitionActionOptions } from './_models/PartitionActionOptions';
 import { RequestOptions } from './_models/RequestOptions';
@@ -178,10 +178,47 @@ export async function getCurrentState(systemID: string, authOpts: AuthOpts): Pro
  * @param {Object} authOpts  Authentication object returned from the login.
  * @returns {Promise}
  */
-export function getComponents(url: string, componentIDs: string[], authOpts: AuthOpts): Promise<ApiDeviceState> {
+export async function getComponents(url: string, componentIDs: string[], authOpts: AuthOpts): Promise<ApiDeviceState> {
   const IDs = Array.isArray(componentIDs) ? componentIDs : [componentIDs];
-  let getUrl = `${url}?${IDs.map(id => `ids%5B%5D=${id}`).join('&')}`;
-  return authenticatedGet(getUrl, authOpts);
+  let requests: Promise<ApiDeviceState>[] = [];
+
+  if (IDs.length <= 50) {
+    const getUrl = `${url}?${IDs.map(id => `ids%5B%5D=${id}`).join('&')}`;
+    requests.push(authenticatedGet(getUrl, authOpts));
+  } else {
+    // We have found that the Alarm.com API will return a 404 error when there is an excessive number of query parameters.
+    // We get around this by breaking up our GET calls into shorter URIs.
+    const shortenedUrls: string[] = [];
+    while (IDs.length > 50) {
+      const currentArray = IDs.splice(0, 50);
+      shortenedUrls.push(`${url}?${currentArray.map(id => `ids%5B%5D=${id}`).join('&')}`);
+    }
+    shortenedUrls.push(`${url}?${IDs.map(id => `ids%5B%5D=${id}`).join('&')}`);
+    requests = shortenedUrls.map(u => authenticatedGet(u, authOpts));
+  }
+  return await CombineAPIDeviceAPICalls(requests);
+}
+
+async function CombineAPIDeviceAPICalls(ApiCalls: Promise<ApiDeviceState>[]): Promise<ApiDeviceState> {
+  const apiStateCalls = await Promise.all(ApiCalls);
+
+  const stateToReturn = {
+    data: [] as DeviceState[],
+    included: []
+  } as ApiDeviceState;
+  for (let apiCall of apiStateCalls) {
+    for (const apiData of (apiCall.data) as DeviceState[]) {
+      (stateToReturn.data as DeviceState[]).push(apiData);
+    }
+
+    for (const apiInclude of apiCall.included) {
+      stateToReturn.included.push(apiInclude);
+    }
+  }
+
+  stateToReturn.meta = apiStateCalls[0].meta;
+
+  return stateToReturn;
 }
 
 
