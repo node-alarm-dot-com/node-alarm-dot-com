@@ -1,5 +1,7 @@
 /***
  * State of the partition as defined by Alarm.com
+ * @readonly
+ * @enum {number}
  */
 export enum SYSTEM_STATES {
   UNKNOWN = 0,
@@ -11,6 +13,8 @@ export enum SYSTEM_STATES {
 
 /***
  * State of the sensor as defined by Alarm.com
+ * @readonly
+ * @enum {number}
  */
 export enum SENSOR_STATES {
   UNKNOWN = 0,
@@ -24,6 +28,8 @@ export enum SENSOR_STATES {
 
 /***
  * State of the light as defined by Alarm.com
+ * @readonly
+ * @enum {number}
  */
 export enum LIGHT_STATES {
   ON = 2,
@@ -32,6 +38,8 @@ export enum LIGHT_STATES {
 
 /***
  * State of the lock as defined by Alarm.com
+ * @readonly
+ * @enum {number}
  */
 export enum LOCK_STATES {
   SECURED = 1,
@@ -40,6 +48,8 @@ export enum LOCK_STATES {
 
 /***
  * State of the garage as defined by Alarm.com
+ * @readonly
+ * @enum {number}
  */
 export enum GARAGE_STATES {
   //UNKNOWN: 0,  //ADC does not have an unknown state. ADC returns temp popup
@@ -48,8 +58,18 @@ export enum GARAGE_STATES {
 }
 
 /***
+ * State of the thermostat as defined by Alarm.com
+ * @readonly
+ * @enum {number}
+ */
+export enum THERMOSTAT_STATES {
+  OFF = 1, HEATING = 2, COOLING = 3, AUTO
+}
+
+/***
  * Relation types as defined by Alarm.com.
  * Relationship types tell you what object is being sent from the API.
+ * @readonly
  */
 export enum REL_TYPES {
   CONFIGURATION = 'systems/configuration',

@@ -430,7 +430,7 @@ export function setLockUnsecure(lockID: string, authOpts: AuthOpts) {
 /**
  * Get information for one or more garages.
  *
- * @param {string[]} garageIDs Array of Gagage ID strings.
+ * @param {string[]} garageIDs Array of Garage ID strings.
  * @param {Object} authOpts Authentication object returned from the `login`
  *   method.
  * @returns {Promise}
