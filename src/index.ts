@@ -16,7 +16,7 @@ export * from './_models/IdentityResponse';
 export * from './_models/PartitionActionOptions';
 export * from './_models/RequestOptions';
 export * from './_models/SystemState';
-export * from './_models/SensorType'
+export * from './_models/SensorType';
 
 const ADCLOGIN_URL = 'https://www.alarm.com/login';
 const ADCFORMLOGIN_URL = 'https://www.alarm.com/web/Default.aspx';
@@ -28,7 +28,7 @@ const SENSORS_URL = 'https://www.alarm.com/web/api/devices/sensors';
 const LIGHTS_URL = 'https://www.alarm.com/web/api/devices/lights/';
 const GARAGE_URL = 'https://www.alarm.com/web/api/devices/garageDoors/';
 const LOCKS_URL = 'https://www.alarm.com/web/api/devices/locks/';
-const CT_JSON = 'application/json;charset=UTF-8';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const UA = `node-alarm-dot-com/${require('../package.json').version}`;
 
 // Exported methods ////////////////////////////////////////////////////////////
@@ -50,6 +50,7 @@ export async function login(username: string, password: string, existingMfaToken
   // load initial alarm.com page to gather required hidden form fields
   await get(ADCLOGIN_URL)
     .then(res => {
+      /* eslint-disable @typescript-eslint/naming-convention */
       const loginObj: any = {
         '__EVENTTARGET': null,
         '__EVENTARGUMENT': null,
@@ -62,6 +63,7 @@ export async function login(username: string, password: string, existingMfaToken
         'ctl00$ContentPlaceHolder1$loginform$txtUserName': username,
         'txtPassword': password
       };
+      /* eslint-enable @typescript-eslint/naming-convention */
       // build login form body
       loginFormBody = Object.keys(loginObj).map(k => encodeURIComponent(k) + '=' + encodeURIComponent(loginObj[k])).join('&');
     })
@@ -71,11 +73,13 @@ export async function login(username: string, password: string, existingMfaToken
 
   await fetch(ADCFORMLOGIN_URL, {
     method: 'POST',
+    /* eslint-disable @typescript-eslint/naming-convention */
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
       'User-Agent': UA,
       'Cookie': `twoFactorAuthenticationId=${existingMfaToken};`
     },
+    /* eslint-enable @typescript-eslint/naming-convention */
     body: loginFormBody,
     redirect: 'manual'
   })
@@ -93,6 +97,7 @@ export async function login(username: string, password: string, existingMfaToken
     });
 
   await get(IDENTITIES_URL, {
+    /* eslint-disable @typescript-eslint/naming-convention */
     headers: {
       'Accept': 'application/vnd.api+json',
       'Cookie': loginCookies,
@@ -100,6 +105,7 @@ export async function login(username: string, password: string, existingMfaToken
       'Referer': 'https://www.alarm.com/web/system/home',
       'User-Agent': UA
     }
+    /* eslint-enable @typescript-eslint/naming-convention */
   })
     .then(res => {
       // gather identities and systems
@@ -196,17 +202,17 @@ export async function getComponents(url: string, componentIDs: string[], authOpt
     shortenedUrls.push(`${url}?${IDs.map(id => `ids%5B%5D=${id}`).join('&')}`);
     requests = shortenedUrls.map(u => authenticatedGet(u, authOpts));
   }
-  return await CombineAPIDeviceAPICalls(requests);
+  return await combineAPIDeviceAPICalls(requests);
 }
 
-async function CombineAPIDeviceAPICalls(ApiCalls: Promise<ApiDeviceState>[]): Promise<ApiDeviceState> {
-  const apiStateCalls = await Promise.all(ApiCalls);
+async function combineAPIDeviceAPICalls(apiCalls: Promise<ApiDeviceState>[]): Promise<ApiDeviceState> {
+  const apiStateCalls = await Promise.all(apiCalls);
 
   const stateToReturn = {
     data: [] as DeviceState[],
     included: []
   } as ApiDeviceState;
-  for (let apiCall of apiStateCalls) {
+  for (const apiCall of apiStateCalls) {
     for (const apiData of (apiCall.data) as DeviceState[]) {
       (stateToReturn.data as DeviceState[]).push(apiData);
     }
@@ -250,7 +256,7 @@ function partitionAction(partitionID: string, action: string, authOpts: AuthOpts
     body['nightArming'] = true;
   }
 
-  const postOpts = Object.assign({}, authOpts, { body });
+  const postOpts = Object.assign({}, authOpts, {body});
   return authenticatedPost(url, postOpts);
 }
 
@@ -284,7 +290,7 @@ export function armStay(partitionID: string, authOpts: AuthOpts, opts: Partition
  *   delay.
  * @returns {Promise}
  */
-export function armAway(partitionID: string, authOpts: AuthOpts, opts: any) {
+export function armAway(partitionID: string, authOpts: AuthOpts, opts: PartitionActionOptions) {
   return partitionAction(partitionID, 'armAway', authOpts, opts);
 }
 
