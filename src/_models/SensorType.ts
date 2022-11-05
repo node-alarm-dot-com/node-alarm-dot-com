@@ -8,6 +8,9 @@ export enum SensorType {
   CO_Detector = 6,
   Heat_Detector = 8,
   Fob = 9,
+  Keypad = 10,
   Water_Sensor = 17,
-  Glass_Break = 19
+  Glass_Break = 19,
+  Panel_Camera = 68,
+  Panel_Glass_Break = 83
 }
