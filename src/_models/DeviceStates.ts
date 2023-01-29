@@ -1090,6 +1090,6 @@ export interface ApiDeviceState {
 export interface DeviceState {
   id: string;
   type: RelationshipType;
-  attributes: object;
-  relationships: object;
+  attributes: any;
+  relationships: any;
 }
