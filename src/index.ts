@@ -294,7 +294,8 @@ function partitionAction(
   opts = opts || {
     noEntryDelay: false,
     silentArming: false,
-    nightArming: false
+    nightArming: false,
+    forceBypass: false
   };
   const url = `${PARTITIONS_URL}${partitionID}/${action}`;
   const body = {
@@ -304,8 +305,12 @@ function partitionAction(
   };
   // We only want to set nightArming when told to do so
   //This is because calling nightArm when not supported will break the action
-  if (opts.nightArming) {
+  if (opts.nightArming === true) {
     body['nightArming'] = true;
+  }
+
+  if (opts.forceBypass === true) {
+    body['forceBypass'] = true;
   }
 
   const postOpts = Object.assign({}, authOpts, { body });
