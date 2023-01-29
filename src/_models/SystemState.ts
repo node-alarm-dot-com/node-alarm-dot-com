@@ -1,7 +1,9 @@
-// Response information from
-// api/systems/systems/{id}
 import { GarageState, LightState, LockState, PartitionState, SensorState } from './DeviceStates';
 
+/**
+ * Response information from
+ * api/systems/systems/{id}
+ */
 export interface SystemState {
   data: {
     id: number,
@@ -190,6 +192,7 @@ export interface Relationships {
 
 interface Relationship {
   id: string,
+  //TODO: Sometimes there can be a constraint on type. We should look into implementing generics for this purpose.
   type: RelationshipType
 }
 
@@ -207,4 +210,9 @@ export enum RelationshipType {
   SystemConfig = 'systems/configuration',
   System = 'systems/system',
   State = 'devices/state-info'
+}
+
+export enum AutomationType {
+  PeakProtect = 'automation/peak-protect',
+  RuleSuggestion = 'automation/rules/ruleSuggestion'
 }

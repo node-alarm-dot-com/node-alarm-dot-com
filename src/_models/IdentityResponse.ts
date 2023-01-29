@@ -1,3 +1,7 @@
+/**
+ * The identity response is returned upon authenticating against the Alarm.com API.
+ * It's then parsed and the authentication token stored for future use.
+ */
 export interface IdentityResponse {
   data: {
     id: number,

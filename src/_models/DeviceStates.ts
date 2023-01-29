@@ -1,6 +1,7 @@
 import { Relationship } from './IdentityResponse';
-import { RelationshipType } from './SystemState';
-import { GARAGE_STATES, LIGHT_STATES, LOCK_STATES, SENSOR_STATES, SYSTEM_STATES } from './States';
+import { AutomationType, RelationshipType } from './SystemState';
+import { GARAGE_STATES, LIGHT_STATES, LOCK_STATES, SENSOR_STATES, SYSTEM_STATES, THERMOSTAT_STATES } from './States';
+import { SensorType } from './SensorType';
 
 export interface ApiLightState extends ApiDeviceState {
   data: {
@@ -523,7 +524,7 @@ export interface SensorState extends DeviceState {
   id: string,
   type: RelationshipType.Sensor,
   attributes: {
-    deviceType: number,
+    deviceType: SensorType,
     openClosedStatus: number,
     state: SENSOR_STATES,
     stateText: string,
@@ -764,18 +765,314 @@ export interface CameraState extends DeviceState {
   }
 }
 
-export interface ApiDeviceState {
+export interface ApiThermostatState extends ApiDeviceState {
   data: {
     id: string,
-    type: RelationshipType,
-    attributes: any,
-    relationships: any,
-  } | Array<{
-    id: string,
-    type: RelationshipType,
-    attributes: any,
-    relationships: any,
-  }>,
+    type: RelationshipType.Thermostat,
+    attributes: {
+      requiresSetup: boolean,
+      forwardingAmbientTemp: number,
+      minHeatSetpoint: number,
+      maxHeatSetpoint: number,
+      minCoolSetpoint: number,
+      maxCoolSetpoint: number,
+      minAuxHeatSetpoint: number,
+      maxAuxHeatSetpoint: number,
+      heatSetpoint: number,
+      desiredHeatSetpoint: number,
+      coolSetpoint: number,
+      desiredCoolSetpoint: number,
+      homeHeatSetpoint: number,
+      homeCoolSetpoint: number,
+      awayHeatSetpoint: number,
+      awayCoolSetpoint: number,
+      sleepHeatSetpoint: number,
+      sleepCoolSetpoint: number,
+      setpointOffset: number,
+      autoSetpointBuffer: number,
+      thirdPartySettingsUrlDesc?: string,
+      thirdPartySettingsUrl?: string,
+      state: THERMOSTAT_STATES,
+      desiredState: THERMOSTAT_STATES,
+      inferredState: THERMOSTAT_STATES,
+      scheduleMode: number,
+      fanMode: number,
+      desiredFanMode: number,
+      fanDuration?: null,
+      localDisplayLockingMode: number,
+      desiredLocalDisplayLockingMode?: null,
+      hasRtsIssue: boolean,
+      isControlled: boolean,
+      supportsSetpoints: boolean,
+      isPoolController: boolean,
+      supportsOffMode: boolean,
+      supportsHeatMode: boolean,
+      supportsCoolMode: boolean,
+      supportsAutoMode: boolean,
+      supportsSmartSchedules: boolean,
+      supportsAuxHeatMode: boolean,
+      supportsSchedules: boolean,
+      supportsFanMode: boolean,
+      supportsIndefiniteFanOn: boolean,
+      supportedFanDurations: number[],
+      supportsCirculateFanModeAlways: boolean,
+      supportsCirculateFanModeWhenOff: boolean,
+      supportsRts?: boolean,
+      supportsLocalDisplayLocking: boolean,
+      supportsPartialLocalDisplayLocking: boolean,
+      supportsHvacAnalytics: boolean,
+      supportsThirdPartySettings: boolean,
+      hasPendingTempModeChange: boolean,
+      hasPendingSetpointChange: boolean,
+      hasPendingHeatSetpointChange: boolean,
+      hasPendingCoolSetpointChange: boolean,
+      ambientTemp: number,
+      isPaired: boolean,
+      supportsPairing: boolean,
+      tempForwardingActive: boolean,
+      supportsHumidity: boolean,
+      humidityLevel?: number,
+      managedDeviceType: number,
+      hasState: boolean,
+      canBeRenamed: boolean,
+      canBeDeleted: boolean,
+      canAccessWebSettings: boolean,
+      canAccessAppSettings: boolean,
+      webSettings: number,
+      canAccessTroubleshootingWizard: boolean,
+      troubleshootingWizard?: null,
+      canBeAssociatedToVideoDevice: boolean,
+      associatedCameraDeviceIds: {},
+      macAddress: string,
+      manufacturer: string,
+      isOAuth: boolean,
+      isZWave: boolean,
+      supportsCommandClassBasic: boolean,
+      isMalfunctioning: boolean,
+      canBeSaved: boolean,
+      canChangeDescription: boolean,
+      description: string,
+      deviceModelId: number,
+      canConfirmStateChange: boolean,
+      canReceiveCommands: boolean,
+      remoteCommandsEnabled: boolean,
+      hasPermissionToChangeState: boolean,
+      deviceIcon: {
+        icon: number
+      },
+      batteryLevelNull: number,
+      lowBattery: boolean,
+      criticalBattery: boolean
+    },
+    relationships: {
+      ruleSuggestions: {
+        data: Relationship[],
+        meta: {
+          count: string
+        }
+      },
+      thermostatSettingsTemplate: {
+        data?: any
+      },
+      remoteTemperatureSensors: {
+        data: [],
+        meta: {
+          count: string
+        }
+      },
+      boilerControlSystem: {
+        data?: any
+      },
+      valveSwitches: {
+        data: [],
+        meta: {
+          count: string
+        }
+      },
+      peakProtect: {
+        data: {
+          id: string,
+          type: AutomationType.PeakProtect
+        }
+      },
+      controlledThermostats: {
+        data: [],
+        meta: {
+          count: string
+        }
+      },
+      system: {
+        data: {
+          id: string,
+          type: RelationshipType.System
+        }
+      },
+      stateInfo: {
+        data?: {
+          id: string,
+          type: RelationshipType.State
+        }
+      }
+    }
+  }
+}
+
+export interface ThermostatState extends DeviceState {
+  id: string,
+  type: RelationshipType.Thermostat,
+  attributes: {
+    requiresSetup: boolean,
+    forwardingAmbientTemp: number,
+    minHeatSetpoint: number,
+    maxHeatSetpoint: number,
+    minCoolSetpoint: number,
+    maxCoolSetpoint: number,
+    minAuxHeatSetpoint: number,
+    maxAuxHeatSetpoint: number,
+    heatSetpoint: number,
+    desiredHeatSetpoint: number,
+    coolSetpoint: number,
+    desiredCoolSetpoint: number,
+    homeHeatSetpoint: number,
+    homeCoolSetpoint: number,
+    awayHeatSetpoint: number,
+    awayCoolSetpoint: number,
+    sleepHeatSetpoint: number,
+    sleepCoolSetpoint: number,
+    setpointOffset: number,
+    autoSetpointBuffer: number,
+    thirdPartySettingsUrlDesc?: string,
+    thirdPartySettingsUrl?: string,
+    state: THERMOSTAT_STATES,
+    desiredState: THERMOSTAT_STATES,
+    inferredState: THERMOSTAT_STATES,
+    scheduleMode: number,
+    fanMode: number,
+    desiredFanMode: number,
+    fanDuration?: null,
+    localDisplayLockingMode: number,
+    desiredLocalDisplayLockingMode?: null,
+    hasRtsIssue: boolean,
+    isControlled: boolean,
+    supportsSetpoints: boolean,
+    isPoolController: boolean,
+    supportsOffMode: boolean,
+    supportsHeatMode: boolean,
+    supportsCoolMode: boolean,
+    supportsAutoMode: boolean,
+    supportsSmartSchedules: boolean,
+    supportsAuxHeatMode: boolean,
+    supportsSchedules: boolean,
+    supportsFanMode: boolean,
+    supportsIndefiniteFanOn: boolean,
+    supportedFanDurations: number[],
+    supportsCirculateFanModeAlways: boolean,
+    supportsCirculateFanModeWhenOff: boolean,
+    supportsRts?: boolean,
+    supportsLocalDisplayLocking: boolean,
+    supportsPartialLocalDisplayLocking: boolean,
+    supportsHvacAnalytics: boolean,
+    supportsThirdPartySettings: boolean,
+    hasPendingTempModeChange: boolean,
+    hasPendingSetpointChange: boolean,
+    hasPendingHeatSetpointChange: boolean,
+    hasPendingCoolSetpointChange: boolean,
+    ambientTemp: number,
+    isPaired: boolean,
+    supportsPairing: boolean,
+    tempForwardingActive: boolean,
+    supportsHumidity: boolean,
+    humidityLevel?: number,
+    managedDeviceType: number,
+    hasState: boolean,
+    canBeRenamed: boolean,
+    canBeDeleted: boolean,
+    canAccessWebSettings: boolean,
+    canAccessAppSettings: boolean,
+    webSettings: number,
+    canAccessTroubleshootingWizard: boolean,
+    troubleshootingWizard?: null,
+    canBeAssociatedToVideoDevice: boolean,
+    associatedCameraDeviceIds: {},
+    macAddress: string,
+    manufacturer: string,
+    isOAuth: boolean,
+    isZWave: boolean,
+    supportsCommandClassBasic: boolean,
+    isMalfunctioning: boolean,
+    canBeSaved: boolean,
+    canChangeDescription: boolean,
+    description: string,
+    deviceModelId: number,
+    canConfirmStateChange: boolean,
+    canReceiveCommands: boolean,
+    remoteCommandsEnabled: boolean,
+    hasPermissionToChangeState: boolean,
+    deviceIcon: {
+      icon: number
+    },
+    batteryLevelNull: number,
+    lowBattery: boolean,
+    criticalBattery: boolean
+  },
+  relationships: {
+    ruleSuggestions: {
+      data: Relationship[],
+      meta: {
+        count: string
+      }
+    },
+    thermostatSettingsTemplate: {
+      data?: any
+    },
+    remoteTemperatureSensors: {
+      data: [],
+      meta: {
+        count: string
+      }
+    },
+    boilerControlSystem: {
+      data?: any
+    },
+    valveSwitches: {
+      data: [],
+      meta: {
+        count: string
+      }
+    },
+    peakProtect: {
+      data: {
+        id: string,
+        type: AutomationType.PeakProtect
+      }
+    },
+    controlledThermostats: {
+      data: [],
+      meta: {
+        count: string
+      }
+    },
+    system: {
+      data: {
+        id: string,
+        type: RelationshipType.System
+      }
+    },
+    stateInfo: {
+      data?: {
+        id: string,
+        type: RelationshipType.State
+      }
+    }
+  }
+}
+
+/**
+ * Base interface for retrieving device state from Alarm.com's API
+ * All devices retrieved contain these properties.
+ */
+export interface ApiDeviceState {
+  data: DeviceState[] | DeviceState,
   included: [],
   meta: {
     transformer_version: '1.1' | string

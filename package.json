@@ -1,10 +1,11 @@
 {
   "name": "node-alarm-dot-com",
-  "version": "1.11.0",
+  "version": "2.0.0",
+  "betaVersion": "2.0.0",
   "description": "An interface module written in node.js to arm and disarm Alarm.com security systems.",
   "author": {
-    "name": "Mike Kormendy",
-    "email": "mike@somethinginteractive.com"
+    "name": "Chase Lau",
+    "url": "https://github.com/chase9"
   },
   "license": "MIT",
   "keywords": [
@@ -44,17 +45,21 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "engines": {
-    "node": ">=0.12.0"
+    "node": ">=14.0.0"
   },
   "dependencies": {
-    "@types/node-fetch": "^2.5.12",
+    "@types/node": "^18.11.18",
+    "@types/node-fetch": "^3.0.2",
     "node-fetch": "^2.6.1",
-    "semver": "^7.3.5"
+    "semver": "^7.3.8"
   },
   "devDependencies": {
-    "rimraf": "^3.0.2",
-    "ts-node": "^10.2.0",
-    "typescript": "^4.3.5",
-    "yargs": "^17.1.0"
+    "@typescript-eslint/eslint-plugin": "^5.48.2",
+    "@typescript-eslint/parser": "^5.48.2",
+    "eslint": "8.22.0",
+    "rimraf": "^4.1.1",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.9.4",
+    "yargs": "^17.6.2"
   }
 }

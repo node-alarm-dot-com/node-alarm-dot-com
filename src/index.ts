@@ -4,7 +4,7 @@
 
 import fetch, { Headers } from 'node-fetch';
 import { AuthOpts } from './_models/AuthOpts';
-import { ApiDeviceState, GarageState } from './_models/DeviceStates';
+import { ApiDeviceState, DeviceState, GarageState } from './_models/DeviceStates';
 import { IdentityResponse } from './_models/IdentityResponse';
 import { PartitionActionOptions } from './_models/PartitionActionOptions';
 import { RequestOptions } from './_models/RequestOptions';
@@ -16,6 +16,7 @@ export * from './_models/IdentityResponse';
 export * from './_models/PartitionActionOptions';
 export * from './_models/RequestOptions';
 export * from './_models/SystemState';
+export * from './_models/SensorType';
 
 const ADCLOGIN_URL = 'https://www.alarm.com/login';
 const ADCFORMLOGIN_URL = 'https://www.alarm.com/web/Default.aspx';
@@ -27,7 +28,7 @@ const SENSORS_URL = 'https://www.alarm.com/web/api/devices/sensors';
 const LIGHTS_URL = 'https://www.alarm.com/web/api/devices/lights/';
 const GARAGE_URL = 'https://www.alarm.com/web/api/devices/garageDoors/';
 const LOCKS_URL = 'https://www.alarm.com/web/api/devices/locks/';
-const CT_JSON = 'application/json;charset=UTF-8';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const UA = `node-alarm-dot-com/${require('../package.json').version}`;
 
 // Exported methods ////////////////////////////////////////////////////////////
@@ -49,6 +50,7 @@ export async function login(username: string, password: string, existingMfaToken
   // load initial alarm.com page to gather required hidden form fields
   await get(ADCLOGIN_URL)
     .then(res => {
+      /* eslint-disable @typescript-eslint/naming-convention */
       const loginObj: any = {
         '__EVENTTARGET': null,
         '__EVENTARGUMENT': null,
@@ -61,6 +63,7 @@ export async function login(username: string, password: string, existingMfaToken
         'ctl00$ContentPlaceHolder1$loginform$txtUserName': username,
         'txtPassword': password
       };
+      /* eslint-enable @typescript-eslint/naming-convention */
       // build login form body
       loginFormBody = Object.keys(loginObj).map(k => encodeURIComponent(k) + '=' + encodeURIComponent(loginObj[k])).join('&');
     })
@@ -70,11 +73,13 @@ export async function login(username: string, password: string, existingMfaToken
 
   await fetch(ADCFORMLOGIN_URL, {
     method: 'POST',
+    /* eslint-disable @typescript-eslint/naming-convention */
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
       'User-Agent': UA,
       'Cookie': `twoFactorAuthenticationId=${existingMfaToken};`
     },
+    /* eslint-enable @typescript-eslint/naming-convention */
     body: loginFormBody,
     redirect: 'manual'
   })
@@ -92,6 +97,7 @@ export async function login(username: string, password: string, existingMfaToken
     });
 
   await get(IDENTITIES_URL, {
+    /* eslint-disable @typescript-eslint/naming-convention */
     headers: {
       'Accept': 'application/vnd.api+json',
       'Cookie': loginCookies,
@@ -99,6 +105,7 @@ export async function login(username: string, password: string, existingMfaToken
       'Referer': 'https://www.alarm.com/web/system/home',
       'User-Agent': UA
     }
+    /* eslint-enable @typescript-eslint/naming-convention */
   })
     .then(res => {
       // gather identities and systems
@@ -177,10 +184,47 @@ export async function getCurrentState(systemID: string, authOpts: AuthOpts): Pro
  * @param {Object} authOpts  Authentication object returned from the login.
  * @returns {Promise}
  */
-export function getComponents(url: string, componentIDs: string[], authOpts: AuthOpts): Promise<ApiDeviceState> {
+export async function getComponents(url: string, componentIDs: string[], authOpts: AuthOpts): Promise<ApiDeviceState> {
   const IDs = Array.isArray(componentIDs) ? componentIDs : [componentIDs];
-  let getUrl = `${url}?${IDs.map(id => `ids%5B%5D=${id}`).join('&')}`;
-  return authenticatedGet(getUrl, authOpts);
+  let requests: Promise<ApiDeviceState>[] = [];
+
+  if (IDs.length <= 50) {
+    const getUrl = `${url}?${IDs.map(id => `ids%5B%5D=${id}`).join('&')}`;
+    requests.push(authenticatedGet(getUrl, authOpts));
+  } else {
+    // We have found that the Alarm.com API will return a 404 error when there is an excessive number of query parameters.
+    // We get around this by breaking up our GET calls into shorter URIs.
+    const shortenedUrls: string[] = [];
+    while (IDs.length > 50) {
+      const currentArray = IDs.splice(0, 50);
+      shortenedUrls.push(`${url}?${currentArray.map(id => `ids%5B%5D=${id}`).join('&')}`);
+    }
+    shortenedUrls.push(`${url}?${IDs.map(id => `ids%5B%5D=${id}`).join('&')}`);
+    requests = shortenedUrls.map(u => authenticatedGet(u, authOpts));
+  }
+  return await combineAPIDeviceAPICalls(requests);
+}
+
+async function combineAPIDeviceAPICalls(apiCalls: Promise<ApiDeviceState>[]): Promise<ApiDeviceState> {
+  const apiStateCalls = await Promise.all(apiCalls);
+
+  const stateToReturn = {
+    data: [] as DeviceState[],
+    included: []
+  } as ApiDeviceState;
+  for (const apiCall of apiStateCalls) {
+    for (const apiData of (apiCall.data) as DeviceState[]) {
+      (stateToReturn.data as DeviceState[]).push(apiData);
+    }
+
+    for (const apiInclude of apiCall.included) {
+      stateToReturn.included.push(apiInclude);
+    }
+  }
+
+  stateToReturn.meta = apiStateCalls[0].meta;
+
+  return stateToReturn;
 }
 
 
@@ -212,7 +256,7 @@ function partitionAction(partitionID: string, action: string, authOpts: AuthOpts
     body['nightArming'] = true;
   }
 
-  const postOpts = Object.assign({}, authOpts, { body });
+  const postOpts = Object.assign({}, authOpts, {body});
   return authenticatedPost(url, postOpts);
 }
 
@@ -246,7 +290,7 @@ export function armStay(partitionID: string, authOpts: AuthOpts, opts: Partition
  *   delay.
  * @returns {Promise}
  */
-export function armAway(partitionID: string, authOpts: AuthOpts, opts: any) {
+export function armAway(partitionID: string, authOpts: AuthOpts, opts: PartitionActionOptions) {
   return partitionAction(partitionID, 'armAway', authOpts, opts);
 }
 
@@ -273,14 +317,31 @@ export function disarm(partitionID: string, authOpts: AuthOpts) {
 // Light methods ///////////////////////////////////////////////////////////////
 
 /**
- * Perform light actions, e.g., turn on, turn off, change brightness level.
+ * Perform non-dimmable light actions, i.e. turn on, turn off
+ *
+ * @param {string} lightID  Light ID string.
+ * @param {string} action  Action (verb) to perform on the light.
+ * @param {Object} authOpts  Authentication object returned from the login.
+ */
+function lightAction(lightID: string, authOpts: AuthOpts, action: string) {
+  const url = `${LIGHTS_URL}${lightID}/${action}`;
+  const postOpts = Object.assign({}, authOpts, {
+    body: {
+      statePollOnly: false
+    }
+  });
+  return authenticatedPost(url, postOpts);
+}
+
+/**
+ * Perform dimmable light actions, e.g., turn on, turn off, change brightness level.
  *
  * @param {string} lightID  Light ID string.
  * @param {string} action  Action (verb) to perform on the light.
  * @param {Object} authOpts  Authentication object returned from the login.
  * @param {number} brightness  An integer, 1-100, indicating brightness.
  */
-function lightAction(lightID: string, authOpts: AuthOpts, brightness: number, action: string) {
+function dimmerAction(lightID: string, authOpts: AuthOpts, brightness: number, action: string) {
   const url = `${LIGHTS_URL}${lightID}/${action}`;
   const postOpts = Object.assign({}, authOpts, {
     body: {
@@ -298,10 +359,15 @@ function lightAction(lightID: string, authOpts: AuthOpts, brightness: number, ac
  * @param {string} lightID  Light ID string.
  * @param {number} brightness  An integer, 1-100, indicating brightness.
  * @param {Object} authOpts  Authentication object returned from the login.
+ * @param {boolean} isDimmer  Indicates whether or not light is dimmable.
  * @returns {Promise}
  */
-export function setLightOn(lightID: string, authOpts: AuthOpts, brightness: number) {
-  return lightAction(lightID, authOpts, brightness, 'turnOn');
+export function setLightOn(lightID: string, authOpts: AuthOpts, brightness: number, isDimmer: boolean) {
+  if (isDimmer) {
+    return dimmerAction(lightID, authOpts, brightness, 'turnOn');
+  } else {
+    return lightAction(lightID, authOpts, 'turnOn');
+  }
 }
 
 /**
@@ -311,10 +377,15 @@ export function setLightOn(lightID: string, authOpts: AuthOpts, brightness: numb
  * @param {string} lightID  Light ID string.
  * @param {number} brightness  An integer, 1-100, indicating brightness. Ignored.
  * @param {Object} authOpts  Authentication object returned from the login.
+ * @param {boolean} isDimmer  Indicates whether or not light is dimmable.
  * @returns {Promise}
  */
-export function setLightOff(lightID: string, authOpts: AuthOpts, brightness: number) {
-  return lightAction(lightID, authOpts, brightness, 'turnOff');
+export function setLightOff(lightID: string, authOpts: AuthOpts, brightness: number, isDimmer: boolean) {
+  if (isDimmer) {
+    return dimmerAction(lightID, authOpts, brightness, 'turnOff');
+  } else {
+    return lightAction(lightID, authOpts, 'turnOff');
+  }
 }
 
 
@@ -365,7 +436,7 @@ export function setLockUnsecure(lockID: string, authOpts: AuthOpts) {
 /**
  * Get information for one or more garages.
  *
- * @param {string[]} garageIDs Array of Gagage ID strings.
+ * @param {string[]} garageIDs Array of Garage ID strings.
  * @param {Object} authOpts Authentication object returned from the `login`
  *   method.
  * @returns {Promise}

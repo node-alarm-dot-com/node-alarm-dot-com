@@ -2,14 +2,13 @@ name: Node-CI Beta
 
 on:
   push:
-    branches: beta
+    branches: [beta]
 
 jobs:
   build:
-
     strategy:
       matrix:
-        node-version: [12.x, 14.x, 16.x]
+        node-version: [14.x, 16.x, 18.x]
         os: [ubuntu-latest]
 
     runs-on: ${{ matrix.os }}
@@ -24,8 +23,8 @@ jobs:
         run: |
           npm ci
           npm run build
-# We don't yet have any tests setup
-#          npm test
+        # We don't yet have any tests setup
+        #          npm test
         env:
           CI: true
 
@@ -37,10 +36,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
-          node-version: 10 # use the minimum required version
+          node-version: 14 # use the minimum required version
           registry-url: https://registry.npmjs.org/
       - run: npm ci
       - run: node .github/workflows/prerelease.js
