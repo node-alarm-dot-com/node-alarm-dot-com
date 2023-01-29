@@ -4,7 +4,11 @@
 
 import fetch, { Headers } from 'node-fetch';
 import { AuthOpts } from './_models/AuthOpts';
-import { ApiDeviceState, DeviceState, GarageState } from './_models/DeviceStates';
+import {
+  ApiDeviceState,
+  DeviceState,
+  GarageState
+} from './_models/DeviceStates';
 import { IdentityResponse } from './_models/IdentityResponse';
 import { PartitionActionOptions } from './_models/PartitionActionOptions';
 import { RequestOptions } from './_models/RequestOptions';
@@ -42,32 +46,46 @@ const UA = `node-alarm-dot-com/${require('../package.json').version}`;
  * @param {string} existingMfaToken MFA token from browser used to bypass MFA.
  * @returns {Promise}
  */
-export async function login(username: string, password: string, existingMfaToken?: string): Promise<AuthOpts> {
+export async function login(
+  username: string,
+  password: string,
+  existingMfaToken?: string
+): Promise<AuthOpts> {
   let loginCookies: string;
   let ajaxKey: string;
-  let loginFormBody: string, identities: { data: any; }, systems: any;
+  let loginFormBody: string, identities: { data: any }, systems: any;
 
   // load initial alarm.com page to gather required hidden form fields
   await get(ADCLOGIN_URL)
-    .then(res => {
+    .then((res) => {
       /* eslint-disable @typescript-eslint/naming-convention */
       const loginObj: any = {
-        '__EVENTTARGET': null,
-        '__EVENTARGUMENT': null,
-        '__VIEWSTATEENCRYPTED': null,
-        '__EVENTVALIDATION': res.body.match(/name="__EVENTVALIDATION".*?value="([^"]*)"/)[1],
-        '__VIEWSTATE': res.body.match(/name="__VIEWSTATE".*?value="([^"]*)"/)[1],
-        '__VIEWSTATEGENERATOR': res.body.match(/name="__VIEWSTATEGENERATOR".*?value="([^"]*)"/)[1],
-        '__PREVIOUSPAGE': res.body.match(/name="__PREVIOUSPAGE".*?value="([^"]*)"/)[1],
-        'IsFromNewSite': '1',
-        'ctl00$ContentPlaceHolder1$loginform$txtUserName': username,
-        'txtPassword': password
+        __EVENTTARGET: null,
+        __EVENTARGUMENT: null,
+        __VIEWSTATEENCRYPTED: null,
+        __EVENTVALIDATION: res.body.match(
+          /name="__EVENTVALIDATION".*?value="([^"]*)"/
+        )[1],
+        __VIEWSTATE: res.body.match(/name="__VIEWSTATE".*?value="([^"]*)"/)[1],
+        __VIEWSTATEGENERATOR: res.body.match(
+          /name="__VIEWSTATEGENERATOR".*?value="([^"]*)"/
+        )[1],
+        __PREVIOUSPAGE: res.body.match(
+          /name="__PREVIOUSPAGE".*?value="([^"]*)"/
+        )[1],
+        IsFromNewSite: '1',
+        ctl00$ContentPlaceHolder1$loginform$txtUserName: username,
+        txtPassword: password
       };
       /* eslint-enable @typescript-eslint/naming-convention */
       // build login form body
-      loginFormBody = Object.keys(loginObj).map(k => encodeURIComponent(k) + '=' + encodeURIComponent(loginObj[k])).join('&');
+      loginFormBody = Object.keys(loginObj)
+        .map(
+          (k) => encodeURIComponent(k) + '=' + encodeURIComponent(loginObj[k])
+        )
+        .join('&');
     })
-    .catch(err => {
+    .catch((err) => {
       throw new Error(`GET ${ADCLOGIN_URL} failed: ${err.message || err}`);
     });
 
@@ -77,14 +95,17 @@ export async function login(username: string, password: string, existingMfaToken
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
       'User-Agent': UA,
-      'Cookie': `twoFactorAuthenticationId=${existingMfaToken};`
+      Cookie: `twoFactorAuthenticationId=${existingMfaToken};`
     },
     /* eslint-enable @typescript-eslint/naming-convention */
     body: loginFormBody,
     redirect: 'manual'
   })
-    .then(res => {
-      loginCookies = res.headers.raw()['set-cookie'].map(c => c.split(';')[0]).join('; ');
+    .then((res) => {
+      loginCookies = res.headers
+        .raw()
+        ['set-cookie'].map((c) => c.split(';')[0])
+        .join('; ');
       // gather ajaxkey for session headers
       const re = /afg=([^;]+);/.exec(loginCookies);
       if (!re) {
@@ -99,20 +120,22 @@ export async function login(username: string, password: string, existingMfaToken
   await get(IDENTITIES_URL, {
     /* eslint-disable @typescript-eslint/naming-convention */
     headers: {
-      'Accept': 'application/vnd.api+json',
-      'Cookie': loginCookies,
-      'ajaxrequestuniquekey': ajaxKey,
-      'Referer': 'https://www.alarm.com/web/system/home',
+      Accept: 'application/vnd.api+json',
+      Cookie: loginCookies,
+      ajaxrequestuniquekey: ajaxKey,
+      Referer: 'https://www.alarm.com/web/system/home',
       'User-Agent': UA
     }
     /* eslint-enable @typescript-eslint/naming-convention */
   })
-    .then(res => {
+    .then((res) => {
       // gather identities and systems
       identities = res.body;
-      systems = (identities.data || []).map((d: IdentityResponse) => getValue(d, 'relationships.selectedSystem.data.id'));
+      systems = (identities.data || []).map((d: IdentityResponse) =>
+        getValue(d, 'relationships.selectedSystem.data.id')
+      );
     })
-    .catch(err => {
+    .catch((err) => {
       throw new Error(`GET ${IDENTITIES_URL} failed: ${err.message || err}`);
     });
 
@@ -122,9 +145,7 @@ export async function login(username: string, password: string, existingMfaToken
     systems: systems,
     identities: identities
   } as AuthOpts;
-
 }
-
 
 /**
  * Retrieve information about the current state of a security system including
@@ -136,44 +157,61 @@ export async function login(username: string, password: string, existingMfaToken
  * @param {Object} authOpts  Authentication object returned from the login.
  * @returns {Promise}
  */
-export async function getCurrentState(systemID: string, authOpts: AuthOpts): Promise<FlattenedSystemState> {
+export async function getCurrentState(
+  systemID: string,
+  authOpts: AuthOpts
+): Promise<FlattenedSystemState> {
   // This call to the systems endpoint retrieves an overview of all devices in a system
   const res = await authenticatedGet(SYSTEM_URL + systemID, authOpts);
   const rels: Relationships = res.data.relationships;
   const components = new Map<string, ApiDeviceState>();
   // push the results of getComponents into the components
   // Now we go through and get detailed information about all devices
-  const partitionIDs = rels.partitions.data.map(partition => partition.id);
+  const partitionIDs = rels.partitions.data.map((partition) => partition.id);
   if (typeof partitionIDs[0] !== 'undefined') {
-    components.set('partitions', await getComponents(PARTITIONS_URL, partitionIDs, authOpts));
+    components.set(
+      'partitions',
+      await getComponents(PARTITIONS_URL, partitionIDs, authOpts)
+    );
   }
-  const sensorIDs = rels.sensors.data.map(sensor => sensor.id);
+  const sensorIDs = rels.sensors.data.map((sensor) => sensor.id);
   if (typeof sensorIDs[0] !== 'undefined') {
-    components.set('sensors', await getComponents(SENSORS_URL, sensorIDs, authOpts));
+    components.set(
+      'sensors',
+      await getComponents(SENSORS_URL, sensorIDs, authOpts)
+    );
   }
-  const lightIDs = rels.lights.data.map(light => light.id);
+  const lightIDs = rels.lights.data.map((light) => light.id);
   if (typeof lightIDs[0] !== 'undefined') {
-    components.set('lights', await getComponents(LIGHTS_URL, lightIDs, authOpts));
+    components.set(
+      'lights',
+      await getComponents(LIGHTS_URL, lightIDs, authOpts)
+    );
   }
-  const lockIDs = rels.locks.data.map(lock => lock.id);
+  const lockIDs = rels.locks.data.map((lock) => lock.id);
   if (typeof lockIDs[0] !== 'undefined') {
     components.set('locks', await getComponents(LOCKS_URL, lockIDs, authOpts));
   }
-  const garageIDs = rels.garageDoors.data.map(garage => garage.id);
+  const garageIDs = rels.garageDoors.data.map((garage) => garage.id);
   if (typeof garageIDs[0] !== 'undefined') {
-    components.set('garages', await getComponents(GARAGE_URL, garageIDs, authOpts));
+    components.set(
+      'garages',
+      await getComponents(GARAGE_URL, garageIDs, authOpts)
+    );
   }
 
-  return ({
+  return {
     id: res.data.id,
     attributes: res.data.attributes,
-    partitions: components.has('partitions') ? components.get('partitions').data : [],
+    partitions: components.has('partitions')
+      ? components.get('partitions').data
+      : [],
     sensors: components.has('sensors') ? components.get('sensors').data : [],
     lights: components.has('lights') ? components.get('lights').data : [],
     locks: components.has('locks') ? components.get('locks').data : [],
     garages: components.has('garages') ? components.get('garages').data : [],
     relationships: rels
-  }) as FlattenedSystemState;
+  } as FlattenedSystemState;
 }
 
 /**
@@ -184,12 +222,16 @@ export async function getCurrentState(systemID: string, authOpts: AuthOpts): Pro
  * @param {Object} authOpts  Authentication object returned from the login.
  * @returns {Promise}
  */
-export async function getComponents(url: string, componentIDs: string[], authOpts: AuthOpts): Promise<ApiDeviceState> {
+export async function getComponents(
+  url: string,
+  componentIDs: string[],
+  authOpts: AuthOpts
+): Promise<ApiDeviceState> {
   const IDs = Array.isArray(componentIDs) ? componentIDs : [componentIDs];
   let requests: Promise<ApiDeviceState>[] = [];
 
   if (IDs.length <= 50) {
-    const getUrl = `${url}?${IDs.map(id => `ids%5B%5D=${id}`).join('&')}`;
+    const getUrl = `${url}?${IDs.map((id) => `ids%5B%5D=${id}`).join('&')}`;
     requests.push(authenticatedGet(getUrl, authOpts));
   } else {
     // We have found that the Alarm.com API will return a 404 error when there is an excessive number of query parameters.
@@ -197,15 +239,21 @@ export async function getComponents(url: string, componentIDs: string[], authOpt
     const shortenedUrls: string[] = [];
     while (IDs.length > 50) {
       const currentArray = IDs.splice(0, 50);
-      shortenedUrls.push(`${url}?${currentArray.map(id => `ids%5B%5D=${id}`).join('&')}`);
+      shortenedUrls.push(
+        `${url}?${currentArray.map((id) => `ids%5B%5D=${id}`).join('&')}`
+      );
     }
-    shortenedUrls.push(`${url}?${IDs.map(id => `ids%5B%5D=${id}`).join('&')}`);
-    requests = shortenedUrls.map(u => authenticatedGet(u, authOpts));
+    shortenedUrls.push(
+      `${url}?${IDs.map((id) => `ids%5B%5D=${id}`).join('&')}`
+    );
+    requests = shortenedUrls.map((u) => authenticatedGet(u, authOpts));
   }
   return await combineAPIDeviceAPICalls(requests);
 }
 
-async function combineAPIDeviceAPICalls(apiCalls: Promise<ApiDeviceState>[]): Promise<ApiDeviceState> {
+async function combineAPIDeviceAPICalls(
+  apiCalls: Promise<ApiDeviceState>[]
+): Promise<ApiDeviceState> {
   const apiStateCalls = await Promise.all(apiCalls);
 
   const stateToReturn = {
@@ -213,7 +261,7 @@ async function combineAPIDeviceAPICalls(apiCalls: Promise<ApiDeviceState>[]): Pr
     included: []
   } as ApiDeviceState;
   for (const apiCall of apiStateCalls) {
-    for (const apiData of (apiCall.data) as DeviceState[]) {
+    for (const apiData of apiCall.data as DeviceState[]) {
       (stateToReturn.data as DeviceState[]).push(apiData);
     }
 
@@ -227,7 +275,6 @@ async function combineAPIDeviceAPICalls(apiCalls: Promise<ApiDeviceState>[]): Pr
   return stateToReturn;
 }
 
-
 // Partition methods ///////////////////////////////////////////////////////////
 
 /**
@@ -238,7 +285,12 @@ async function combineAPIDeviceAPICalls(apiCalls: Promise<ApiDeviceState>[]): Pr
  * @param {Object} authOpts  Authentication object returned from the login.
  * @param {Object} opts  Additional options for the action.
  */
-function partitionAction(partitionID: string, action: string, authOpts: AuthOpts, opts?: PartitionActionOptions) {
+function partitionAction(
+  partitionID: string,
+  action: string,
+  authOpts: AuthOpts,
+  opts?: PartitionActionOptions
+) {
   opts = opts || {
     noEntryDelay: false,
     silentArming: false,
@@ -256,7 +308,7 @@ function partitionAction(partitionID: string, action: string, authOpts: AuthOpts
     body['nightArming'] = true;
   }
 
-  const postOpts = Object.assign({}, authOpts, {body});
+  const postOpts = Object.assign({}, authOpts, { body });
   return authenticatedPost(url, postOpts);
 }
 
@@ -273,7 +325,11 @@ function partitionAction(partitionID: string, action: string, authOpts: AuthOpts
  *   delay.
  * @returns {Promise}
  */
-export function armStay(partitionID: string, authOpts: AuthOpts, opts: PartitionActionOptions) {
+export function armStay(
+  partitionID: string,
+  authOpts: AuthOpts,
+  opts: PartitionActionOptions
+) {
   return partitionAction(partitionID, 'armStay', authOpts, opts);
 }
 
@@ -290,7 +346,11 @@ export function armStay(partitionID: string, authOpts: AuthOpts, opts: Partition
  *   delay.
  * @returns {Promise}
  */
-export function armAway(partitionID: string, authOpts: AuthOpts, opts: PartitionActionOptions) {
+export function armAway(
+  partitionID: string,
+  authOpts: AuthOpts,
+  opts: PartitionActionOptions
+) {
   return partitionAction(partitionID, 'armAway', authOpts, opts);
 }
 
@@ -307,12 +367,10 @@ export function disarm(partitionID: string, authOpts: AuthOpts) {
   return partitionAction(partitionID, 'disarm', authOpts);
 }
 
-
 // Sensor methods //////////////////////////////////////////////////////////////
 
 // Sensors don't do anything, but they report state when we get information
 // about any of the components, sensors included.
-
 
 // Light methods ///////////////////////////////////////////////////////////////
 
@@ -341,7 +399,12 @@ function lightAction(lightID: string, authOpts: AuthOpts, action: string) {
  * @param {Object} authOpts  Authentication object returned from the login.
  * @param {number} brightness  An integer, 1-100, indicating brightness.
  */
-function dimmerAction(lightID: string, authOpts: AuthOpts, brightness: number, action: string) {
+function dimmerAction(
+  lightID: string,
+  authOpts: AuthOpts,
+  brightness: number,
+  action: string
+) {
   const url = `${LIGHTS_URL}${lightID}/${action}`;
   const postOpts = Object.assign({}, authOpts, {
     body: {
@@ -362,7 +425,12 @@ function dimmerAction(lightID: string, authOpts: AuthOpts, brightness: number, a
  * @param {boolean} isDimmer  Indicates whether or not light is dimmable.
  * @returns {Promise}
  */
-export function setLightOn(lightID: string, authOpts: AuthOpts, brightness: number, isDimmer: boolean) {
+export function setLightOn(
+  lightID: string,
+  authOpts: AuthOpts,
+  brightness: number,
+  isDimmer: boolean
+) {
   if (isDimmer) {
     return dimmerAction(lightID, authOpts, brightness, 'turnOn');
   } else {
@@ -380,14 +448,18 @@ export function setLightOn(lightID: string, authOpts: AuthOpts, brightness: numb
  * @param {boolean} isDimmer  Indicates whether or not light is dimmable.
  * @returns {Promise}
  */
-export function setLightOff(lightID: string, authOpts: AuthOpts, brightness: number, isDimmer: boolean) {
+export function setLightOff(
+  lightID: string,
+  authOpts: AuthOpts,
+  brightness: number,
+  isDimmer: boolean
+) {
   if (isDimmer) {
     return dimmerAction(lightID, authOpts, brightness, 'turnOff');
   } else {
     return lightAction(lightID, authOpts, 'turnOff');
   }
 }
-
 
 // Lock methods ////////////////////////////////////////////////////////////////
 
@@ -441,11 +513,14 @@ export function setLockUnsecure(lockID: string, authOpts: AuthOpts) {
  *   method.
  * @returns {Promise}
  */
-function getGarages(garageIDs: string[], authOpts: AuthOpts): Promise<GarageState> {
+function getGarages(
+  garageIDs: string[],
+  authOpts: AuthOpts
+): Promise<GarageState> {
   if (!Array.isArray(garageIDs)) {
     garageIDs = [garageIDs];
   }
-  const query = garageIDs.map(id => `ids%5B%5D=${id}`).join('&');
+  const query = garageIDs.map((id) => `ids%5B%5D=${id}`).join('&');
   const url = `${GARAGE_URL}?${query}`;
   return authenticatedGet(url, authOpts);
 }
@@ -501,7 +576,7 @@ function getValue(data: any, path: string | any[]) {
 
 async function authenticatedGet(url: string, opts: any) {
   opts = opts || {};
-  opts.headers = opts.headers || {} as Headers;
+  opts.headers = opts.headers || ({} as Headers);
   opts.headers.Accept = 'application/vnd.api+json';
   opts.headers.ajaxrequestuniquekey = opts.ajaxKey;
   opts.headers.Cookie = opts.cookie;
@@ -526,8 +601,11 @@ async function authenticatedPost(url: string, opts: any) {
   return res.body;
 }
 
-async function get(url: string, opts?: any): Promise<{ headers: Headers; body: any }> {
-  opts = opts || {} as RequestOptions;
+async function get(
+  url: string,
+  opts?: any
+): Promise<{ headers: Headers; body: any }> {
+  opts = opts || ({} as RequestOptions);
 
   let status: number;
   let resHeaders: Headers;
@@ -543,11 +621,17 @@ async function get(url: string, opts?: any): Promise<{ headers: Headers; body: a
     resHeaders = res.headers;
 
     const type = res.headers.get('content-type') || '';
-    const body: any = await (type.indexOf('json') !== -1 ? (res.status === 204 ? {} : res.json()) : res.text());
+    const body: any = await (type.indexOf('json') !== -1
+      ? res.status === 204
+        ? {}
+        : res.json()
+      : res.text());
 
     if (status === 409) {
-      throw new Error('Two factor is enabled on this account but not setup in the plugin.' +
-        ' See the wiki for details');
+      throw new Error(
+        'Two factor is enabled on this account but not setup in the plugin.' +
+          ' See the wiki for details'
+      );
     }
     if (status >= 400) {
       throw new Error(body.Message || body || status);
@@ -562,7 +646,7 @@ async function get(url: string, opts?: any): Promise<{ headers: Headers; body: a
 }
 
 async function post(url: string, opts: RequestOptions) {
-  opts = opts || {} as RequestOptions;
+  opts = opts || ({} as RequestOptions);
 
   let status: number;
   let resHeaders: Headers;
