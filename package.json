@@ -1,7 +1,6 @@
 {
   "name": "node-alarm-dot-com",
   "version": "2.0.0",
-  "betaVersion": "2.0.0",
   "description": "An interface module written in node.js to arm and disarm Alarm.com security systems.",
   "author": {
     "name": "Chase Lau",
