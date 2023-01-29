@@ -9,14 +9,11 @@ on:
 
 jobs:
   build:
-
     strategy:
       matrix:
         node-version: [14.x, 16.x, 18.x]
         os: [ubuntu-latest]
-
     runs-on: ${{ matrix.os }}
-
     steps:
       - uses: actions/checkout@v2
       - name: Use Node.js ${{ matrix.node-version }}
@@ -35,16 +32,13 @@ jobs:
   publish-npm:
     # publish only if we are on our own repo
     if: github.repository == 'node-alarm-dot-com/node-alarm-dot-com' && github.event_name == 'release'
-
     needs: build # only run if build succeeds
-
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
-          node-version: 12 # use the minimum required version
+          node-version: 14 # use the minimum required version
           registry-url: https://registry.npmjs.org/
       - run: npm ci
       - run: npm publish
