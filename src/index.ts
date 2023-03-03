@@ -579,7 +579,7 @@ function getValue(data: any, path: string | any[]) {
   return data;
 }
 
-async function authenticatedGet(url: string, opts: any) {
+export async function authenticatedGet(url: string, opts: any) {
   opts = opts || {};
   opts.headers = opts.headers || ({} as Headers);
   opts.headers.Accept = 'application/vnd.api+json';
@@ -592,7 +592,7 @@ async function authenticatedGet(url: string, opts: any) {
   return res.body;
 }
 
-async function authenticatedPost(url: string, opts: any) {
+export async function authenticatedPost(url: string, opts: any) {
   opts = opts || {};
   opts.headers = opts.headers || {};
   opts.headers.Accept = 'application/vnd.api+json';
