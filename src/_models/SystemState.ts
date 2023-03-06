@@ -1,4 +1,4 @@
-import { GarageState, LightState, LockState, PartitionState, SensorState } from './DeviceStates';
+import { GarageState, LightState, LockState, PartitionState, SensorState, ThermostatState } from './DeviceStates';
 
 /**
  * Response information from
@@ -34,6 +34,7 @@ export interface FlattenedSystemState {
   lights: LightState[],
   locks: LockState[],
   garages: GarageState[],
+  thermostats: ThermostatState[],
   relationships: Relationships
 }
 

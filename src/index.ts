@@ -9,6 +9,7 @@ import { IdentityResponse } from './_models/IdentityResponse';
 import { PartitionActionOptions } from './_models/PartitionActionOptions';
 import { RequestOptions } from './_models/RequestOptions';
 import { FlattenedSystemState, Relationships } from './_models/SystemState';
+import { THERMOSTAT_STATES } from "./_models/States";
 
 export * from './_models/AuthOpts';
 export * from './_models/DeviceStates';
@@ -27,6 +28,7 @@ const PARTITIONS_URL = 'https://www.alarm.com/web/api/devices/partitions/';
 const SENSORS_URL = 'https://www.alarm.com/web/api/devices/sensors';
 const LIGHTS_URL = 'https://www.alarm.com/web/api/devices/lights/';
 const GARAGE_URL = 'https://www.alarm.com/web/api/devices/garageDoors/';
+const THERMOSTAT_URL = 'https://www.alarm.com/web/api/devices/thermostats/';
 const LOCKS_URL = 'https://www.alarm.com/web/api/devices/locks/';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const UA = `node-alarm-dot-com/${require('../package.json').version}`;
@@ -163,6 +165,10 @@ export async function getCurrentState(systemID: string, authOpts: AuthOpts): Pro
   if (typeof garageIDs[0] !== 'undefined') {
     components.set('garages', await getComponents(GARAGE_URL, garageIDs, authOpts));
   }
+  const thermostatIDs = rels.thermostats.data.map(thermostat => thermostat.id);
+  if (typeof thermostatIDs[0] !== 'undefined') {
+    components.set('thermostats', await getComponents(THERMOSTAT_URL, thermostatIDs, authOpts));
+  }
 
   return ({
     id: res.data.id,
@@ -172,6 +178,7 @@ export async function getCurrentState(systemID: string, authOpts: AuthOpts): Pro
     lights: components.has('lights') ? components.get('lights').data : [],
     locks: components.has('locks') ? components.get('locks').data : [],
     garages: components.has('garages') ? components.get('garages').data : [],
+    thermostats: components.has('thermostats') ? components.get('thermostats').data : [],
     relationships: rels
   }) as FlattenedSystemState;
 }
@@ -485,6 +492,67 @@ export function openGarage(garageID: string, authOpts: AuthOpts) {
     }
   });
   return authenticatedPost(url, postOpts);
+}
+
+// Thermostat methods ////////////////////////////////////////////////////////////////
+/**
+ * Update thermostat state
+ *
+ * @param {string} thermostatID Thermostat ID string.
+ * @param {Object} newState New desired state
+ * @param {Object} authOpts Authentication object returned from the `login`
+ *   method.
+ * @returns {Promise}
+ */
+export function setThermostatState(thermostatID: string, newState: THERMOSTAT_STATES, authOpts: AuthOpts) {
+  const url = `${THERMOSTAT_URL}${thermostatID}/setState`;
+  const postOpts = Object.assign({}, authOpts, {
+    body: {
+      desiredState: newState,
+      statePollOnly: false
+    }
+  });
+  return authenticatedPost(url, postOpts);
+}
+
+/**
+ * Sets a thermostat target heat temperature.
+ *
+ * @param {string} thermostatID ThermostatID ID string.
+ * @param {number} newTemp New target temperature
+ * @param {Object} authOpts Authentication object returned from the `login`
+ *   method.
+ * @returns {Promise}
+ */
+export function setThermostatTargetHeatTemperature(thermostatID: string, newTemp: number, authOpts: AuthOpts) {
+  const url = `${THERMOSTAT_URL}${thermostatID}/setState`;
+  const postOpts = Object.assign({}, authOpts, {
+    body: {
+      desiredHeatSetpoint: newTemp,
+      statePollOnly: false
+    }
+  });
+  return authenticatedPost(url, postOpts);
+}
+
+/**
+ * Sets a thermostat target cool temperature.
+ *
+ * @param {string} thermostatID ThermostatID ID string.
+ * @param {number} newTemp New target temperature
+ * @param {Object} authOpts Authentication object returned from the `login`
+ *   method.
+ * @returns {Promise}
+ */
+export function setThermostatTargetCoolTemperature(thermostatID: string, newTemp: number, authOpts: AuthOpts) {
+    const url = `${THERMOSTAT_URL}${thermostatID}/setState`;
+    const postOpts = Object.assign({}, authOpts, {
+        body: {
+            desiredCoolSetpoint: newTemp,
+            statePollOnly: false
+        }
+    });
+    return authenticatedPost(url, postOpts);
 }
 
 // Helper methods //////////////////////////////////////////////////////////////
