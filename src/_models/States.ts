@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 /***
  * State of the partition as defined by Alarm.com
  * @readonly
@@ -53,8 +54,8 @@ export enum LOCK_STATES {
  */
 export enum GARAGE_STATES {
   //UNKNOWN: 0,  //ADC does not have an unknown state. ADC returns temp popup
-  OPEN = 1,   //double check
-  CLOSED = 2  //double check
+  OPEN = 1, //double check
+  CLOSED = 2 //double check
 }
 
 /***
@@ -63,7 +64,10 @@ export enum GARAGE_STATES {
  * @enum {number}
  */
 export enum THERMOSTAT_STATES {
-  OFF = 1, HEATING = 2, COOLING = 3, AUTO
+  OFF = 1,
+  HEATING = 2,
+  COOLING = 3,
+  AUTO
 }
 
 /***

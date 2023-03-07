@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 /**
  * Number indicating the type of sensor according to the Alarm.com API
  */
