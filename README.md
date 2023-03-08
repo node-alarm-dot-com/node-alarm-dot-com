@@ -24,6 +24,10 @@ Supported Features
    * Dimmer switch
  * Locks
    * Lock/Unlock switch
+ * Thermostats
+   * State (Off, Heat, Cool, Auto)
+   * Desired Heat setpoint
+   * Desired Cool setpoint
 
 Usage
 -----
@@ -83,6 +87,9 @@ Documentation
     * [~getLocks(lockIDs, authOpts)](#module_nodeADC..getLocks) ⇒ <code>Promise</code>
     * [~secureLock(lockID, authOpts)](#module_nodeADC..secureLock) ⇒ <code>Promise</code>
     * [~unsecureLock(lockID, authOpts)](#module_nodeADC..unsecureLock) ⇒ <code>Promise</code>
+    * [~setThermostatState(thermostatID, newState, authOpts)](#module_nodeADC..setThermostatState) ⇒ <code>Promise</code>
+    * [~setThermostatTargetHeatTemperature(thermostatID, newTemp, authOpts)](#module_nodeADC..setThermostatTargetHeatTemperature) ⇒ <code>Promise</code>
+    * [~setThermostatTargetCoolTemperature(thermostatID, newTemp, authOpts)](#module_nodeADC..setThermostatTargetCoolTemperature) ⇒ <code>Promise</code>
     * [~armStay(partitionID, authOpts, opts)](#module_nodeADC..armStay) ⇒ <code>Promise</code>
     * [~armAway(partitionID, authOpts, opts)](#module_nodeADC..armAway) ⇒ <code>Promise</code>
     * [~disarm(partitionID, authOpts)](#module_nodeADC..disarm) ⇒ <code>Promise</code>
@@ -208,6 +215,45 @@ Sets a lock to "unlocked" (UNSECURED).
 | --- | --- | --- |
 | lockID | <code>string</code> | Lock ID string. |
 | authOpts | <code>Object</code> | Authentication object returned from the `login` method. |
+
+<a name="module_nodeADC..setThermostatState"></a>
+
+### nodeADC~setThermostatState(thermostatID, newState, authOpts) ⇒ <code>Promise</code>
+Update Thermostat State (see `THERMOSTAT_STATES`)
+
+**Kind**: inner method of [<code>nodeADC</code>](#module_nodeADC)
+
+| Param        | Type                           | Description                                                 |
+|--------------|--------------------------------|-------------------------------------------------------------|
+| thermostatID | <code>string</code>            | Thermostat ID string.                                       |
+| newState     | <code>THERMOSTAT_STATES</code> | Desired state, `THERMOSTAT_STATES.OFF`/`HEAT`/`COOL`/`AUTO` |
+| authOpts     | <code>Object</code>            | Authentication object returned from the `login` method.     |
+
+<a name="module_nodeADC..setThermostatTargetHeatTemperature"></a>
+
+### nodeADC~setThermostatTargetHeatTemperature(thermostatID, newTemp, authOpts) ⇒ <code>Promise</code>
+Set desired Heat setpoint temperature for Thermostat
+
+**Kind**: inner method of [<code>nodeADC</code>](#module_nodeADC)
+
+| Param        | Type                | Description                                             |
+|--------------|---------------------|---------------------------------------------------------|
+| thermostatID | <code>string</code> | Thermostat ID string.                                   |
+| newTemp      | <code>number</code> | Desired temperature                                     |
+| authOpts     | <code>Object</code> | Authentication object returned from the `login` method. |
+
+<a name="module_nodeADC..setThermostatTargetCoolTemperature"></a>
+
+### nodeADC~setThermostatTargetCoolTemperature(thermostatID, newTemp, authOpts) ⇒ <code>Promise</code>
+Set desired Cool setpoint temperature for Thermostat
+
+**Kind**: inner method of [<code>nodeADC</code>](#module_nodeADC)
+
+| Param        | Type                | Description                                             |
+|--------------|---------------------|---------------------------------------------------------|
+| thermostatID | <code>string</code> | Thermostat ID string.                                   |
+| newTemp      | <code>number</code> | Desired temperature                                     |
+| authOpts     | <code>Object</code> | Authentication object returned from the `login` method. |
 
 <a name="module_nodeADC..armStay"></a>
 
