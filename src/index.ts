@@ -5,12 +5,7 @@
 import fetch, { Headers } from 'node-fetch';
 import { AuthOpts } from './_models/AuthOpts';
 import { ApiDeviceState, DeviceState, GarageState } from './_models/DeviceStates';
-import {
-  ApiDeviceState,
-  DeviceState,
-  GarageState
-} from './_models/DeviceStates';
-import { IdentityResponse } from './_models/IdentityResponse';
+import { IdentityData, IdentityResponse } from './_models/IdentityResponse';
 import { PartitionActionOptions } from './_models/PartitionActionOptions';
 import { RequestOptions } from './_models/RequestOptions';
 import { FlattenedSystemState, Relationships } from './_models/SystemState';
@@ -52,7 +47,9 @@ const UA = `node-alarm-dot-com/${require('../package.json').version}`;
 export async function login(username: string, password: string, existingMfaToken?: string): Promise<AuthOpts> {
   let loginCookies: string;
   let ajaxKey: string;
-  let loginFormBody: string, identities: { data: any }, systems: any;
+  let loginFormBody: string;
+  let identities: IdentityResponse;
+  let systems: any;
 
   // load initial alarm.com page to gather required hidden form fields
   await get(ADCLOGIN_URL)
@@ -108,7 +105,30 @@ export async function login(username: string, password: string, existingMfaToken
       throw new Error(`POST ${ADCFORMLOGIN_URL} failed: ${err.message || err}`);
     });
 
-  await get(IDENTITIES_URL, {
+  await getIdentitiesState(loginCookies, ajaxKey)
+    .then((res) => {
+      systems = (res.data || []).map((d: IdentityData) => {
+        return d.relationships.selectedSystem.data.id;
+      });
+    })
+    .catch((err) => {
+      throw new Error(`GET ${IDENTITIES_URL} failed: ${err.message || err}`);
+    });
+
+  return {
+    cookie: loginCookies,
+    ajaxKey: ajaxKey,
+    systems: systems,
+    identities: identities
+  } as AuthOpts;
+}
+
+/**
+ * This function returns the alarm.com system identity for the currently logged in system.
+ * The information returned is useful for finding current systems and global config.
+ */
+export async function getIdentitiesState(loginCookies: string, ajaxKey: string): Promise<IdentityResponse> {
+  return await get(IDENTITIES_URL, {
     /* eslint-disable @typescript-eslint/naming-convention */
     headers: {
       Accept: 'application/vnd.api+json',
@@ -121,21 +141,11 @@ export async function login(username: string, password: string, existingMfaToken
   })
     .then((res) => {
       // gather identities and systems
-      identities = res.body;
-      systems = (identities.data || []).map((d: IdentityResponse) =>
-        getValue(d, 'relationships.selectedSystem.data.id')
-      );
+      return res.body as IdentityResponse;
     })
     .catch((err) => {
       throw new Error(`GET ${IDENTITIES_URL} failed: ${err.message || err}`);
     });
-
-  return {
-    cookie: loginCookies,
-    ajaxKey: ajaxKey,
-    systems: systems,
-    identities: identities
-  } as AuthOpts;
 }
 
 /**
@@ -626,7 +636,7 @@ async function get(url: string, opts?: any): Promise<{ headers: Headers; body: a
 
     if (status === 409) {
       throw new Error(
-        'Two factor is enabled on this account but not setup in the plugin. See the wiki for details'
+        'Two factor is enabled on this account but not setup in the plugin.' + ' See the wiki for details'
       );
     }
     if (status >= 400) {

@@ -5,44 +5,6 @@
  */
 export interface IdentityResponse {
   data: IdentityData[];
-  relationships: {
-    dealer: {
-      data: Relationship;
-    };
-    primaryColor: {
-      data: Relationship;
-    };
-    secondaryColor: {
-      data: Relationship;
-    };
-    navColor: {
-      data: Relationship;
-    };
-    profile: {
-      data: Relationship;
-    };
-    accountInformation: {
-      data: Relationship;
-    };
-    availableRouteItems: {
-      data: Relationship[];
-      meta: {
-        count: string;
-      };
-    };
-    wizard: {
-      data: Relationship[] | null;
-    };
-    clipDonationAgreement: {
-      data: Relationship;
-    };
-    selectedSystem: {
-      data: Relationship;
-    };
-    selectedSystemGroup: {
-      data: Relationship | null;
-    };
-  };
   included: any[];
   meta: {
     transformer_version: string;
@@ -121,7 +83,45 @@ export interface IdentityData {
     localizeTempUnitsToCelsius: boolean;
     canDonateClips: boolean;
     hasInternalBetaAccess: boolean;
-  }
+  };
+  relationships: {
+    dealer: {
+      data: Relationship;
+    };
+    primaryColor: {
+      data: Relationship;
+    };
+    secondaryColor: {
+      data: Relationship;
+    };
+    navColor: {
+      data: Relationship;
+    };
+    profile: {
+      data: Relationship;
+    };
+    accountInformation: {
+      data: Relationship;
+    };
+    availableRouteItems: {
+      data: Relationship[];
+      meta: {
+        count: string;
+      };
+    };
+    wizard: {
+      data: Relationship[] | null;
+    };
+    clipDonationAgreement: {
+      data: Relationship;
+    };
+    selectedSystem: {
+      data: Relationship;
+    };
+    selectedSystemGroup: {
+      data: Relationship | null;
+    };
+  };
 }
 
 export interface Relationship {
