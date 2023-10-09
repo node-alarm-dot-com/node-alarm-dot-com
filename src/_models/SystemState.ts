@@ -1,4 +1,12 @@
-import { GarageState, LightState, LockState, PartitionState, SensorState } from './DeviceStates';
+/* eslint-disable @typescript-eslint/naming-convention */
+import {
+  GarageState,
+  LightState,
+  LockState,
+  PartitionState,
+  SensorState,
+  ThermostatState
+} from './DeviceStates';
 
 /**
  * Response information from
@@ -6,194 +14,195 @@ import { GarageState, LightState, LockState, PartitionState, SensorState } from 
  */
 export interface SystemState {
   data: {
-    id: number,
-    type: RelationshipType.System,
-    attributes: SystemAttributes,
-    relationships: Relationships,
-    included: any[],
+    id: number;
+    type: RelationshipType.System;
+    attributes: SystemAttributes;
+    relationships: Relationships;
+    included: any[];
     meta: {
-      transformer_version: string
-    }
-  }
+      transformer_version: string;
+    };
+  };
 }
 
 export interface SystemAttributes {
-  description: string,
-  hasShapShotCameras: boolean,
-  supportsSecureArming: boolean,
-  remainingImageQuota: number,
-  systemGroupName: string,
-  unitId: number
+  description: string;
+  hasShapShotCameras: boolean;
+  supportsSecureArming: boolean;
+  remainingImageQuota: number;
+  systemGroupName: string;
+  unitId: number;
 }
 
 export interface FlattenedSystemState {
-  id: number,
-  attributes: SystemAttributes,
-  partitions: PartitionState[],
-  sensors: SensorState[],
-  lights: LightState[],
-  locks: LockState[],
-  garages: GarageState[],
-  relationships: Relationships
+  id: number;
+  attributes: SystemAttributes;
+  partitions: PartitionState[];
+  sensors: SensorState[];
+  lights: LightState[];
+  locks: LockState[];
+  garages: GarageState[];
+  thermostats: ThermostatState[];
+  relationships: Relationships;
 }
 
 export interface Relationships {
   partitions: {
-    data: Relationship[],
+    data: Relationship[];
     meta: {
-      count: string
-    }
-  },
+      count: string;
+    };
+  };
   locks: {
-    data: Relationship[],
+    data: Relationship[];
     meta: {
-      count: string
-    }
-  },
+      count: string;
+    };
+  };
   accessControlAccessPointDevices: {
-    data: Relationship[],
+    data: Relationship[];
     meta: {
-      count: string
-    }
-  },
+      count: string;
+    };
+  };
   cameras: {
-    data: Relationship[],
+    data: Relationship[];
     meta: {
-      count: string
-    }
-  },
+      count: string;
+    };
+  };
   sdCardCameras: {
-    data: Relationship[],
+    data: Relationship[];
     meta: {
-      count: string
-    }
-  },
+      count: string;
+    };
+  };
   garageDoors: {
-    data: Relationship[],
+    data: Relationship[];
     meta: {
-      count: string
-    }
-  },
+      count: string;
+    };
+  };
   waterValves: {
-    data: Relationship[],
+    data: Relationship[];
     meta: {
-      count: string
-    }
-  },
+      count: string;
+    };
+  };
   scenes: {
-    data: Relationship[],
+    data: Relationship[];
     meta: {
-      count: string
-    }
-  },
+      count: string;
+    };
+  };
   sensors: {
-    data: Relationship[],
+    data: Relationship[];
     meta: {
-      count: string
-    }
-  },
+      count: string;
+    };
+  };
   waterSensors: {
-    data: Relationship[],
+    data: Relationship[];
     meta: {
-      count: string
-    }
-  },
+      count: string;
+    };
+  };
   sumpPumps: {
-    data: Relationship[],
+    data: Relationship[];
     meta: {
-      count: string
-    }
-  },
+      count: string;
+    };
+  };
   waterMeters: {
-    data: Relationship[],
+    data: Relationship[];
     meta: {
-      count: string
-    }
-  },
+      count: string;
+    };
+  };
   lights: {
-    data: Relationship[],
+    data: Relationship[];
     meta: {
-      count: string
-    }
-  },
+      count: string;
+    };
+  };
   x10Lights: {
-    data: Relationship[],
+    data: Relationship[];
     meta: {
-      count: string
-    }
-  },
+      count: string;
+    };
+  };
   thermostats: {
-    data: Relationship[],
+    data: Relationship[];
     meta: {
-      count: string
-    }
-  },
+      count: string;
+    };
+  };
   remoteTemperatureSensors: {
-    data: Relationship[],
+    data: Relationship[];
     meta: {
-      count: string
-    }
-  },
+      count: string;
+    };
+  };
   commercialTemperatureSensors: {
-    data: Relationship[],
+    data: Relationship[];
     meta: {
-      count: string
-    }
-  },
+      count: string;
+    };
+  };
   valveSwitches: {
-    data: Relationship[],
+    data: Relationship[];
     meta: {
-      count: string
-    }
-  },
+      count: string;
+    };
+  };
   boilerControlSystem: {
-    data: Relationship[],
+    data: Relationship[];
     meta: {
-      count: string
-    }
-  },
+      count: string;
+    };
+  };
   geoDevices: {
-    data: Relationship[],
+    data: Relationship[];
     meta: {
-      count: string
-    }
-  },
+      count: string;
+    };
+  };
   fences: {
-    data: Relationship[],
+    data: Relationship[];
     meta: {
-      count: string
-    }
-  },
+      count: string;
+    };
+  };
   imageSensors: {
-    data: Relationship[],
+    data: Relationship[];
     meta: {
-      count: string
-    }
-  },
+      count: string;
+    };
+  };
   configuration: {
-    data: Relationship[],
+    data: Relationship[];
     meta: {
-      count: string
-    }
-  },
+      count: string;
+    };
+  };
   shades: {
-    data: Relationship[],
+    data: Relationship[];
     meta: {
-      count: string
-    }
-  },
+      count: string;
+    };
+  };
   lutronShades: {
-    data: Relationship[],
+    data: Relationship[];
     meta: {
-      count: string
-    }
-  }
+      count: string;
+    };
+  };
 }
 
 interface Relationship {
-  id: string,
+  id: string;
   //TODO: Sometimes there can be a constraint on type. We should look into implementing generics for this purpose.
-  type: RelationshipType
+  type: RelationshipType;
 }
 
 export enum RelationshipType {
