@@ -86,5 +86,6 @@ export enum REL_TYPES {
   THERMOSTAT = 'devices/thermostat',
   GEO_DEVICE = 'geolocation/geo-device',
   GEO_FENCE = 'geolocation/fence',
-  SCENE = 'automation/scene'
+  SCENE = 'automation/scene',
+  ACCESS_CONTROL = 'devices/access-control-access-point-device'
 }

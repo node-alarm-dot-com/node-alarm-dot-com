@@ -218,7 +218,8 @@ export enum RelationshipType {
   GeoFence = 'geolocation/fence',
   SystemConfig = 'systems/configuration',
   System = 'systems/system',
-  State = 'devices/state-info'
+  State = 'devices/state-info',
+  AccessControl = 'devices/access-control-access-point-device'
 }
 
 export enum AutomationType {

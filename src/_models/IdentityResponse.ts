@@ -139,6 +139,7 @@ export interface Relationship {
   | 'geolocation/fence'
   | 'systems/configuration'
   | 'navigation/route-item'
+  | 'devices/access-control-access-point-device'
   | 'dealers/dealer'
   | 'ui/color'
   | 'profile/profile'

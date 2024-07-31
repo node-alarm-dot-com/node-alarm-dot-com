@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { Relationship } from './IdentityResponse';
-import { AutomationType, RelationshipType } from './SystemState';
+import { SensorType } from './SensorType';
 import {
   GARAGE_STATES,
   LIGHT_STATES,
@@ -9,7 +9,10 @@ import {
   SYSTEM_STATES,
   THERMOSTAT_STATES
 } from './States';
-import { SensorType } from './SensorType';
+import {
+  AutomationType,
+  RelationshipType
+} from './SystemState';
 
 export interface ApiLightState extends ApiDeviceState {
   data: {
@@ -1070,6 +1073,71 @@ export interface ThermostatState extends DeviceState {
       data?: {
         id: string;
         type: RelationshipType.State;
+      };
+    };
+  };
+}
+
+export interface ApiAccessControlState extends ApiDeviceState {
+  data: {
+    id: string;
+    type: RelationshipType.AccessControl;
+    attributes: {
+      managedDeviceType: number;
+      state: LOCK_STATES;
+      desiredState: LOCK_STATES;
+      canBuzz: boolean;
+      canLockUnlock: boolean;
+      readerAntiPassbackEnabled: boolean;
+      apbDelay: number;
+      twoPersonAccessEnabled: boolean;
+      hasMiwaLock: boolean;
+      twoPersonAccessSupported: boolean;
+      hasState: boolean;
+      canBeRenamed: boolean;
+      canBeDeleted: boolean;
+      canAccessWebSettings: boolean;
+      canAccessAppSettings: boolean;
+      webSettings: number;
+      canAccessTroubleshootingWizard: boolean;
+      troubleshootingWizard: null;
+      addDeviceResource: number;
+      canBeAssociatedToVideoDevice: boolean;
+      associatedCameraDeviceIds: {};
+      macAddress: string;
+      manufacturer: string;
+      isAssignedToCareReceiver: boolean;
+      isOAuth: boolean;
+      isZWave: boolean;
+      supportsCommandClassBasic: boolean;
+      isMalfunctioning: boolean;
+      isZWaveWakeupNode: boolean;
+      unitSupportsRemovingWakeupNode: boolean;
+      primaryAssociatedDeviceIds: null;
+      canBeSaved: boolean;
+      canChangeDescription: boolean;
+      description: string;
+      deviceModelId: number;
+      canConfirmStateChange: boolean;
+      canReceiveCommands: boolean;
+      remoteCommandsEnabled: boolean;
+      hasPermissionToChangeState: boolean;
+      deviceIcon: { "icon": number };
+      batteryLevelNull: null;
+      batteryLevelClassification: null
+    };
+    relationships: {
+      system: {
+        data: {
+          id: string;
+          type: RelationshipType.System;
+        };
+      };
+      stateInfo: {
+        data: {
+          id: string;
+          type: RelationshipType.State;
+        };
       };
     };
   };
