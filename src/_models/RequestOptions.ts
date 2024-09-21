@@ -1,4 +1,4 @@
-import { Headers } from 'node-fetch';
+import { Body, Headers } from 'node-fetch';
 
 export interface RequestOptions {
   body: Body;
