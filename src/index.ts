@@ -3,6 +3,7 @@
  */
 
 import fetch, { Headers } from 'node-fetch';
+import { inspect } from 'util';
 import { AuthOpts } from './_models/AuthOpts';
 import { ApiDeviceState, DeviceState, GarageState } from './_models/DeviceStates';
 import { IdentityData, IdentityResponse } from './_models/IdentityResponse';
@@ -32,6 +33,17 @@ const THERMOSTAT_URL = 'https://www.alarm.com/web/api/devices/thermostats/';
 const LOCKS_URL = 'https://www.alarm.com/web/api/devices/locks/';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const UA = `node-alarm-dot-com/${require('../package.json').version}`;
+
+function describeError(err: unknown): string {
+  if (err instanceof Error) {
+    return err.stack || err.message;
+  }
+
+  return inspect(err, {
+    depth: 8,
+    breakLength: 120
+  });
+}
 
 // Exported methods ////////////////////////////////////////////////////////////
 
@@ -74,7 +86,7 @@ export async function login(username: string, password: string, existingMfaToken
         .join('&');
     })
     .catch((err) => {
-      throw new Error(`GET ${ADCLOGIN_URL} failed: ${err.message || err}`);
+      throw new Error(`GET ${ADCLOGIN_URL} failed: ${describeError(err)}`);
     });
 
   await fetch(ADCFORMLOGIN_URL, {
@@ -102,7 +114,7 @@ export async function login(username: string, password: string, existingMfaToken
       ajaxKey = re[1];
     })
     .catch((err) => {
-      throw new Error(`POST ${ADCFORMLOGIN_URL} failed: ${err.message || err}`);
+      throw new Error(`POST ${ADCFORMLOGIN_URL} failed: ${describeError(err)}`);
     });
 
   await getIdentitiesState(loginCookies, ajaxKey)
@@ -112,7 +124,7 @@ export async function login(username: string, password: string, existingMfaToken
       });
     })
     .catch((err) => {
-      throw new Error(`GET ${IDENTITIES_URL} failed: ${err.message || err}`);
+      throw new Error(`GET ${IDENTITIES_URL} failed: ${describeError(err)}`);
     });
 
   return {
@@ -144,7 +156,7 @@ export async function getIdentitiesState(loginCookies: string, ajaxKey: string):
       return res.body as IdentityResponse;
     })
     .catch((err) => {
-      throw new Error(`GET ${IDENTITIES_URL} failed: ${err.message || err}`);
+      throw new Error(`GET ${IDENTITIES_URL} failed: ${describeError(err)}`);
     });
 }
 
@@ -640,14 +652,14 @@ async function get(url: string, opts?: any): Promise<{ headers: Headers; body: a
       );
     }
     if (status >= 400) {
-      throw new Error(body.Message || body || status);
+      throw new Error(`status=${status}; body=${describeError(body)}`);
     }
     return {
       headers: resHeaders,
       body: body
     };
   } catch (err) {
-    throw new Error(`GET ${url} failed: ${err.message || err}`);
+    throw new Error(`GET ${url} failed: ${describeError(err)}`);
   }
 }
 
@@ -668,13 +680,13 @@ async function post(url: string, opts: RequestOptions) {
     resHeaders = res.headers;
     const json: any = await (res.status === 204 ? {} : res.json());
     if (status !== 200) {
-      throw new Error(json.Message || status);
+      throw new Error(`status=${status}; body=${describeError(json)}`);
     }
     return {
       headers: resHeaders,
       body: json
     };
   } catch (err) {
-    throw new Error(`POST ${url} failed: ${err.message || err}`);
+    throw new Error(`POST ${url} failed: ${describeError(err)}`);
   }
 }
