@@ -1,18 +1,7 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 import { Relationship } from './IdentityResponse';
 import { SensorType } from './SensorType';
-import {
-  GARAGE_STATES,
-  LIGHT_STATES,
-  LOCK_STATES,
-  SENSOR_STATES,
-  SYSTEM_STATES,
-  THERMOSTAT_STATES
-} from './States';
-import {
-  AutomationType,
-  RelationshipType
-} from './SystemState';
+import { GARAGE_STATES, LIGHT_STATES, LOCK_STATES, SENSOR_STATES, SYSTEM_STATES, THERMOSTAT_STATES } from './States';
+import { AutomationType, RelationshipType } from './SystemState';
 
 export interface ApiLightState extends ApiDeviceState {
   data: {
@@ -1122,9 +1111,9 @@ export interface ApiAccessControlState extends ApiDeviceState {
       canReceiveCommands: boolean;
       remoteCommandsEnabled: boolean;
       hasPermissionToChangeState: boolean;
-      deviceIcon: { "icon": number };
+      deviceIcon: { icon: number };
       batteryLevelNull: null;
-      batteryLevelClassification: null
+      batteryLevelClassification: null;
     };
     relationships: {
       system: {

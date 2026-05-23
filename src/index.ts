@@ -30,7 +30,6 @@ const LIGHTS_URL = 'https://www.alarm.com/web/api/devices/lights/';
 const GARAGE_URL = 'https://www.alarm.com/web/api/devices/garageDoors/';
 const THERMOSTAT_URL = 'https://www.alarm.com/web/api/devices/thermostats/';
 const LOCKS_URL = 'https://www.alarm.com/web/api/devices/locks/';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 const UA = `node-alarm-dot-com/${require('../package.json').version}`;
 
 // Exported methods ////////////////////////////////////////////////////////////
@@ -54,7 +53,6 @@ export async function login(username: string, password: string, existingMfaToken
   // load initial alarm.com page to gather required hidden form fields
   await get(ADCLOGIN_URL)
     .then((res) => {
-      /* eslint-disable @typescript-eslint/naming-convention */
       const loginObj: any = {
         __EVENTTARGET: null,
         __EVENTARGUMENT: null,
@@ -67,7 +65,6 @@ export async function login(username: string, password: string, existingMfaToken
         ctl00$ContentPlaceHolder1$loginform$txtUserName: username,
         txtPassword: password
       };
-      /* eslint-enable @typescript-eslint/naming-convention */
       // build login form body
       loginFormBody = Object.keys(loginObj)
         .map((k) => encodeURIComponent(k) + '=' + encodeURIComponent(loginObj[k]))
@@ -79,20 +76,18 @@ export async function login(username: string, password: string, existingMfaToken
 
   await fetch(ADCFORMLOGIN_URL, {
     method: 'POST',
-    /* eslint-disable @typescript-eslint/naming-convention */
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
       'User-Agent': UA,
       Cookie: `twoFactorAuthenticationId=${existingMfaToken};`
     },
-    /* eslint-enable @typescript-eslint/naming-convention */
     body: loginFormBody,
     redirect: 'manual'
   })
     .then((res) => {
       loginCookies = res.headers
         .raw()
-      ['set-cookie'].map((c) => c.split(';')[0])
+        ['set-cookie'].map((c) => c.split(';')[0])
         .join('; ');
       // gather ajaxkey for session headers
       const re = /afg=([^;]+);/.exec(loginCookies);
@@ -129,7 +124,6 @@ export async function login(username: string, password: string, existingMfaToken
  */
 export async function getIdentitiesState(loginCookies: string, ajaxKey: string): Promise<IdentityResponse> {
   return await get(IDENTITIES_URL, {
-    /* eslint-disable @typescript-eslint/naming-convention */
     headers: {
       Accept: 'application/vnd.api+json',
       Cookie: loginCookies,
@@ -137,7 +131,6 @@ export async function getIdentitiesState(loginCookies: string, ajaxKey: string):
       Referer: 'https://www.alarm.com/web/system/home',
       'User-Agent': UA
     }
-    /* eslint-enable @typescript-eslint/naming-convention */
   })
     .then((res) => {
       // gather identities and systems
@@ -589,7 +582,7 @@ export async function authenticatedPost(url: string, opts: any) {
   return res.body;
 }
 
-async function get(url: string, opts?: any): Promise<{ headers: Headers; body: any; }> {
+async function get(url: string, opts?: any): Promise<{ headers: Headers; body: any }> {
   opts = opts || ({} as RequestOptions);
 
   let status: number;

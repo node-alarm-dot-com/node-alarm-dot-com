@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 /**
  * The identity response is returned upon authenticating against the Alarm.com API.
  * It's then parsed and the authentication token stored for future use.
@@ -127,21 +126,21 @@ export interface IdentityData {
 export interface Relationship {
   id: string;
   type:
-  | 'devices/partition'
-  | 'devices/lock'
-  | 'video/camera'
-  | 'devices/garage-door'
-  | 'automation/scene'
-  | 'devices/sensor'
-  | 'devices/light'
-  | 'devices/thermostat'
-  | 'geolocation/geo-device'
-  | 'geolocation/fence'
-  | 'systems/configuration'
-  | 'navigation/route-item'
-  | 'devices/access-control-access-point-device'
-  | 'dealers/dealer'
-  | 'ui/color'
-  | 'profile/profile'
-  | 'accountInformation/account-information';
+    | 'devices/partition'
+    | 'devices/lock'
+    | 'video/camera'
+    | 'devices/garage-door'
+    | 'automation/scene'
+    | 'devices/sensor'
+    | 'devices/light'
+    | 'devices/thermostat'
+    | 'geolocation/geo-device'
+    | 'geolocation/fence'
+    | 'systems/configuration'
+    | 'navigation/route-item'
+    | 'devices/access-control-access-point-device'
+    | 'dealers/dealer'
+    | 'ui/color'
+    | 'profile/profile'
+    | 'accountInformation/account-information';
 }
