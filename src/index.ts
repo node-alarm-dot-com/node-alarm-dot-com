@@ -4,20 +4,20 @@
 
 import fetch, { Headers } from 'node-fetch';
 import { AuthOpts } from './_models/AuthOpts';
-import { ApiDeviceState, DeviceState, GarageState } from './_models/DeviceStates';
+import { ApiDeviceState, DeviceState } from './_models/DeviceStates';
 import { IdentityData, IdentityResponse } from './_models/IdentityResponse';
 import { PartitionActionOptions } from './_models/PartitionActionOptions';
 import { RequestOptions } from './_models/RequestOptions';
-import { FlattenedSystemState, Relationships } from './_models/SystemState';
 import { THERMOSTAT_STATES } from './_models/States';
+import { FlattenedSystemState, Relationships } from './_models/SystemState';
 
 export * from './_models/AuthOpts';
 export * from './_models/DeviceStates';
 export * from './_models/IdentityResponse';
 export * from './_models/PartitionActionOptions';
 export * from './_models/RequestOptions';
-export * from './_models/SystemState';
 export * from './_models/SensorType';
+export * from './_models/SystemState';
 
 const ADCLOGIN_URL = 'https://www.alarm.com/login';
 const ADCFORMLOGIN_URL = 'https://www.alarm.com/web/Default.aspx';
@@ -92,7 +92,7 @@ export async function login(username: string, password: string, existingMfaToken
     .then((res) => {
       loginCookies = res.headers
         .raw()
-        ['set-cookie'].map((c) => c.split(';')[0])
+      ['set-cookie'].map((c) => c.split(';')[0])
         .join('; ');
       // gather ajaxkey for session headers
       const re = /afg=([^;]+);/.exec(loginCookies);
@@ -461,22 +461,6 @@ export function setLockUnsecure(lockID: string, authOpts: AuthOpts) {
 }
 
 // Garage methods ////////////////////////////////////////////////////////////////
-/**
- * Get information for one or more garages.
- *
- * @param {string[]} garageIDs Array of Garage ID strings.
- * @param {Object} authOpts Authentication object returned from the `login`
- *   method.
- * @returns {Promise}
- */
-function getGarages(garageIDs: string[], authOpts: AuthOpts): Promise<GarageState> {
-  if (!Array.isArray(garageIDs)) {
-    garageIDs = [garageIDs];
-  }
-  const query = garageIDs.map((id) => `ids%5B%5D=${id}`).join('&');
-  const url = `${GARAGE_URL}?${query}`;
-  return authenticatedGet(url, authOpts);
-}
 
 /**
  * Sets a garage to CLOSED.
@@ -578,16 +562,6 @@ export function setThermostatTargetCoolTemperature(thermostatID: string, newTemp
 
 // Helper methods //////////////////////////////////////////////////////////////
 
-function getValue(data: any, path: string | any[]) {
-  if (typeof path === 'string') {
-    path = path.split('.');
-  }
-  for (let i = 0; typeof data === 'object' && i < path.length; i++) {
-    data = data[path[i]];
-  }
-  return data;
-}
-
 export async function authenticatedGet(url: string, opts: any) {
   opts = opts || {};
   opts.headers = opts.headers || ({} as Headers);
@@ -615,7 +589,7 @@ export async function authenticatedPost(url: string, opts: any) {
   return res.body;
 }
 
-async function get(url: string, opts?: any): Promise<{ headers: Headers; body: any }> {
+async function get(url: string, opts?: any): Promise<{ headers: Headers; body: any; }> {
   opts = opts || ({} as RequestOptions);
 
   let status: number;
