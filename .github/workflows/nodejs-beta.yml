@@ -14,9 +14,9 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
       - name: npm install, build # and test
@@ -30,20 +30,18 @@ jobs:
 
   publish-npm:
     if: github.repository == 'node-alarm-dot-com/node-alarm-dot-com'
-
     needs: build # only run if build succeeds
-
     runs-on: ubuntu-latest
-
+    permissions:
+      contents: read
+      id-token: write
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
-          node-version: 22 # use the minimum required version
+          node-version: 24 # use the minimum required version
           registry-url: https://registry.npmjs.org/
       - run: npm ci
       - run: node .github/workflows/prerelease.js
       - run: npm --no-git-tag-version version pre --preid=beta
-      - run: npm publish --tag=beta
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.npm_token}}
+      - run: NODE_AUTH_TOKEN="" npm publish --tag=beta
