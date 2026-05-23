@@ -45,11 +45,11 @@ const UA = `node-alarm-dot-com/${packageJson.version}`;
  * @returns {Promise}
  */
 export async function login(username: string, password: string, existingMfaToken?: string): Promise<AuthOpts> {
-  let loginCookies: string;
-  let ajaxKey: string;
-  let loginFormBody: string;
-  let identities: IdentityResponse;
-  let systems: string[];
+  let loginCookies = '';
+  let ajaxKey = '';
+  let loginFormBody = '';
+  let identities: IdentityResponse = {} as IdentityResponse;
+  let systems: string[] = [];
 
   // load initial alarm.com page to gather required hidden form fields
   await get(ADCLOGIN_URL)
@@ -86,16 +86,13 @@ export async function login(username: string, password: string, existingMfaToken
     redirect: 'manual'
   })
     .then((res) => {
-      loginCookies = res.headers
-        .raw()
-        ['set-cookie'].map((c) => c.split(';')[0])
-        .join('; ');
+      loginCookies = (res.headers.raw()['set-cookie'] ?? []).map((c) => c.split(';')[0]).join('; ');
       // gather ajaxkey for session headers
       const re = /afg=([^;]+);/.exec(loginCookies);
       if (!re) {
         throw new Error(`No afg cookie: ${loginCookies}`);
       }
-      ajaxKey = re[1];
+      ajaxKey = re[1] ?? '';
     })
     .catch((err) => {
       throw new Error(`POST ${ADCFORMLOGIN_URL} failed: ${err.message || err}`);
@@ -188,12 +185,12 @@ export async function getCurrentState(systemID: string, authOpts: AuthOpts): Pro
   return {
     id: res.data.id,
     attributes: res.data.attributes,
-    partitions: components.has('partitions') ? components.get('partitions').data : [],
-    sensors: components.has('sensors') ? components.get('sensors').data : [],
-    lights: components.has('lights') ? components.get('lights').data : [],
-    locks: components.has('locks') ? components.get('locks').data : [],
-    garages: components.has('garages') ? components.get('garages').data : [],
-    thermostats: components.has('thermostats') ? components.get('thermostats').data : [],
+    partitions: components.has('partitions') ? components.get('partitions')!.data : [],
+    sensors: components.has('sensors') ? components.get('sensors')!.data : [],
+    lights: components.has('lights') ? components.get('lights')!.data : [],
+    locks: components.has('locks') ? components.get('locks')!.data : [],
+    garages: components.has('garages') ? components.get('garages')!.data : [],
+    thermostats: components.has('thermostats') ? components.get('thermostats')!.data : [],
     relationships: rels
   } as FlattenedSystemState;
 }
@@ -244,7 +241,7 @@ async function combineAPIDeviceAPICalls(apiCalls: Promise<ApiDeviceState>[]): Pr
     }
   }
 
-  stateToReturn.meta = apiStateCalls[0].meta;
+  stateToReturn.meta = apiStateCalls[0]!.meta;
 
   return stateToReturn;
 }
@@ -267,7 +264,13 @@ function partitionAction(partitionID: string, action: string, authOpts: AuthOpts
     forceBypass: false
   };
   const url = `${PARTITIONS_URL}${partitionID}/${action}`;
-  const body = {
+  const body: {
+    noEntryDelay?: boolean;
+    silentArming?: boolean;
+    statePollOnly: boolean;
+    nightArming?: boolean;
+    forceBypass?: boolean;
+  } = {
     noEntryDelay: action === 'disarm' ? undefined : Boolean(opts.noEntryDelay),
     silentArming: action === 'disarm' ? undefined : Boolean(opts.silentArming),
     statePollOnly: false
@@ -612,7 +615,7 @@ async function get(url: string, opts?: { headers?: Record<string, string> }) {
       body: body
     };
   } catch (err) {
-    throw new Error(`GET ${url} failed: ${err.message || err}`, { cause: err });
+    throw new Error(`GET ${url} failed: ${err instanceof Error ? err.message : String(err)}`, { cause: err });
   }
 }
 
@@ -640,6 +643,6 @@ async function post(url: string, opts: RequestOptions) {
       body: json
     };
   } catch (err) {
-    throw new Error(`POST ${url} failed: ${err.message || err}`, { cause: err });
+    throw new Error(`POST ${url} failed: ${err instanceof Error ? err.message : String(err)}`, { cause: err });
   }
 }
