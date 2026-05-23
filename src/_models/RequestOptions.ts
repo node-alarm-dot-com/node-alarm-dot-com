@@ -1,6 +1,4 @@
-import { Body, Headers } from 'node-fetch';
-
 export interface RequestOptions {
-  body: Body;
-  headers?: Headers;
+  body?: Record<string, unknown>;
+  headers?: Record<string, string>;
 }

@@ -3,6 +3,7 @@
  */
 
 import fetch, { Headers } from 'node-fetch';
+import packageJson from '../package.json';
 import { AuthOpts } from './_models/AuthOpts';
 import { ApiDeviceState, DeviceState } from './_models/DeviceStates';
 import { IdentityData, IdentityResponse } from './_models/IdentityResponse';
@@ -30,7 +31,7 @@ const LIGHTS_URL = 'https://www.alarm.com/web/api/devices/lights/';
 const GARAGE_URL = 'https://www.alarm.com/web/api/devices/garageDoors/';
 const THERMOSTAT_URL = 'https://www.alarm.com/web/api/devices/thermostats/';
 const LOCKS_URL = 'https://www.alarm.com/web/api/devices/locks/';
-const UA = `node-alarm-dot-com/${require('../package.json').version}`;
+const UA = `node-alarm-dot-com/${packageJson.version}`;
 
 // Exported methods ////////////////////////////////////////////////////////////
 
@@ -48,12 +49,12 @@ export async function login(username: string, password: string, existingMfaToken
   let ajaxKey: string;
   let loginFormBody: string;
   let identities: IdentityResponse;
-  let systems: any;
+  let systems: string[];
 
   // load initial alarm.com page to gather required hidden form fields
   await get(ADCLOGIN_URL)
     .then((res) => {
-      const loginObj: any = {
+      const loginObj: Record<string, string | null> = {
         __EVENTTARGET: null,
         __EVENTARGUMENT: null,
         __VIEWSTATEENCRYPTED: null,
@@ -67,7 +68,7 @@ export async function login(username: string, password: string, existingMfaToken
       };
       // build login form body
       loginFormBody = Object.keys(loginObj)
-        .map((k) => encodeURIComponent(k) + '=' + encodeURIComponent(loginObj[k]))
+        .map((k) => encodeURIComponent(k) + '=' + encodeURIComponent(String(loginObj[k])))
         .join('&');
     })
     .catch((err) => {
@@ -102,6 +103,7 @@ export async function login(username: string, password: string, existingMfaToken
 
   await getIdentitiesState(loginCookies, ajaxKey)
     .then((res) => {
+      identities = res;
       systems = (res.data || []).map((d: IdentityData) => {
         return d.relationships.selectedSystem.data.id;
       });
@@ -555,36 +557,32 @@ export function setThermostatTargetCoolTemperature(thermostatID: string, newTemp
 
 // Helper methods //////////////////////////////////////////////////////////////
 
-export async function authenticatedGet(url: string, opts: any) {
-  opts = opts || {};
-  opts.headers = opts.headers || ({} as Headers);
-  opts.headers.Accept = 'application/vnd.api+json';
-  opts.headers.ajaxrequestuniquekey = opts.ajaxKey;
-  opts.headers.Cookie = opts.cookie;
-  opts.headers.Referer = HOME_URL;
-  opts.headers['User-Agent'] = UA;
-
-  const res = await get(url, opts);
+export async function authenticatedGet(url: string, opts: AuthOpts) {
+  const headers = {
+    Accept: 'application/vnd.api+json',
+    ajaxrequestuniquekey: opts.ajaxKey,
+    Cookie: opts.cookie,
+    Referer: HOME_URL,
+    'User-Agent': UA
+  };
+  const res = await get(url, { headers });
   return res.body;
 }
 
-export async function authenticatedPost(url: string, opts: any) {
-  opts = opts || {};
-  opts.headers = opts.headers || {};
-  opts.headers.Accept = 'application/vnd.api+json';
-  opts.headers.ajaxrequestuniquekey = opts.ajaxKey;
-  opts.headers.Cookie = opts.cookie;
-  opts.headers.Referer = HOME_URL;
-  opts.headers['User-Agent'] = UA;
-  opts.headers['Content-Type'] = 'application/json; charset=UTF-8';
-
-  const res = await post(url, opts);
+export async function authenticatedPost(url: string, opts: AuthOpts & { body?: Record<string, unknown> }) {
+  const headers = {
+    Accept: 'application/vnd.api+json',
+    ajaxrequestuniquekey: opts.ajaxKey,
+    Cookie: opts.cookie,
+    Referer: HOME_URL,
+    'User-Agent': UA,
+    'Content-Type': 'application/json; charset=UTF-8'
+  };
+  const res = await post(url, { headers, body: opts.body });
   return res.body;
 }
 
-async function get(url: string, opts?: any): Promise<{ headers: Headers; body: any }> {
-  opts = opts || ({} as RequestOptions);
-
+async function get(url: string, opts?: { headers?: Record<string, string> }) {
   let status: number;
   let resHeaders: Headers;
 
@@ -592,14 +590,14 @@ async function get(url: string, opts?: any): Promise<{ headers: Headers; body: a
     const res = await fetch(url, {
       method: 'GET',
       redirect: 'manual',
-      headers: opts.headers
+      headers: opts?.headers
     });
 
     status = res.status;
     resHeaders = res.headers;
 
     const type = res.headers.get('content-type') || '';
-    const body: any = await (type.indexOf('json') !== -1 ? (res.status === 204 ? {} : res.json()) : res.text());
+    const body = await (type.indexOf('json') !== -1 ? (res.status === 204 ? {} : res.json()) : res.text());
 
     if (status === 409) {
       throw new Error(
@@ -614,7 +612,7 @@ async function get(url: string, opts?: any): Promise<{ headers: Headers; body: a
       body: body
     };
   } catch (err) {
-    throw new Error(`GET ${url} failed: ${err.message || err}`);
+    throw new Error(`GET ${url} failed: ${err.message || err}`, { cause: err });
   }
 }
 
@@ -633,7 +631,7 @@ async function post(url: string, opts: RequestOptions) {
     });
     status = res.status;
     resHeaders = res.headers;
-    const json: any = await (res.status === 204 ? {} : res.json());
+    const json = await (res.status === 204 ? {} : res.json());
     if (status !== 200) {
       throw new Error(json.Message || status);
     }
@@ -642,6 +640,6 @@ async function post(url: string, opts: RequestOptions) {
       body: json
     };
   } catch (err) {
-    throw new Error(`POST ${url} failed: ${err.message || err}`);
+    throw new Error(`POST ${url} failed: ${err.message || err}`, { cause: err });
   }
 }
