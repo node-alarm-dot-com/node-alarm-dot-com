@@ -41,7 +41,14 @@ jobs:
         with:
           node-version: 24 # use the minimum required version
           registry-url: https://registry.npmjs.org/
+
+      - name: Upgrade npm for OIDC support
+        run: npm install -g npm@latest
+
       - run: npm ci
+
       - run: node .github/workflows/prerelease.js
+
       - run: npm --no-git-tag-version version pre --preid=beta
+
       - run: NODE_AUTH_TOKEN="" npm publish --tag=beta

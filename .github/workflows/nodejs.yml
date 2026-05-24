@@ -43,5 +43,10 @@ jobs:
         with:
           node-version: 24 # use the minimum required version
           registry-url: https://registry.npmjs.org/
+
+      - name: Upgrade npm for OIDC support
+        run: npm install -g npm@latest
+
       - run: npm ci
+
       - run: NODE_AUTH_TOKEN="" npm publish
