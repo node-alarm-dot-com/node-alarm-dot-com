@@ -25,7 +25,7 @@ jobs:
   determine-release-type:
     name: Determine Release Type
     runs-on: ubuntu-latest
-    if: ${{ github.repository == 'node-alarm-dot-com/homebridge-node-alarm-dot-com' }}
+    if: ${{ github.repository == 'node-alarm-dot-com/node-alarm-dot-com' }}
     outputs:
       release_type: ${{ steps.release-type.outputs.type }}
       npm_tag: ${{ steps.release-type.outputs.tag }}
