@@ -17,7 +17,8 @@ import {
   UA,
   authenticatedGet,
   getComponents,
-  get
+  get,
+  describeError
 } from './_utils';
 
 /**
@@ -57,7 +58,7 @@ export async function login(username: string, password: string, existingMfaToken
         .join('&');
     })
     .catch((err) => {
-      throw new Error(`GET ${ADCLOGIN_URL} failed: ${err.message || err}`);
+      throw new Error(`GET ${ADCLOGIN_URL} failed: ${describeError(err)}`);
     });
 
   await fetch(ADCFORMLOGIN_URL, {
@@ -80,7 +81,7 @@ export async function login(username: string, password: string, existingMfaToken
       ajaxKey = re[1] ?? '';
     })
     .catch((err) => {
-      throw new Error(`POST ${ADCFORMLOGIN_URL} failed: ${err.message || err}`);
+      throw new Error(`POST ${ADCFORMLOGIN_URL} failed: ${err.describeError(err)}`);
     });
 
   await getIdentitiesState(loginCookies, ajaxKey)
@@ -91,7 +92,7 @@ export async function login(username: string, password: string, existingMfaToken
       });
     })
     .catch((err) => {
-      throw new Error(`GET ${IDENTITIES_URL} failed: ${err.message || err}`);
+      throw new Error(`GET ${IDENTITIES_URL} failed: ${err.describeError(err)}`);
     });
 
   return {
@@ -121,7 +122,7 @@ export async function getIdentitiesState(loginCookies: string, ajaxKey: string):
       return res.body as IdentityResponse;
     })
     .catch((err) => {
-      throw new Error(`GET ${IDENTITIES_URL} failed: ${err.message || err}`);
+      throw new Error(`GET ${IDENTITIES_URL} failed: ${err.describeError(err)}`);
     });
 }
 

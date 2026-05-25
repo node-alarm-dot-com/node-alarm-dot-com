@@ -3,6 +3,7 @@ import packageJson from '../package.json';
 import { AuthOpts } from './_models/AuthOpts';
 import { ApiDeviceState, DeviceState } from './_models/DeviceStates';
 import { RequestOptions } from './_models/RequestOptions';
+import { inspect } from 'util';
 
 export const ADCLOGIN_URL = 'https://www.alarm.com/login';
 export const ADCFORMLOGIN_URL = 'https://www.alarm.com/web/Default.aspx';
@@ -116,7 +117,7 @@ export async function get(url: string, opts?: { headers?: Record<string, string>
       );
     }
     if (status >= 400) {
-      throw new Error(body.Message || body || status);
+      throw new Error(`status=${status}; body=${describeError(body)}`);
     }
     return {
       headers: resHeaders,
@@ -144,7 +145,7 @@ async function post(url: string, opts: RequestOptions) {
     resHeaders = res.headers;
     const json = await (res.status === 204 ? {} : res.json());
     if (status !== 200) {
-      throw new Error(json.Message || status);
+      throw new Error(`status=${status}; body=${describeError(json)}`);
     }
     return {
       headers: resHeaders,
@@ -153,4 +154,15 @@ async function post(url: string, opts: RequestOptions) {
   } catch (err) {
     throw new Error(`POST ${url} failed: ${err instanceof Error ? err.message : String(err)}`, { cause: err });
   }
+}
+
+export function describeError(err: unknown): string {
+  if (err instanceof Error) {
+    return err.stack || err.message;
+  }
+
+  return inspect(err, {
+    depth: 8,
+    breakLength: 120
+  });
 }
