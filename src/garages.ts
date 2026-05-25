@@ -1,5 +1,6 @@
 import { AuthOpts } from './_models/AuthOpts';
-import { GARAGE_URL, authenticatedPost } from './_utils';
+import { GarageState } from './_models/DeviceStates';
+import { GARAGE_URL, authenticatedGet, authenticatedPost } from './_utils';
 
 /**
  * Sets a garage to CLOSED.
@@ -33,4 +34,14 @@ export function openGarage(garageID: string, authOpts: AuthOpts) {
     }
   });
   return authenticatedPost(url, postOpts);
+}
+
+async function getGarage(garageID: string, authOpts: AuthOpts): Promise<GarageState | undefined> {
+  const res = await authenticatedGet(`${GARAGE_URL}${garageID}`, authOpts);
+  return res.data as GarageState;
+}
+
+export async function getGarages(garageIDs: string[], authOpts: AuthOpts): Promise<GarageState[]> {
+  const results = await Promise.all(garageIDs.map((id) => getGarage(id, authOpts)));
+  return results.filter((g): g is GarageState => g !== undefined);
 }

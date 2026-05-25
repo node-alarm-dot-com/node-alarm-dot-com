@@ -17,3 +17,5 @@ export * from './lights';
 export * from './locks';
 export * from './garages';
 export * from './thermostats';
+export * from './sensors';
+export * from './_models/WebSockets';

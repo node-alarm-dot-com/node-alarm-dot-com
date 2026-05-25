@@ -1,6 +1,7 @@
 import { AuthOpts } from './_models/AuthOpts';
+import { PartitionState } from './_models/DeviceStates';
 import { PartitionActionOptions } from './_models/PartitionActionOptions';
-import { PARTITIONS_URL, authenticatedPost } from './_utils';
+import { PARTITIONS_URL, authenticatedGet, authenticatedPost } from './_utils';
 
 /**
  * Perform partition actions, e.g., armAway, armStay, disarm.
@@ -88,4 +89,14 @@ export function armAway(partitionID: string, authOpts: AuthOpts, opts: Partition
  */
 export function disarm(partitionID: string, authOpts: AuthOpts) {
   return partitionAction(partitionID, 'disarm', authOpts);
+}
+
+async function getPartition(partitionID: string, authOpts: AuthOpts): Promise<PartitionState | undefined> {
+  const res = await authenticatedGet(`${PARTITIONS_URL}${partitionID}`, authOpts);
+  return res.data as PartitionState;
+}
+
+export async function getPartitions(partitionIDs: string[], authOpts: AuthOpts): Promise<PartitionState[]> {
+  const results = await Promise.all(partitionIDs.map((id) => getPartition(id, authOpts)));
+  return results.filter((p): p is PartitionState => p !== undefined);
 }

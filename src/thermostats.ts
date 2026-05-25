@@ -1,6 +1,7 @@
 import { AuthOpts } from './_models/AuthOpts';
+import { ThermostatState } from './_models/DeviceStates';
 import { THERMOSTAT_STATES } from './_models/States';
-import { THERMOSTAT_URL, authenticatedPost } from './_utils';
+import { THERMOSTAT_URL, authenticatedGet, authenticatedPost } from './_utils';
 
 /**
  * Update thermostat state
@@ -57,4 +58,14 @@ export function setThermostatTargetCoolTemperature(thermostatID: string, newTemp
     }
   });
   return authenticatedPost(url, postOpts);
+}
+
+async function getThermostat(thermostatID: string, authOpts: AuthOpts): Promise<ThermostatState | undefined> {
+  const res = await authenticatedGet(`${THERMOSTAT_URL}${thermostatID}`, authOpts);
+  return res.data as ThermostatState;
+}
+
+export async function getThermostats(thermostatIDs: string[], authOpts: AuthOpts): Promise<ThermostatState[]> {
+  const results = await Promise.all(thermostatIDs.map((id) => getThermostat(id, authOpts)));
+  return results.filter((t): t is ThermostatState => t !== undefined);
 }

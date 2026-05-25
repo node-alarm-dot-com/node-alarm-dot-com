@@ -1,5 +1,6 @@
 import { AuthOpts } from './_models/AuthOpts';
-import { LIGHTS_URL, authenticatedPost } from './_utils';
+import { LightState } from './_models/DeviceStates';
+import { LIGHTS_URL, authenticatedGet, authenticatedPost } from './_utils';
 
 /**
  * Perform non-dimmable light actions, i.e. turn on, turn off
@@ -71,4 +72,14 @@ export function setLightOff(lightID: string, authOpts: AuthOpts, brightness: num
   } else {
     return lightAction(lightID, authOpts, 'turnOff');
   }
+}
+
+async function getLight(lightID: string, authOpts: AuthOpts): Promise<LightState | undefined> {
+  const res = await authenticatedGet(`${LIGHTS_URL}${lightID}`, authOpts);
+  return res.data as LightState;
+}
+
+export async function getLights(lightIDs: string[], authOpts: AuthOpts): Promise<LightState[]> {
+  const results = await Promise.all(lightIDs.map((id) => getLight(id, authOpts)));
+  return results.filter((l): l is LightState => l !== undefined);
 }
