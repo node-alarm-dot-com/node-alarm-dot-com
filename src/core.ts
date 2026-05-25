@@ -14,12 +14,14 @@ import {
   GARAGE_URL,
   THERMOSTAT_URL,
   LOCKS_URL,
+  WEBSOCKET_TOKEN_URL,
   UA,
   authenticatedGet,
   getComponents,
   get,
   describeError
 } from './_utils';
+import { WebSocketTokenResponse } from './_models/WebSockets';
 
 /**
  * Authenticate with alarm.com.
@@ -179,4 +181,22 @@ export async function getCurrentState(systemID: string, authOpts: AuthOpts): Pro
     thermostats: components.has('thermostats') ? components.get('thermostats')!.data : [],
     relationships: rels
   } as FlattenedSystemState;
+}
+
+/**
+ * Fetch a short-lived WebSocket token and the endpoint URL to connect to.
+ * Pass `value` as a query string to `endpoint` to establish the connection.
+ *
+ * @param {Object} authOpts  Authentication object returned from the login.
+ * @returns {Promise<WebSocketTokenResponse>}
+ */
+export async function getWebSocketToken(authOpts: AuthOpts): Promise<WebSocketTokenResponse> {
+  const res = await authenticatedGet(WEBSOCKET_TOKEN_URL, authOpts);
+  return {
+    value: res.value,
+    endpoint: res.metaData.endpoint,
+    errors: res.errors,
+    validationErrors: res.validationErrors,
+    processingErrors: res.processingErrors
+  };
 }

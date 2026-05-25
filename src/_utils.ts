@@ -16,6 +16,7 @@ export const LIGHTS_URL = 'https://www.alarm.com/web/api/devices/lights/';
 export const GARAGE_URL = 'https://www.alarm.com/web/api/devices/garageDoors/';
 export const THERMOSTAT_URL = 'https://www.alarm.com/web/api/devices/thermostats/';
 export const LOCKS_URL = 'https://www.alarm.com/web/api/devices/locks/';
+export const WEBSOCKET_TOKEN_URL = 'https://www.alarm.com/web/api/websockets/token';
 export const UA = `node-alarm-dot-com/${packageJson.version}`;
 
 export async function authenticatedGet(url: string, opts: AuthOpts) {
