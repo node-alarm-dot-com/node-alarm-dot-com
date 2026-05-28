@@ -136,6 +136,7 @@ export const LOCK_EVENT_TYPES = new Set([WebSocketEventTypes.DoorLocked, WebSock
 export const SENSOR_EVENT_TYPES = new Set([
   WebSocketEventTypes.Opened,
   WebSocketEventTypes.Closed,
+  WebSocketEventTypes.OpenedClosed,
   WebSocketEventTypes.Tamper,
   WebSocketEventTypes.Bypassed,
   WebSocketEventTypes.EndOfBypass,
