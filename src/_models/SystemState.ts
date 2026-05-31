@@ -1,12 +1,4 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-import {
-  GarageState,
-  LightState,
-  LockState,
-  PartitionState,
-  SensorState,
-  ThermostatState
-} from './DeviceStates';
+import { GarageState, LightState, LockState, PartitionState, SensorState, ThermostatState } from './DeviceStates';
 
 /**
  * Response information from

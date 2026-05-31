@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/naming-convention */
 /***
  * State of the partition as defined by Alarm.com
  * @readonly
