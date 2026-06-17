@@ -69,6 +69,15 @@ export enum THERMOSTAT_STATES {
   AUTO
 }
 
+export enum ExtendedArmingOptions {
+  BYPASS_SENSORS = 0,
+  NO_ENTRY_DELAY = 1,
+  SILENT_ARMING = 2,
+  NIGHT_ARMING = 3,
+  SELECTIVELY_BYPASS_SENSORS = 4,
+  FORCE_ARM = 5
+}
+
 /***
  * Relation types as defined by Alarm.com.
  * Relationship types tell you what object is being sent from the API.

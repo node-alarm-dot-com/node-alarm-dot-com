@@ -1,6 +1,14 @@
 import { Relationship } from './IdentityResponse';
 import { SensorType } from './SensorType';
-import { GARAGE_STATES, LIGHT_STATES, LOCK_STATES, SENSOR_STATES, SYSTEM_STATES, THERMOSTAT_STATES } from './States';
+import {
+  ExtendedArmingOptions,
+  GARAGE_STATES,
+  LIGHT_STATES,
+  LOCK_STATES,
+  SENSOR_STATES,
+  SYSTEM_STATES,
+  THERMOSTAT_STATES
+} from './States';
 import { AutomationType, RelationshipType } from './SystemState';
 
 export interface ApiLightState extends ApiDeviceState {
@@ -355,10 +363,10 @@ export interface ApiPartitionState extends ApiDeviceState {
       state: SYSTEM_STATES;
       desiredState: SYSTEM_STATES;
       extendedArmingOptions: {
-        Disarmed: [];
-        ArmedStay: [];
-        ArmedAway: [];
-        ArmedNight: [];
+        Disarmed: ExtendedArmingOptions[];
+        ArmedStay: ExtendedArmingOptions[];
+        ArmedAway: ExtendedArmingOptions[];
+        ArmedNight: ExtendedArmingOptions[];
       };
       invalidExtendedArmingOptions: {
         Disarmed: number[][];
@@ -415,10 +423,10 @@ export interface PartitionState extends DeviceState {
     state: SYSTEM_STATES;
     desiredState: SYSTEM_STATES;
     extendedArmingOptions: {
-      Disarmed: [];
-      ArmedStay: [];
-      ArmedAway: [];
-      ArmedNight: [];
+      Disarmed: number[];
+      ArmedStay: number[];
+      ArmedAway: number[];
+      ArmedNight: number[];
     };
     invalidExtendedArmingOptions: {
       Disarmed: number[][];
