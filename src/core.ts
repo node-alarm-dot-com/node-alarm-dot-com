@@ -14,6 +14,7 @@ import {
   GARAGE_URL,
   THERMOSTAT_URL,
   LOCKS_URL,
+  CAMERAS_URL,
   WEBSOCKET_TOKEN_URL,
   UA,
   authenticatedGet,
@@ -169,6 +170,10 @@ export async function getCurrentState(systemID: string, authOpts: AuthOpts): Pro
   if (typeof thermostatIDs[0] !== 'undefined') {
     components.set('thermostats', await getComponents(THERMOSTAT_URL, thermostatIDs, authOpts));
   }
+  const cameraIDs = rels.cameras.data.map((camera) => camera.id);
+  if (typeof cameraIDs[0] !== 'undefined') {
+    components.set('cameras', await getComponents(CAMERAS_URL, cameraIDs, authOpts));
+  }
 
   return {
     id: res.data.id,
@@ -179,6 +184,7 @@ export async function getCurrentState(systemID: string, authOpts: AuthOpts): Pro
     locks: components.has('locks') ? components.get('locks')!.data : [],
     garages: components.has('garages') ? components.get('garages')!.data : [],
     thermostats: components.has('thermostats') ? components.get('thermostats')!.data : [],
+    cameras: components.has('cameras') ? components.get('cameras')!.data : [],
     relationships: rels
   } as FlattenedSystemState;
 }

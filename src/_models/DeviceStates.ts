@@ -583,7 +583,7 @@ export interface SensorState extends DeviceState {
 export interface ApiCameraState extends ApiDeviceState {
   data: {
     id: string;
-    type: RelationshipType.Camera;
+    type: RelationshipType.VideoDeviceCamera;
     attributes: {
       supportsSnapShot: boolean;
       isRecordingToContinuousCloud: boolean;
@@ -602,7 +602,10 @@ export interface ApiCameraState extends ApiDeviceState {
       canChangeStreamToPanel: boolean;
       canStreamToPanelBeEnabled: boolean;
       isStreamToPanelEnabled: boolean;
+      isDoorbellCamera: boolean;
       doorbellChimeType: number;
+      supportsTwoWayAudio: boolean;
+      isTwoWayAudioEnabled: boolean;
       supportsVmdSchedules: boolean;
       deviceImagePath: string;
       deviceModel: string;
@@ -629,6 +632,7 @@ export interface ApiCameraState extends ApiDeviceState {
         icon: number;
       };
       batteryLevelNull?: null;
+      batteryLevelClassification: number | null;
       lowBattery: boolean;
       criticalBattery: boolean;
     };
@@ -681,7 +685,7 @@ export interface ApiCameraState extends ApiDeviceState {
 }
 
 export interface CameraState extends DeviceState {
-  type: RelationshipType.Camera;
+  type: RelationshipType.VideoDeviceCamera;
   attributes: {
     supportsSnapShot: boolean;
     isRecordingToContinuousCloud: boolean;
@@ -700,7 +704,10 @@ export interface CameraState extends DeviceState {
     canChangeStreamToPanel: boolean;
     canStreamToPanelBeEnabled: boolean;
     isStreamToPanelEnabled: boolean;
+    isDoorbellCamera: boolean;
     doorbellChimeType: number;
+    supportsTwoWayAudio: boolean;
+    isTwoWayAudioEnabled: boolean;
     supportsVmdSchedules: boolean;
     deviceImagePath: string;
     deviceModel: string;
@@ -727,6 +734,7 @@ export interface CameraState extends DeviceState {
       icon: number;
     };
     batteryLevelNull?: null;
+    batteryLevelClassification: number | null;
     lowBattery: boolean;
     criticalBattery: boolean;
   };

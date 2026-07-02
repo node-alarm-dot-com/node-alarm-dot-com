@@ -16,6 +16,7 @@ export const LIGHTS_URL = 'https://www.alarm.com/web/api/devices/lights/';
 export const GARAGE_URL = 'https://www.alarm.com/web/api/devices/garageDoors/';
 export const THERMOSTAT_URL = 'https://www.alarm.com/web/api/devices/thermostats/';
 export const LOCKS_URL = 'https://www.alarm.com/web/api/devices/locks/';
+export const CAMERAS_URL = 'https://www.alarm.com/web/api/video/devices/cameras/';
 export const WEBSOCKET_TOKEN_URL = 'https://www.alarm.com/web/api/websockets/token';
 export const UA = `node-alarm-dot-com/${packageJson.version}`;
 

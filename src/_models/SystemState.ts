@@ -1,4 +1,4 @@
-import { GarageState, LightState, LockState, PartitionState, SensorState, ThermostatState } from './DeviceStates';
+import { CameraState, GarageState, LightState, LockState, PartitionState, SensorState, ThermostatState } from './DeviceStates';
 
 /**
  * Response information from
@@ -35,6 +35,7 @@ export interface FlattenedSystemState {
   locks: LockState[];
   garages: GarageState[];
   thermostats: ThermostatState[];
+  cameras: CameraState[];
   relationships: Relationships;
 }
 
@@ -201,6 +202,7 @@ export enum RelationshipType {
   Partition = 'devices/partition',
   Lock = 'devices/lock',
   Camera = 'video/camera',
+  VideoDeviceCamera = 'video/devices/camera',
   GarageDoor = 'devices/garage-door',
   Scene = 'automation/scene',
   Sensor = 'devices/sensor',
