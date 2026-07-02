@@ -168,3 +168,9 @@ export const THERMOSTAT_EVENT_TYPES = new Set([
   WebSocketEventTypes.ThermostatFanModeChanged,
   WebSocketEventTypes.ThermostatOffset
 ]);
+
+export const CAMERA_EVENT_TYPES = new Set([
+  WebSocketEventTypes.VideoCameraTriggered,
+  WebSocketEventTypes.VideoAnalyticsDetection,
+  WebSocketEventTypes.VideoAnalytics2Detection
+]);
