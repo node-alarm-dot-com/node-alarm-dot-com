@@ -147,7 +147,7 @@ async function post(url: string, opts: RequestOptions) {
     status = res.status;
     resHeaders = res.headers;
     const json = await (res.status === 204 ? {} : res.json());
-    if (status !== 200) {
+    if (status !== 200 && status !== 204) {
       throw new Error(`status=${status}; body=${describeError(json)}`);
     }
     return {
