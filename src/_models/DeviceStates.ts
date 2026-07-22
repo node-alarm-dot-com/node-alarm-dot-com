@@ -47,7 +47,7 @@ export interface ApiLightState extends ApiDeviceState {
       canBeSaved: boolean;
       canChangeDescription: boolean;
       description: string;
-      deviceModelId: 82;
+      deviceModelId: number;
       canConfirmStateChange: boolean;
       remoteCommandsEnabled: boolean;
       hasPermissionToChangeState: boolean;
@@ -115,7 +115,7 @@ export interface LightState extends DeviceState {
     canBeSaved: boolean;
     canChangeDescription: boolean;
     description: string;
-    deviceModelId: 82;
+    deviceModelId: number;
     canConfirmStateChange: boolean;
     remoteCommandsEnabled: boolean;
     hasPermissionToChangeState: boolean;
