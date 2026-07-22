@@ -72,7 +72,7 @@ export interface ApiLightState extends ApiDeviceState {
         };
       };
       stateInfo: {
-        data: {
+        data?: {
           id: string;
           type: RelationshipType.State;
         };
@@ -140,7 +140,7 @@ export interface LightState extends DeviceState {
       };
     };
     stateInfo: {
-      data: {
+      data?: {
         id: string;
         type: RelationshipType.State;
       };
@@ -194,7 +194,7 @@ export interface ApiLockState extends ApiDeviceState {
         };
       };
       stateInfo: {
-        data: {
+        data?: {
           id: string;
           type: RelationshipType.State;
         };
@@ -247,7 +247,7 @@ export interface LockState extends DeviceState {
       };
     };
     stateInfo: {
-      data: {
+      data?: {
         id: string;
         type: RelationshipType.State;
       };
@@ -297,7 +297,7 @@ export interface ApiGarageState extends ApiDeviceState {
         };
       };
       stateInfo: {
-        data: {
+        data?: {
           id: string;
           type: RelationshipType.State;
         };
@@ -346,7 +346,7 @@ export interface GarageState extends DeviceState {
       };
     };
     stateInfo: {
-      data: {
+      data?: {
         id: string;
         type: RelationshipType.State;
       };
@@ -519,7 +519,7 @@ export interface ApiSensorState extends ApiDeviceState {
         };
       };
       stateInfo: {
-        data: {
+        data?: {
           id: string;
           type: RelationshipType.State;
         };
@@ -572,7 +572,7 @@ export interface SensorState extends DeviceState {
       };
     };
     stateInfo: {
-      data: {
+      data?: {
         id: string;
         type: RelationshipType.State;
       };
@@ -1139,7 +1139,7 @@ export interface ApiAccessControlState extends ApiDeviceState {
         };
       };
       stateInfo: {
-        data: {
+        data?: {
           id: string;
           type: RelationshipType.State;
         };
