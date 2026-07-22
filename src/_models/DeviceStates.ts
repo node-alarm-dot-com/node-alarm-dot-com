@@ -366,13 +366,13 @@ export interface ApiPartitionState extends ApiDeviceState {
         Disarmed: ExtendedArmingOptions[];
         ArmedStay: ExtendedArmingOptions[];
         ArmedAway: ExtendedArmingOptions[];
-        ArmedNight: ExtendedArmingOptions[];
+        ArmedNight?: ExtendedArmingOptions[];
       };
       invalidExtendedArmingOptions: {
         Disarmed: number[][];
         ArmedStay: number[][];
         ArmedAway: number[][];
-        ArmedNight: number[][];
+        ArmedNight?: number[][];
       };
       needsClearIssuesPrompt: boolean;
       canEnableAlexa: boolean;
@@ -426,13 +426,13 @@ export interface PartitionState extends DeviceState {
       Disarmed: number[];
       ArmedStay: number[];
       ArmedAway: number[];
-      ArmedNight: number[];
+      ArmedNight?: number[];
     };
     invalidExtendedArmingOptions: {
       Disarmed: number[][];
       ArmedStay: number[][];
       ArmedAway: number[][];
-      ArmedNight: number[][];
+      ArmedNight?: number[][];
     };
     needsClearIssuesPrompt: boolean;
     canEnableAlexa: boolean;
