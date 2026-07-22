@@ -87,7 +87,7 @@ async function combineAPIDeviceAPICalls(apiCalls: Promise<ApiDeviceState>[]): Pr
       (stateToReturn.data as DeviceState[]).push(apiData);
     }
 
-    for (const apiInclude of apiCall.included) {
+    for (const apiInclude of apiCall.included ?? []) {
       stateToReturn.included.push(apiInclude);
     }
   }
