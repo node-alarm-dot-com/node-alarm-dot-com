@@ -60,7 +60,7 @@ export interface ApiLightState extends ApiDeviceState {
     };
     relationships: {
       lightGroups: {
-        data: [];
+        data: Relationship[];
         meta: {
           count: string;
         };
@@ -128,7 +128,7 @@ export interface LightState extends DeviceState {
   };
   relationships: {
     lightGroups: {
-      data: [];
+      data: Relationship[];
       meta: {
         count: string;
       };
@@ -594,7 +594,7 @@ export interface ApiCameraState extends ApiDeviceState {
       liveViewHdToggleEnabled: boolean;
       canPanTilt: boolean;
       canZoom: boolean;
-      panTiltPresets: [];
+      panTiltPresets: unknown[];
       preferredPanTiltPreset?: [];
       isUnreachable: boolean;
       lastSuccessfulSupervision: Date;
@@ -638,7 +638,7 @@ export interface ApiCameraState extends ApiDeviceState {
     };
     relationships: {
       videoEvents: {
-        data: [];
+        data: Relationship[];
         meta: {
           count: number;
         };
@@ -696,7 +696,7 @@ export interface CameraState extends DeviceState {
     liveViewHdToggleEnabled: boolean;
     canPanTilt: boolean;
     canZoom: boolean;
-    panTiltPresets: [];
+    panTiltPresets: unknown[];
     preferredPanTiltPreset?: [];
     isUnreachable: boolean;
     lastSuccessfulSupervision: Date;
@@ -740,7 +740,7 @@ export interface CameraState extends DeviceState {
   };
   relationships: {
     videoEvents: {
-      data: [];
+      data: Relationship[];
       meta: {
         count: number;
       };
@@ -891,7 +891,7 @@ export interface ApiThermostatState extends ApiDeviceState {
         data?: unknown;
       };
       remoteTemperatureSensors: {
-        data: [];
+        data: Relationship[];
         meta: {
           count: string;
         };
@@ -900,7 +900,7 @@ export interface ApiThermostatState extends ApiDeviceState {
         data?: unknown;
       };
       valveSwitches: {
-        data: [];
+        data: Relationship[];
         meta: {
           count: string;
         };
@@ -912,7 +912,7 @@ export interface ApiThermostatState extends ApiDeviceState {
         };
       };
       controlledThermostats: {
-        data: [];
+        data: Relationship[];
         meta: {
           count: string;
         };
@@ -1042,7 +1042,7 @@ export interface ThermostatState extends DeviceState {
       data?: unknown;
     };
     remoteTemperatureSensors: {
-      data: [];
+      data: Relationship[];
       meta: {
         count: string;
       };
@@ -1051,7 +1051,7 @@ export interface ThermostatState extends DeviceState {
       data?: unknown;
     };
     valveSwitches: {
-      data: [];
+      data: Relationship[];
       meta: {
         count: string;
       };
@@ -1063,7 +1063,7 @@ export interface ThermostatState extends DeviceState {
       };
     };
     controlledThermostats: {
-      data: [];
+      data: Relationship[];
       meta: {
         count: string;
       };
