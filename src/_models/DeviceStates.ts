@@ -408,7 +408,7 @@ export interface ApiPartitionState extends ApiDeviceState {
       sensors: {
         data: Relationship[];
         meta: {
-          count: number;
+          count: string;
         };
       };
     };
@@ -468,7 +468,7 @@ export interface PartitionState extends DeviceState {
     sensors: {
       data: Relationship[];
       meta: {
-        count: number;
+        count: string;
       };
     };
   };
@@ -640,7 +640,7 @@ export interface ApiCameraState extends ApiDeviceState {
       videoEvents: {
         data: Relationship[];
         meta: {
-          count: number;
+          count: string;
         };
       };
       videoSource: {
@@ -742,7 +742,7 @@ export interface CameraState extends DeviceState {
     videoEvents: {
       data: Relationship[];
       meta: {
-        count: number;
+        count: string;
       };
     };
     videoSource: {
