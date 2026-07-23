@@ -10,7 +10,7 @@ import { LOCKS_URL, authenticatedGet, authenticatedPost } from './_utils';
  * @param {Object} authOpts  Authentication object returned from the login.
  */
 function lockAction(lockID: string, authOpts: AuthOpts, action: string) {
-  const url = `${LOCKS_URL}${lockID}/${action}`;
+  const url = `${LOCKS_URL}${encodeURIComponent(lockID)}/${action}`;
   const postOpts = Object.assign({}, authOpts, {
     body: {
       statePollOnly: false
@@ -44,7 +44,7 @@ export function setLockUnsecure(lockID: string, authOpts: AuthOpts) {
 }
 
 async function getLock(lockID: string, authOpts: AuthOpts): Promise<LockState | undefined> {
-  const res = await authenticatedGet(`${LOCKS_URL}${lockID}`, authOpts);
+  const res = await authenticatedGet(`${LOCKS_URL}${encodeURIComponent(lockID)}`, authOpts);
   return res.data as LockState;
 }
 

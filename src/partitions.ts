@@ -18,7 +18,7 @@ function partitionAction(partitionID: string, action: string, authOpts: AuthOpts
     nightArming: false,
     forceBypass: false
   };
-  const url = `${PARTITIONS_URL}${partitionID}/${action}`;
+  const url = `${PARTITIONS_URL}${encodeURIComponent(partitionID)}/${action}`;
   const body: {
     noEntryDelay?: boolean;
     silentArming?: boolean;
@@ -92,7 +92,7 @@ export function disarm(partitionID: string, authOpts: AuthOpts) {
 }
 
 async function getPartition(partitionID: string, authOpts: AuthOpts): Promise<PartitionState | undefined> {
-  const res = await authenticatedGet(`${PARTITIONS_URL}${partitionID}`, authOpts);
+  const res = await authenticatedGet(`${PARTITIONS_URL}${encodeURIComponent(partitionID)}`, authOpts);
   return res.data as PartitionState;
 }
 

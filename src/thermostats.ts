@@ -12,7 +12,7 @@ import { THERMOSTAT_URL, authenticatedGet, authenticatedPost } from './_utils';
  * @returns {Promise}
  */
 export function setThermostatState(thermostatID: string, newState: THERMOSTAT_STATES, authOpts: AuthOpts) {
-  const url = `${THERMOSTAT_URL}${thermostatID}/setState`;
+  const url = `${THERMOSTAT_URL}${encodeURIComponent(thermostatID)}/setState`;
   const postOpts = Object.assign({}, authOpts, {
     body: {
       desiredState: newState,
@@ -31,7 +31,7 @@ export function setThermostatState(thermostatID: string, newState: THERMOSTAT_ST
  * @returns {Promise}
  */
 export function setThermostatTargetHeatTemperature(thermostatID: string, newTemp: number, authOpts: AuthOpts) {
-  const url = `${THERMOSTAT_URL}${thermostatID}/setState`;
+  const url = `${THERMOSTAT_URL}${encodeURIComponent(thermostatID)}/setState`;
   const postOpts = Object.assign({}, authOpts, {
     body: {
       desiredHeatSetpoint: newTemp,
@@ -50,7 +50,7 @@ export function setThermostatTargetHeatTemperature(thermostatID: string, newTemp
  * @returns {Promise}
  */
 export function setThermostatTargetCoolTemperature(thermostatID: string, newTemp: number, authOpts: AuthOpts) {
-  const url = `${THERMOSTAT_URL}${thermostatID}/setState`;
+  const url = `${THERMOSTAT_URL}${encodeURIComponent(thermostatID)}/setState`;
   const postOpts = Object.assign({}, authOpts, {
     body: {
       desiredCoolSetpoint: newTemp,
@@ -61,7 +61,7 @@ export function setThermostatTargetCoolTemperature(thermostatID: string, newTemp
 }
 
 async function getThermostat(thermostatID: string, authOpts: AuthOpts): Promise<ThermostatState | undefined> {
-  const res = await authenticatedGet(`${THERMOSTAT_URL}${thermostatID}`, authOpts);
+  const res = await authenticatedGet(`${THERMOSTAT_URL}${encodeURIComponent(thermostatID)}`, authOpts);
   return res.data as ThermostatState;
 }
 
