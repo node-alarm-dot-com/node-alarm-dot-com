@@ -10,7 +10,7 @@ import { GARAGE_URL, authenticatedGet, authenticatedPost } from './_utils';
  * @returns {Promise}
  */
 export function closeGarage(garageID: string, authOpts: AuthOpts) {
-  const url = `${GARAGE_URL}${garageID}/close`;
+  const url = `${GARAGE_URL}${encodeURIComponent(garageID)}/close`;
   const postOpts = Object.assign({}, authOpts, {
     body: {
       statePollOnly: false
@@ -27,7 +27,7 @@ export function closeGarage(garageID: string, authOpts: AuthOpts) {
  * @returns {Promise}
  */
 export function openGarage(garageID: string, authOpts: AuthOpts) {
-  const url = `${GARAGE_URL}${garageID}/open`;
+  const url = `${GARAGE_URL}${encodeURIComponent(garageID)}/open`;
   const postOpts = Object.assign({}, authOpts, {
     body: {
       statePollOnly: false
@@ -37,7 +37,7 @@ export function openGarage(garageID: string, authOpts: AuthOpts) {
 }
 
 async function getGarage(garageID: string, authOpts: AuthOpts): Promise<GarageState | undefined> {
-  const res = await authenticatedGet(`${GARAGE_URL}${garageID}`, authOpts);
+  const res = await authenticatedGet(`${GARAGE_URL}${encodeURIComponent(garageID)}`, authOpts);
   return res.data as GarageState;
 }
 

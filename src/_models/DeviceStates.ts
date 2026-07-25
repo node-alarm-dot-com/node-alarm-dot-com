@@ -47,7 +47,7 @@ export interface ApiLightState extends ApiDeviceState {
       canBeSaved: boolean;
       canChangeDescription: boolean;
       description: string;
-      deviceModelId: 82;
+      deviceModelId: number;
       canConfirmStateChange: boolean;
       remoteCommandsEnabled: boolean;
       hasPermissionToChangeState: boolean;
@@ -60,7 +60,7 @@ export interface ApiLightState extends ApiDeviceState {
     };
     relationships: {
       lightGroups: {
-        data: [];
+        data: Relationship[];
         meta: {
           count: string;
         };
@@ -72,7 +72,7 @@ export interface ApiLightState extends ApiDeviceState {
         };
       };
       stateInfo: {
-        data: {
+        data?: {
           id: string;
           type: RelationshipType.State;
         };
@@ -115,7 +115,7 @@ export interface LightState extends DeviceState {
     canBeSaved: boolean;
     canChangeDescription: boolean;
     description: string;
-    deviceModelId: 82;
+    deviceModelId: number;
     canConfirmStateChange: boolean;
     remoteCommandsEnabled: boolean;
     hasPermissionToChangeState: boolean;
@@ -128,7 +128,7 @@ export interface LightState extends DeviceState {
   };
   relationships: {
     lightGroups: {
-      data: [];
+      data: Relationship[];
       meta: {
         count: string;
       };
@@ -140,7 +140,7 @@ export interface LightState extends DeviceState {
       };
     };
     stateInfo: {
-      data: {
+      data?: {
         id: string;
         type: RelationshipType.State;
       };
@@ -194,7 +194,7 @@ export interface ApiLockState extends ApiDeviceState {
         };
       };
       stateInfo: {
-        data: {
+        data?: {
           id: string;
           type: RelationshipType.State;
         };
@@ -247,7 +247,7 @@ export interface LockState extends DeviceState {
       };
     };
     stateInfo: {
-      data: {
+      data?: {
         id: string;
         type: RelationshipType.State;
       };
@@ -297,7 +297,7 @@ export interface ApiGarageState extends ApiDeviceState {
         };
       };
       stateInfo: {
-        data: {
+        data?: {
           id: string;
           type: RelationshipType.State;
         };
@@ -346,7 +346,7 @@ export interface GarageState extends DeviceState {
       };
     };
     stateInfo: {
-      data: {
+      data?: {
         id: string;
         type: RelationshipType.State;
       };
@@ -366,13 +366,13 @@ export interface ApiPartitionState extends ApiDeviceState {
         Disarmed: ExtendedArmingOptions[];
         ArmedStay: ExtendedArmingOptions[];
         ArmedAway: ExtendedArmingOptions[];
-        ArmedNight: ExtendedArmingOptions[];
+        ArmedNight?: ExtendedArmingOptions[];
       };
       invalidExtendedArmingOptions: {
         Disarmed: number[][];
         ArmedStay: number[][];
         ArmedAway: number[][];
-        ArmedNight: number[][];
+        ArmedNight?: number[][];
       };
       needsClearIssuesPrompt: boolean;
       canEnableAlexa: boolean;
@@ -408,7 +408,7 @@ export interface ApiPartitionState extends ApiDeviceState {
       sensors: {
         data: Relationship[];
         meta: {
-          count: number;
+          count: string;
         };
       };
     };
@@ -426,13 +426,13 @@ export interface PartitionState extends DeviceState {
       Disarmed: number[];
       ArmedStay: number[];
       ArmedAway: number[];
-      ArmedNight: number[];
+      ArmedNight?: number[];
     };
     invalidExtendedArmingOptions: {
       Disarmed: number[][];
       ArmedStay: number[][];
       ArmedAway: number[][];
-      ArmedNight: number[][];
+      ArmedNight?: number[][];
     };
     needsClearIssuesPrompt: boolean;
     canEnableAlexa: boolean;
@@ -468,7 +468,7 @@ export interface PartitionState extends DeviceState {
     sensors: {
       data: Relationship[];
       meta: {
-        count: number;
+        count: string;
       };
     };
   };
@@ -519,7 +519,7 @@ export interface ApiSensorState extends ApiDeviceState {
         };
       };
       stateInfo: {
-        data: {
+        data?: {
           id: string;
           type: RelationshipType.State;
         };
@@ -572,7 +572,7 @@ export interface SensorState extends DeviceState {
       };
     };
     stateInfo: {
-      data: {
+      data?: {
         id: string;
         type: RelationshipType.State;
       };
@@ -583,7 +583,7 @@ export interface SensorState extends DeviceState {
 export interface ApiCameraState extends ApiDeviceState {
   data: {
     id: string;
-    type: RelationshipType.Camera;
+    type: RelationshipType.VideoDeviceCamera;
     attributes: {
       supportsSnapShot: boolean;
       isRecordingToContinuousCloud: boolean;
@@ -594,7 +594,7 @@ export interface ApiCameraState extends ApiDeviceState {
       liveViewHdToggleEnabled: boolean;
       canPanTilt: boolean;
       canZoom: boolean;
-      panTiltPresets: [];
+      panTiltPresets: unknown[];
       preferredPanTiltPreset?: [];
       isUnreachable: boolean;
       lastSuccessfulSupervision: Date;
@@ -602,7 +602,10 @@ export interface ApiCameraState extends ApiDeviceState {
       canChangeStreamToPanel: boolean;
       canStreamToPanelBeEnabled: boolean;
       isStreamToPanelEnabled: boolean;
+      isDoorbellCamera: boolean;
       doorbellChimeType: number;
+      supportsTwoWayAudio: boolean;
+      isTwoWayAudioEnabled: boolean;
       supportsVmdSchedules: boolean;
       deviceImagePath: string;
       deviceModel: string;
@@ -629,14 +632,15 @@ export interface ApiCameraState extends ApiDeviceState {
         icon: number;
       };
       batteryLevelNull?: null;
+      batteryLevelClassification: number | null;
       lowBattery: boolean;
       criticalBattery: boolean;
     };
     relationships: {
       videoEvents: {
-        data: [];
+        data: Relationship[];
         meta: {
-          count: number;
+          count: string;
         };
       };
       videoSource: {
@@ -681,7 +685,7 @@ export interface ApiCameraState extends ApiDeviceState {
 }
 
 export interface CameraState extends DeviceState {
-  type: RelationshipType.Camera;
+  type: RelationshipType.VideoDeviceCamera;
   attributes: {
     supportsSnapShot: boolean;
     isRecordingToContinuousCloud: boolean;
@@ -692,7 +696,7 @@ export interface CameraState extends DeviceState {
     liveViewHdToggleEnabled: boolean;
     canPanTilt: boolean;
     canZoom: boolean;
-    panTiltPresets: [];
+    panTiltPresets: unknown[];
     preferredPanTiltPreset?: [];
     isUnreachable: boolean;
     lastSuccessfulSupervision: Date;
@@ -700,7 +704,10 @@ export interface CameraState extends DeviceState {
     canChangeStreamToPanel: boolean;
     canStreamToPanelBeEnabled: boolean;
     isStreamToPanelEnabled: boolean;
+    isDoorbellCamera: boolean;
     doorbellChimeType: number;
+    supportsTwoWayAudio: boolean;
+    isTwoWayAudioEnabled: boolean;
     supportsVmdSchedules: boolean;
     deviceImagePath: string;
     deviceModel: string;
@@ -727,14 +734,15 @@ export interface CameraState extends DeviceState {
       icon: number;
     };
     batteryLevelNull?: null;
+    batteryLevelClassification: number | null;
     lowBattery: boolean;
     criticalBattery: boolean;
   };
   relationships: {
     videoEvents: {
-      data: [];
+      data: Relationship[];
       meta: {
-        count: number;
+        count: string;
       };
     };
     videoSource: {
@@ -883,7 +891,7 @@ export interface ApiThermostatState extends ApiDeviceState {
         data?: unknown;
       };
       remoteTemperatureSensors: {
-        data: [];
+        data: Relationship[];
         meta: {
           count: string;
         };
@@ -892,7 +900,7 @@ export interface ApiThermostatState extends ApiDeviceState {
         data?: unknown;
       };
       valveSwitches: {
-        data: [];
+        data: Relationship[];
         meta: {
           count: string;
         };
@@ -904,7 +912,7 @@ export interface ApiThermostatState extends ApiDeviceState {
         };
       };
       controlledThermostats: {
-        data: [];
+        data: Relationship[];
         meta: {
           count: string;
         };
@@ -1034,7 +1042,7 @@ export interface ThermostatState extends DeviceState {
       data?: unknown;
     };
     remoteTemperatureSensors: {
-      data: [];
+      data: Relationship[];
       meta: {
         count: string;
       };
@@ -1043,7 +1051,7 @@ export interface ThermostatState extends DeviceState {
       data?: unknown;
     };
     valveSwitches: {
-      data: [];
+      data: Relationship[];
       meta: {
         count: string;
       };
@@ -1055,7 +1063,7 @@ export interface ThermostatState extends DeviceState {
       };
     };
     controlledThermostats: {
-      data: [];
+      data: Relationship[];
       meta: {
         count: string;
       };
@@ -1131,12 +1139,26 @@ export interface ApiAccessControlState extends ApiDeviceState {
         };
       };
       stateInfo: {
-        data: {
+        data?: {
           id: string;
           type: RelationshipType.State;
         };
       };
     };
+  };
+}
+
+export interface CameraSnapshotResponse {
+  data: {
+    id: string;
+    type: 'video/snapshot';
+    attributes: {
+      url: string;
+      error: string | null;
+    };
+  };
+  meta: {
+    transformer_version: string;
   };
 }
 

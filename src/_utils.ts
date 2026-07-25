@@ -16,6 +16,8 @@ export const LIGHTS_URL = 'https://www.alarm.com/web/api/devices/lights/';
 export const GARAGE_URL = 'https://www.alarm.com/web/api/devices/garageDoors/';
 export const THERMOSTAT_URL = 'https://www.alarm.com/web/api/devices/thermostats/';
 export const LOCKS_URL = 'https://www.alarm.com/web/api/devices/locks/';
+export const CAMERAS_URL = 'https://www.alarm.com/web/api/video/devices/cameras/';
+export const CAMERA_SNAPSHOT_URL = 'https://www.alarm.com/web/api/video/snapshots/';
 export const WEBSOCKET_TOKEN_URL = 'https://www.alarm.com/web/api/websockets/token';
 export const UA = `node-alarm-dot-com/${packageJson.version}`;
 
@@ -85,7 +87,7 @@ async function combineAPIDeviceAPICalls(apiCalls: Promise<ApiDeviceState>[]): Pr
       (stateToReturn.data as DeviceState[]).push(apiData);
     }
 
-    for (const apiInclude of apiCall.included) {
+    for (const apiInclude of apiCall.included ?? []) {
       stateToReturn.included.push(apiInclude);
     }
   }
@@ -145,7 +147,7 @@ async function post(url: string, opts: RequestOptions) {
     status = res.status;
     resHeaders = res.headers;
     const json = await (res.status === 204 ? {} : res.json());
-    if (status !== 200) {
+    if (status !== 200 && status !== 204) {
       throw new Error(`status=${status}; body=${describeError(json)}`);
     }
     return {

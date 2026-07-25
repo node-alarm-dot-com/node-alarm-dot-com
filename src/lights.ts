@@ -10,7 +10,7 @@ import { LIGHTS_URL, authenticatedGet, authenticatedPost } from './_utils';
  * @param {Object} authOpts  Authentication object returned from the login.
  */
 function lightAction(lightID: string, authOpts: AuthOpts, action: string) {
-  const url = `${LIGHTS_URL}${lightID}/${action}`;
+  const url = `${LIGHTS_URL}${encodeURIComponent(lightID)}/${action}`;
   const postOpts = Object.assign({}, authOpts, {
     body: {
       statePollOnly: false
@@ -28,7 +28,7 @@ function lightAction(lightID: string, authOpts: AuthOpts, action: string) {
  * @param {number} brightness  An integer, 1-100, indicating brightness.
  */
 function dimmerAction(lightID: string, authOpts: AuthOpts, brightness: number, action: string) {
-  const url = `${LIGHTS_URL}${lightID}/${action}`;
+  const url = `${LIGHTS_URL}${encodeURIComponent(lightID)}/${action}`;
   const postOpts = Object.assign({}, authOpts, {
     body: {
       dimmerLevel: brightness,
@@ -75,7 +75,7 @@ export function setLightOff(lightID: string, authOpts: AuthOpts, brightness: num
 }
 
 async function getLight(lightID: string, authOpts: AuthOpts): Promise<LightState | undefined> {
-  const res = await authenticatedGet(`${LIGHTS_URL}${lightID}`, authOpts);
+  const res = await authenticatedGet(`${LIGHTS_URL}${encodeURIComponent(lightID)}`, authOpts);
   return res.data as LightState;
 }
 
