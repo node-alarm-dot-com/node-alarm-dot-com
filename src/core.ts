@@ -1,28 +1,27 @@
-import fetch from 'node-fetch';
-import { AuthOpts } from './_models/AuthOpts';
-import { ApiDeviceState } from './_models/DeviceStates';
-import { IdentityData, IdentityResponse } from './_models/IdentityResponse';
-import { FlattenedSystemState, Relationships } from './_models/SystemState';
+import type { AuthOpts } from './_models/AuthOpts.js';
+import type { ApiDeviceState } from './_models/DeviceStates.js';
+import type { IdentityData, IdentityResponse } from './_models/IdentityResponse.js';
+import type { FlattenedSystemState, Relationships, SystemState } from './_models/SystemState.js';
+import type { WebSocketTokenApiResponse, WebSocketTokenResponse } from './_models/WebSockets.js';
 import {
-  ADCLOGIN_URL,
   ADCFORMLOGIN_URL,
+  ADCLOGIN_URL,
+  CAMERAS_URL,
+  GARAGE_URL,
   IDENTITIES_URL,
-  SYSTEM_URL,
+  LIGHTS_URL,
+  LOCKS_URL,
   PARTITIONS_URL,
   SENSORS_URL,
-  LIGHTS_URL,
-  GARAGE_URL,
+  SYSTEM_URL,
   THERMOSTAT_URL,
-  LOCKS_URL,
-  CAMERAS_URL,
-  WEBSOCKET_TOKEN_URL,
   UA,
+  WEBSOCKET_TOKEN_URL,
   authenticatedGet,
-  getComponents,
+  describeError,
   get,
-  describeError
-} from './_utils';
-import { WebSocketTokenResponse } from './_models/WebSockets';
+  getComponents
+} from './_utils.js';
 
 /**
  * Authenticate with alarm.com.
@@ -41,16 +40,16 @@ export async function login(username: string, password: string, existingMfaToken
   let systems: string[] = [];
 
   // load initial alarm.com page to gather required hidden form fields
-  await get(ADCLOGIN_URL)
+  await get<string>(ADCLOGIN_URL)
     .then((res) => {
       const loginObj: Record<string, string | null> = {
         __EVENTTARGET: null,
         __EVENTARGUMENT: null,
         __VIEWSTATEENCRYPTED: null,
-        __EVENTVALIDATION: res.body.match(/name="__EVENTVALIDATION".*?value="([^"]*)"/)[1],
-        __VIEWSTATE: res.body.match(/name="__VIEWSTATE".*?value="([^"]*)"/)[1],
-        __VIEWSTATEGENERATOR: res.body.match(/name="__VIEWSTATEGENERATOR".*?value="([^"]*)"/)[1],
-        __PREVIOUSPAGE: res.body.match(/name="__PREVIOUSPAGE".*?value="([^"]*)"/)[1],
+        __EVENTVALIDATION: res.body.match(/name="__EVENTVALIDATION".*?value="([^"]*)"/)![1] ?? null,
+        __VIEWSTATE: res.body.match(/name="__VIEWSTATE".*?value="([^"]*)"/)![1] ?? null,
+        __VIEWSTATEGENERATOR: res.body.match(/name="__VIEWSTATEGENERATOR".*?value="([^"]*)"/)![1] ?? null,
+        __PREVIOUSPAGE: res.body.match(/name="__PREVIOUSPAGE".*?value="([^"]*)"/)![1] ?? null,
         IsFromNewSite: '1',
         ctl00$ContentPlaceHolder1$loginform$txtUserName: username,
         txtPassword: password
@@ -75,7 +74,10 @@ export async function login(username: string, password: string, existingMfaToken
     redirect: 'manual'
   })
     .then((res) => {
-      loginCookies = (res.headers.raw()['set-cookie'] ?? []).map((c) => c.split(';')[0]).join('; ');
+      loginCookies = res.headers
+        .getSetCookie()
+        .map((c) => c.split(';')[0])
+        .join('; ');
       // gather ajaxkey for session headers
       const re = /afg=([^;]+);/.exec(loginCookies);
       if (!re) {
@@ -141,7 +143,7 @@ export async function getIdentitiesState(loginCookies: string, ajaxKey: string):
  */
 export async function getCurrentState(systemID: string, authOpts: AuthOpts): Promise<FlattenedSystemState> {
   // This call to the systems endpoint retrieves an overview of all devices in a system
-  const res = await authenticatedGet(SYSTEM_URL + systemID, authOpts);
+  const res = await authenticatedGet<SystemState>(SYSTEM_URL + systemID, authOpts);
   const rels: Relationships = res.data.relationships;
   const components = new Map<string, ApiDeviceState>();
   // push the results of getComponents into the components
@@ -197,7 +199,7 @@ export async function getCurrentState(systemID: string, authOpts: AuthOpts): Pro
  * @returns {Promise<WebSocketTokenResponse>}
  */
 export async function getWebSocketToken(authOpts: AuthOpts): Promise<WebSocketTokenResponse> {
-  const res = await authenticatedGet(WEBSOCKET_TOKEN_URL, authOpts);
+  const res = await authenticatedGet<WebSocketTokenApiResponse>(WEBSOCKET_TOKEN_URL, authOpts);
   return {
     value: res.value,
     endpoint: res.metaData.endpoint,

@@ -1,4 +1,4 @@
-import {
+import type {
   CameraState,
   GarageState,
   LightState,
@@ -6,7 +6,7 @@ import {
   PartitionState,
   SensorState,
   ThermostatState
-} from './DeviceStates';
+} from './DeviceStates.js';
 
 /**
  * Response information from

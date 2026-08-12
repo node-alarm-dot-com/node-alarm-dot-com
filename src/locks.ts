@@ -1,6 +1,6 @@
-import { AuthOpts } from './_models/AuthOpts';
-import { LockState } from './_models/DeviceStates';
-import { LOCKS_URL, authenticatedGet, authenticatedPost } from './_utils';
+import type { AuthOpts } from './_models/AuthOpts.js';
+import type { ApiDeviceState, LockState } from './_models/DeviceStates.js';
+import { LOCKS_URL, authenticatedGet, authenticatedPost } from './_utils.js';
 
 /**
  * Perform lock actions, e.g., lock, unlock.
@@ -44,7 +44,7 @@ export function setLockUnsecure(lockID: string, authOpts: AuthOpts) {
 }
 
 async function getLock(lockID: string, authOpts: AuthOpts): Promise<LockState | undefined> {
-  const res = await authenticatedGet(`${LOCKS_URL}${encodeURIComponent(lockID)}`, authOpts);
+  const res = await authenticatedGet<ApiDeviceState>(`${LOCKS_URL}${encodeURIComponent(lockID)}`, authOpts);
   return res.data as LockState;
 }
 

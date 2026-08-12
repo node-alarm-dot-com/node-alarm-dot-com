@@ -1,6 +1,6 @@
-import { AuthOpts } from './_models/AuthOpts';
-import { LightState } from './_models/DeviceStates';
-import { LIGHTS_URL, authenticatedGet, authenticatedPost } from './_utils';
+import type { AuthOpts } from './_models/AuthOpts.js';
+import type { ApiDeviceState, LightState } from './_models/DeviceStates.js';
+import { LIGHTS_URL, authenticatedGet, authenticatedPost } from './_utils.js';
 
 /**
  * Perform non-dimmable light actions, i.e. turn on, turn off
@@ -75,7 +75,7 @@ export function setLightOff(lightID: string, authOpts: AuthOpts, brightness: num
 }
 
 async function getLight(lightID: string, authOpts: AuthOpts): Promise<LightState | undefined> {
-  const res = await authenticatedGet(`${LIGHTS_URL}${encodeURIComponent(lightID)}`, authOpts);
+  const res = await authenticatedGet<ApiDeviceState>(`${LIGHTS_URL}${encodeURIComponent(lightID)}`, authOpts);
   return res.data as LightState;
 }
 

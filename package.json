@@ -7,6 +7,7 @@
     "url": "https://github.com/chase9"
   },
   "license": "MIT",
+  "type": "module",
   "keywords": [
     "node-only",
     "security",
@@ -49,14 +50,12 @@
     "node": ">=22.0.0"
   },
   "dependencies": {
-    "node-fetch": "^2.7.0",
     "semver": "^7.8.5"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.6",
     "@eslint/js": "^10.0.1",
     "@types/node": "^26.2.0",
-    "@types/node-fetch": "^2.6.13",
     "@typescript-eslint/eslint-plugin": "^8.67.0",
     "@typescript-eslint/parser": "^8.67.0",
     "eslint": "^10.8.1",

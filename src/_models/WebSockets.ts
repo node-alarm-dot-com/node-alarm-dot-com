@@ -6,6 +6,16 @@ export interface WebSocketTokenResponse {
   processingErrors: unknown[];
 }
 
+export interface WebSocketTokenApiResponse {
+  value: string;
+  metaData: {
+    endpoint: 'wss://webskt.alarm.com:8443' | string;
+  };
+  errors: unknown[];
+  validationErrors: unknown[];
+  processingErrors: unknown[];
+}
+
 export interface WebSocketEvent {
   /**
    * Timestamp in the form of "2026-04-12T16:21:06.019Z"

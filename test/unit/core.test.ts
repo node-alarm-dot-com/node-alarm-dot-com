@@ -27,7 +27,7 @@ describe('login', () => {
 
     nock('https://www.alarm.com')
       .post('/web/Default.aspx')
-      .reply(200, '', { 'Set-Cookie': ['afg=fixture-ajax-key; Path=/', 'sessionid=abc123; Path=/'] });
+      .reply(200, '', ['Set-Cookie', 'afg=fixture-ajax-key; Path=/', 'Set-Cookie', 'sessionid=abc123; Path=/']);
 
     nock('https://www.alarm.com')
       .get('/web/api/identities')

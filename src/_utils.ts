@@ -1,9 +1,8 @@
-import fetch, { Headers } from 'node-fetch';
-import packageJson from '../package.json';
-import { AuthOpts } from './_models/AuthOpts';
-import { ApiDeviceState, DeviceState } from './_models/DeviceStates';
-import { RequestOptions } from './_models/RequestOptions';
 import { inspect } from 'util';
+import packageJson from '../package.json' with { type: 'json' };
+import type { AuthOpts } from './_models/AuthOpts.js';
+import type { ApiDeviceState, DeviceState } from './_models/DeviceStates.js';
+import type { RequestOptions } from './_models/RequestOptions.js';
 
 export const ADCLOGIN_URL = 'https://www.alarm.com/login';
 export const ADCFORMLOGIN_URL = 'https://www.alarm.com/web/Default.aspx';
@@ -21,7 +20,7 @@ export const CAMERA_SNAPSHOT_URL = 'https://www.alarm.com/web/api/video/snapshot
 export const WEBSOCKET_TOKEN_URL = 'https://www.alarm.com/web/api/websockets/token';
 export const UA = `node-alarm-dot-com/${packageJson.version}`;
 
-export async function authenticatedGet(url: string, opts: AuthOpts) {
+export async function authenticatedGet<T = unknown>(url: string, opts: AuthOpts): Promise<T> {
   const headers = {
     Accept: 'application/vnd.api+json',
     ajaxrequestuniquekey: opts.ajaxKey,
@@ -29,7 +28,7 @@ export async function authenticatedGet(url: string, opts: AuthOpts) {
     Referer: HOME_URL,
     'User-Agent': UA
   };
-  const res = await get(url, { headers });
+  const res = await get<T>(url, { headers });
   return res.body;
 }
 
@@ -60,7 +59,7 @@ export async function getComponents(url: string, componentIDs: string[], authOpt
 
   if (IDs.length <= 50) {
     const getUrl = `${url}?${IDs.map((id) => `ids%5B%5D=${id}`).join('&')}`;
-    requests.push(authenticatedGet(getUrl, authOpts));
+    requests.push(authenticatedGet<ApiDeviceState>(getUrl, authOpts));
   } else {
     // We have found that the Alarm.com API will return a 404 error when there is an excessive number of query parameters.
     // We get around this by breaking up our GET calls into shorter URIs.
@@ -70,7 +69,7 @@ export async function getComponents(url: string, componentIDs: string[], authOpt
       shortenedUrls.push(`${url}?${currentArray.map((id) => `ids%5B%5D=${id}`).join('&')}`);
     }
     shortenedUrls.push(`${url}?${IDs.map((id) => `ids%5B%5D=${id}`).join('&')}`);
-    requests = shortenedUrls.map((u) => authenticatedGet(u, authOpts));
+    requests = shortenedUrls.map((u) => authenticatedGet<ApiDeviceState>(u, authOpts));
   }
   return await combineAPIDeviceAPICalls(requests);
 }
@@ -97,7 +96,7 @@ async function combineAPIDeviceAPICalls(apiCalls: Promise<ApiDeviceState>[]): Pr
   return stateToReturn;
 }
 
-export async function get(url: string, opts?: { headers?: Record<string, string> }) {
+export async function get<T = unknown>(url: string, opts?: { headers?: Record<string, string> }) {
   let status: number;
   let resHeaders: Headers;
 
@@ -124,7 +123,7 @@ export async function get(url: string, opts?: { headers?: Record<string, string>
     }
     return {
       headers: resHeaders,
-      body: body
+      body: body as T
     };
   } catch (err) {
     throw new Error(`GET ${url} failed: ${err instanceof Error ? err.message : String(err)}`, { cause: err });

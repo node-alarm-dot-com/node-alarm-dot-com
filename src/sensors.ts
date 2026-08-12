@@ -1,9 +1,9 @@
-import { AuthOpts } from './_models/AuthOpts';
-import { SensorState } from './_models/DeviceStates';
-import { SENSORS_URL, authenticatedGet } from './_utils';
+import type { AuthOpts } from './_models/AuthOpts.js';
+import type { ApiDeviceState, SensorState } from './_models/DeviceStates.js';
+import { SENSORS_URL, authenticatedGet } from './_utils.js';
 
 async function getSensor(sensorID: string, authOpts: AuthOpts): Promise<SensorState | undefined> {
-  const res = await authenticatedGet(`${SENSORS_URL}/${sensorID}`, authOpts);
+  const res = await authenticatedGet<ApiDeviceState>(`${SENSORS_URL}/${sensorID}`, authOpts);
   return res.data as SensorState;
 }
 

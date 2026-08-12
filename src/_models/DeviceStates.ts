@@ -1,5 +1,5 @@
-import { Relationship } from './IdentityResponse';
-import { SensorType } from './SensorType';
+import type { Relationship } from './IdentityResponse.js';
+import { SensorType } from './SensorType.js';
 import {
   ExtendedArmingOptions,
   GARAGE_STATES,
@@ -8,8 +8,8 @@ import {
   SENSOR_STATES,
   SYSTEM_STATES,
   THERMOSTAT_STATES
-} from './States';
-import { AutomationType, RelationshipType } from './SystemState';
+} from './States.js';
+import { AutomationType, RelationshipType } from './SystemState.js';
 
 export interface ApiLightState extends ApiDeviceState {
   data: {

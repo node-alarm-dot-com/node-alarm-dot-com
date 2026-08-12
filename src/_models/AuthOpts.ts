@@ -1,4 +1,4 @@
-import { IdentityResponse } from './IdentityResponse';
+import type { IdentityResponse } from './IdentityResponse.js';
 
 /**
  * AuthOpts is authentication information which is used in API requests to authenticate as the user.
