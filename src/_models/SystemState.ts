@@ -1,4 +1,4 @@
-import {
+import type {
   CameraState,
   GarageState,
   LightState,
@@ -6,7 +6,7 @@ import {
   PartitionState,
   SensorState,
   ThermostatState
-} from './DeviceStates';
+} from './DeviceStates.js';
 
 /**
  * Response information from
@@ -18,7 +18,7 @@ export interface SystemState {
     type: RelationshipType.System;
     attributes: SystemAttributes;
     relationships: Relationships;
-    included: any[];
+    included: unknown[];
     meta: {
       transformer_version: string;
     };

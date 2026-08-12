@@ -1,0 +1,41 @@
+{
+  "data": [
+    {
+      "id": "1",
+      "type": "identity",
+      "attributes": {
+        "timezone": "America/New_York",
+        "preferredTimezone": "America/New_York",
+        "isMobileApp": false,
+        "localizeTempUnitsToCelsius": false
+      },
+      "relationships": {
+        "dealer": {
+          "data": {
+            "id": "dealer-1",
+            "type": "dealers/dealer"
+          }
+        },
+        "profile": {
+          "data": {
+            "id": "profile-1",
+            "type": "profile/profile"
+          }
+        },
+        "selectedSystem": {
+          "data": {
+            "id": "id-system",
+            "type": "systems/configuration"
+          }
+        },
+        "selectedSystemGroup": {
+          "data": null
+        }
+      }
+    }
+  ],
+  "included": [],
+  "meta": {
+    "transformer_version": "1"
+  }
+}

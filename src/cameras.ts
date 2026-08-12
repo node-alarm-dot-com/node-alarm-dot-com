@@ -1,6 +1,6 @@
-import { AuthOpts } from './_models/AuthOpts';
-import { CameraSnapshotResponse } from './_models/DeviceStates';
-import { CAMERA_SNAPSHOT_URL, authenticatedGet } from './_utils';
+import type { AuthOpts } from './_models/AuthOpts.js';
+import type { CameraSnapshotResponse } from './_models/DeviceStates.js';
+import { CAMERA_SNAPSHOT_URL, authenticatedGet } from './_utils.js';
 
 /**
  * Requests a fresh live-view snapshot for a camera and returns the signed, time-limited

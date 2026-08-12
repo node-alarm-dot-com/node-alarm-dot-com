@@ -1,6 +1,16 @@
 export interface WebSocketTokenResponse {
   value: string;
-  endpoint: 'wss://webskt.alarm.com:8443' | string;
+  endpoint: 'wss://webskt.alarm.com:8443' | (string & {});
+  errors: unknown[];
+  validationErrors: unknown[];
+  processingErrors: unknown[];
+}
+
+export interface WebSocketTokenApiResponse {
+  value: string;
+  metaData: {
+    endpoint: 'wss://webskt.alarm.com:8443' | (string & {});
+  };
   errors: unknown[];
   validationErrors: unknown[];
   processingErrors: unknown[];

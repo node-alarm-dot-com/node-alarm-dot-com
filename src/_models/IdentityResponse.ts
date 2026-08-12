@@ -4,7 +4,7 @@
  */
 export interface IdentityResponse {
   data: IdentityData[];
-  included: any[];
+  included: unknown[];
   meta: {
     transformer_version: string;
   };

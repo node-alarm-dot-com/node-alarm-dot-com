@@ -1,7 +1,7 @@
-import { AuthOpts } from './_models/AuthOpts';
-import { PartitionState } from './_models/DeviceStates';
-import { PartitionActionOptions } from './_models/PartitionActionOptions';
-import { PARTITIONS_URL, authenticatedGet, authenticatedPost } from './_utils';
+import type { AuthOpts } from './_models/AuthOpts.js';
+import type { ApiDeviceState, PartitionState } from './_models/DeviceStates.js';
+import type { PartitionActionOptions } from './_models/PartitionActionOptions.js';
+import { PARTITIONS_URL, authenticatedGet, authenticatedPost } from './_utils.js';
 
 /**
  * Perform partition actions, e.g., armAway, armStay, disarm.
@@ -92,7 +92,7 @@ export function disarm(partitionID: string, authOpts: AuthOpts) {
 }
 
 async function getPartition(partitionID: string, authOpts: AuthOpts): Promise<PartitionState | undefined> {
-  const res = await authenticatedGet(`${PARTITIONS_URL}${encodeURIComponent(partitionID)}`, authOpts);
+  const res = await authenticatedGet<ApiDeviceState>(`${PARTITIONS_URL}${encodeURIComponent(partitionID)}`, authOpts);
   return res.data as PartitionState;
 }
 

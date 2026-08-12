@@ -1,7 +1,7 @@
-import { AuthOpts } from './_models/AuthOpts';
-import { ThermostatState } from './_models/DeviceStates';
-import { THERMOSTAT_STATES } from './_models/States';
-import { THERMOSTAT_URL, authenticatedGet, authenticatedPost } from './_utils';
+import type { AuthOpts } from './_models/AuthOpts.js';
+import type { ApiDeviceState, ThermostatState } from './_models/DeviceStates.js';
+import { THERMOSTAT_STATES } from './_models/States.js';
+import { THERMOSTAT_URL, authenticatedGet, authenticatedPost } from './_utils.js';
 
 /**
  * Update thermostat state
@@ -61,7 +61,7 @@ export function setThermostatTargetCoolTemperature(thermostatID: string, newTemp
 }
 
 async function getThermostat(thermostatID: string, authOpts: AuthOpts): Promise<ThermostatState | undefined> {
-  const res = await authenticatedGet(`${THERMOSTAT_URL}${encodeURIComponent(thermostatID)}`, authOpts);
+  const res = await authenticatedGet<ApiDeviceState>(`${THERMOSTAT_URL}${encodeURIComponent(thermostatID)}`, authOpts);
   return res.data as ThermostatState;
 }
 

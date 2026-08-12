@@ -36,7 +36,7 @@ Originally intended for use with the fork: [https://github.com/node-alarm-dot-co
 **Querying:**
 
 ```js
-const nodeADC = require('node-alarm-dot-com');
+import * as nodeADC from 'node-alarm-dot-com';
 
 nodeADC
   .login('your_username', 'your_password')
@@ -51,7 +51,7 @@ nodeADC
 **Arming:**
 
 ```js
-const nodeADC = require('node-alarm-dot-com');
+import * as nodeADC from 'node-alarm-dot-com';
 
 nodeADC
   .login('your_username', 'your_password')

@@ -1,5 +1,5 @@
-import { Relationship } from './IdentityResponse';
-import { SensorType } from './SensorType';
+import type { Relationship } from './IdentityResponse.js';
+import { SensorType } from './SensorType.js';
 import {
   ExtendedArmingOptions,
   GARAGE_STATES,
@@ -8,8 +8,8 @@ import {
   SENSOR_STATES,
   SYSTEM_STATES,
   THERMOSTAT_STATES
-} from './States';
-import { AutomationType, RelationshipType } from './SystemState';
+} from './States.js';
+import { AutomationType, RelationshipType } from './SystemState.js';
 
 export interface ApiLightState extends ApiDeviceState {
   data: {
@@ -1108,7 +1108,7 @@ export interface ApiAccessControlState extends ApiDeviceState {
       troubleshootingWizard: null;
       addDeviceResource: number;
       canBeAssociatedToVideoDevice: boolean;
-      associatedCameraDeviceIds: {};
+      associatedCameraDeviceIds: object;
       macAddress: string;
       manufacturer: string;
       isAssignedToCareReceiver: boolean;
@@ -1170,13 +1170,16 @@ export interface ApiDeviceState {
   data: DeviceState[] | DeviceState;
   included: [];
   meta: {
-    transformer_version: '1.1' | string;
+    transformer_version: '1.1' | (string & {});
   };
 }
 
 export interface DeviceState {
   id: string;
   type: RelationshipType;
+  // Shape varies by `type`; narrower device-specific interfaces (e.g. LockState, SensorState) describe the real fields.
+  /* eslint-disable @typescript-eslint/no-explicit-any */
   attributes: any;
   relationships: any;
+  /* eslint-enable @typescript-eslint/no-explicit-any */
 }
