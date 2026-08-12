@@ -33,9 +33,6 @@
   "files": [
     "dist"
   ],
-  "bin": {
-    "nodeADC": "dist/index.js"
-  },
   "scripts": {
     "clean": "rimraf ./dist",
     "lint": "eslint src/**/*.ts test/**/*.ts",
@@ -49,9 +46,6 @@
   "engines": {
     "node": ">=22.0.0"
   },
-  "dependencies": {
-    "semver": "^7.8.5"
-  },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/node": "^26.2.0",
@@ -63,7 +57,6 @@
     "ts-node": "^10.9.2",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.67.0",
-    "vitest": "^4.1.10",
-    "yargs": "^18.1.0"
+    "vitest": "^4.1.10"
   }
 }
