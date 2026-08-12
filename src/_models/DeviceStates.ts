@@ -1108,7 +1108,7 @@ export interface ApiAccessControlState extends ApiDeviceState {
       troubleshootingWizard: null;
       addDeviceResource: number;
       canBeAssociatedToVideoDevice: boolean;
-      associatedCameraDeviceIds: {};
+      associatedCameraDeviceIds: object;
       macAddress: string;
       manufacturer: string;
       isAssignedToCareReceiver: boolean;
@@ -1170,13 +1170,16 @@ export interface ApiDeviceState {
   data: DeviceState[] | DeviceState;
   included: [];
   meta: {
-    transformer_version: '1.1' | string;
+    transformer_version: '1.1' | (string & {});
   };
 }
 
 export interface DeviceState {
   id: string;
   type: RelationshipType;
+  // Shape varies by `type`; narrower device-specific interfaces (e.g. LockState, SensorState) describe the real fields.
+  /* eslint-disable @typescript-eslint/no-explicit-any */
   attributes: any;
   relationships: any;
+  /* eslint-enable @typescript-eslint/no-explicit-any */
 }

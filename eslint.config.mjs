@@ -1,42 +1,45 @@
-import { FlatCompat } from '@eslint/eslintrc';
 import js from '@eslint/js';
-import typescriptEslint from '@typescript-eslint/eslint-plugin';
-import tsParser from '@typescript-eslint/parser';
+import prettierConfig from 'eslint-config-prettier';
 import prettier from 'eslint-plugin-prettier';
 import { defineConfig, globalIgnores } from 'eslint/config';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-  recommendedConfig: js.configs.recommended,
-  allConfig: js.configs.all
-});
+import tseslint from 'typescript-eslint';
 
 export default defineConfig([
   globalIgnores(['**/node_modules', '**/dist']),
+  js.configs.recommended,
   {
-    extends: compat.extends(
-      'eslint:recommended',
-      'plugin:@typescript-eslint/eslint-recommended',
-      'plugin:@typescript-eslint/recommended',
-      'prettier'
-    ),
-
-    plugins: {
-      '@typescript-eslint': typescriptEslint,
-      prettier
-    },
-
+    // Scoped to .ts so plain JS config files (e.g. this one) aren't sent through
+    // type-aware linting, which requires a tsconfig that covers the file.
+    files: ['**/*.ts'],
+    extends: [...tseslint.configs.recommendedTypeChecked],
     languageOptions: {
-      parser: tsParser
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname
+      }
+    }
+  },
+  prettierConfig,
+  {
+    plugins: {
+      prettier
     },
 
     rules: {
       'no-console': 1,
       'prettier/prettier': 2
+    }
+  },
+  {
+    // projectService only auto-discovers files named `tsconfig.json`, which excludes test/**.
+    // Point these files at tsconfig.test.json (which extends tsconfig.json and includes both dirs) instead.
+    files: ['test/**/*.ts'],
+    languageOptions: {
+      parserOptions: {
+        projectService: false,
+        project: './tsconfig.test.json',
+        tsconfigRootDir: import.meta.dirname
+      }
     }
   }
 ]);

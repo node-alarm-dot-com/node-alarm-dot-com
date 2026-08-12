@@ -18,7 +18,7 @@ export interface SystemState {
     type: RelationshipType.System;
     attributes: SystemAttributes;
     relationships: Relationships;
-    included: any[];
+    included: unknown[];
     meta: {
       transformer_version: string;
     };

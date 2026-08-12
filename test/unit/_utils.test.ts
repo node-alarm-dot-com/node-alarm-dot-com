@@ -1,7 +1,7 @@
 import nock from 'nock';
 import { afterEach, describe, expect, it } from 'vitest';
-import { AuthOpts } from '../../src/_models/AuthOpts';
-import { authenticatedGet, getComponents, SENSORS_URL } from '../../src/_utils';
+import type { AuthOpts } from '../../src/_models/AuthOpts.js';
+import { authenticatedGet, getComponents, SENSORS_URL } from '../../src/_utils.js';
 
 const authOpts: AuthOpts = {
   cookie: 'test-cookie',
