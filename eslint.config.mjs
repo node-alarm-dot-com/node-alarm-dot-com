@@ -5,7 +5,7 @@ import { defineConfig, globalIgnores } from 'eslint/config';
 import tseslint from 'typescript-eslint';
 
 export default defineConfig([
-  globalIgnores(['**/node_modules', '**/dist']),
+  globalIgnores(['**/node_modules', '**/dist', '**/dist-test']),
   js.configs.recommended,
   {
     // Scoped to .ts so plain JS config files (e.g. this one) aren't sent through

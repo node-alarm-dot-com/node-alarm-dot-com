@@ -68,5 +68,6 @@ typings/
 *.code-workspace
 
 dist/
+dist-test/
 P/
 .DS_Store

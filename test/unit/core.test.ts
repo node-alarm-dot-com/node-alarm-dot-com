@@ -1,30 +1,31 @@
-import { readFileSync } from 'fs';
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { afterEach, describe, it } from 'node:test';
 import nock from 'nock';
-import { join } from 'path';
-import { afterEach, describe, expect, it } from 'vitest';
 import { login } from '../../src/core.js';
 
-const loginPageHtml = readFileSync(join(__dirname, '../fixtures/html/login_page.html'), 'utf-8');
+const loginPageHtml = readFileSync(join(import.meta.dirname, '../fixtures/html/login_page.html'), 'utf-8');
 const identitiesOk = JSON.parse(
-  readFileSync(join(__dirname, '../fixtures/json/identities_ok.json'), 'utf-8')
+  readFileSync(join(import.meta.dirname, '../fixtures/json/identities_ok.json'), 'utf-8')
 ) as Record<string, unknown>;
 
 afterEach(() => {
   nock.cleanAll();
 });
 
-describe('login', () => {
-  it('rejects with a "No afg cookie" error when the login response has no afg cookie', async () => {
+void describe('login', () => {
+  void it('rejects with a "No afg cookie" error when the login response has no afg cookie', async () => {
     nock('https://www.alarm.com').get('/login').reply(200, loginPageHtml, { 'Content-Type': 'text/html' });
 
     nock('https://www.alarm.com')
       .post('/web/Default.aspx')
       .reply(200, '', { 'Set-Cookie': 'sessionid=abc123; Path=/' });
 
-    await expect(login('test-user', 'test-pass')).rejects.toThrow('No afg cookie');
+    await assert.rejects(login('test-user', 'test-pass'), /No afg cookie/);
   });
 
-  it('returns systems parsed from the identities response on a successful login', async () => {
+  void it('returns systems parsed from the identities response on a successful login', async () => {
     nock('https://www.alarm.com').get('/login').reply(200, loginPageHtml, { 'Content-Type': 'text/html' });
 
     nock('https://www.alarm.com')
@@ -37,7 +38,7 @@ describe('login', () => {
 
     const authOpts = await login('test-user', 'test-pass');
 
-    expect(authOpts.ajaxKey).toBe('fixture-ajax-key');
-    expect(authOpts.systems).toEqual(['id-system']);
+    assert.strictEqual(authOpts.ajaxKey, 'fixture-ajax-key');
+    assert.deepStrictEqual(authOpts.systems, ['id-system']);
   });
 });
