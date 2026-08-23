@@ -1,5 +1,6 @@
+import assert from 'node:assert/strict';
+import { afterEach, describe, it } from 'node:test';
 import nock from 'nock';
-import { afterEach, describe, expect, it } from 'vitest';
 import type { AuthOpts } from '../../src/_models/AuthOpts.js';
 import { armStay, disarm } from '../../src/partitions.js';
 
@@ -15,8 +16,8 @@ afterEach(() => {
   nock.cleanAll();
 });
 
-describe('partitionAction body shape', () => {
-  it('omits noEntryDelay and silentArming when disarming', async () => {
+void describe('partitionAction body shape', () => {
+  void it('omits noEntryDelay and silentArming when disarming', async () => {
     let capturedBody: Record<string, unknown> = {};
 
     nock('https://www.alarm.com')
@@ -28,12 +29,12 @@ describe('partitionAction body shape', () => {
 
     await disarm('id-partition-1', authOpts);
 
-    expect(capturedBody['noEntryDelay']).toBeUndefined();
-    expect(capturedBody['silentArming']).toBeUndefined();
-    expect(capturedBody['statePollOnly']).toBe(false);
+    assert.strictEqual(capturedBody['noEntryDelay'], undefined);
+    assert.strictEqual(capturedBody['silentArming'], undefined);
+    assert.strictEqual(capturedBody['statePollOnly'], false);
   });
 
-  it('includes nightArming only when explicitly true, and omits forceBypass when false', async () => {
+  void it('includes nightArming only when explicitly true, and omits forceBypass when false', async () => {
     let capturedBody: Record<string, unknown> = {};
 
     nock('https://www.alarm.com')
@@ -50,7 +51,7 @@ describe('partitionAction body shape', () => {
       forceBypass: false
     });
 
-    expect(capturedBody['nightArming']).toBe(true);
-    expect('forceBypass' in capturedBody).toBe(false);
+    assert.strictEqual(capturedBody['nightArming'], true);
+    assert.strictEqual('forceBypass' in capturedBody, false);
   });
 });
